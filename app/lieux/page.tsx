@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-
+import MapLieuxClient from '@/components/MapLieuxClient';
 import { supabase } from '../../lib/supabaseClient';
-import MapLieuxClient from '@/components/MapLieuxClient'; // <-- utilise le wrapper
 
 interface Lieu {
   id: string;
@@ -24,35 +23,23 @@ export default function LieuxPage() {
   useEffect(() => {
     const fetchLieux = async () => {
       try {
-        const { data, error } = await supabase
-          .from('locations')
-          .select('*');
+        const { data, error } = await supabase.from('locations').select('*');
+        if (error) throw error;
 
-        if (error) {
-          console.error('Erreur Supabase:', error.message);
-          setErrorMsg(error.message);
-          setLieux([]); // Toujours définir un tableau
-          return;
-        }
+        const filteredData = (data ?? []).map((row: any) => ({
+          id: row.id,
+          title: row.title ?? 'Titre inconnu',
+          description: row.description ?? null,
+          country: row.country ?? null,
+          status: row.status ?? null,
+          latitude: row.latitude ?? 0,
+          longitude: row.longitude ?? 0,
+        }));
 
-        if (data) {
-          const filteredData: Lieu[] = data
-            .filter(Boolean)
-            .map((row: any) => ({
-              id: row.id,
-              title: row.title ?? 'Titre inconnu',
-              description: row.description ?? null,
-              country: row.country ?? null,
-              status: row.status ?? null,
-              latitude: row.latitude ?? 0,
-              longitude: row.longitude ?? 0,
-            }));
-
-          setLieux(filteredData);
-        }
-      } catch (err) {
-        console.error('Erreur fetch:', err);
-        setErrorMsg('Erreur lors de la récupération des lieux');
+        setLieux(filteredData);
+      } catch (err: any) {
+        console.error(err);
+        setErrorMsg(err.message ?? 'Erreur lors de la récupération des lieux');
         setLieux([]);
       } finally {
         setLoading(false);
@@ -64,11 +51,9 @@ export default function LieuxPage() {
 
   return (
     <div style={{ padding: '1rem', fontFamily: 'sans-serif' }}>
-      {/* Entête */}
       <header style={{ marginBottom: '2rem', textAlign: 'center' }}>
         <h1>Mémoire de la Marine</h1>
         <p>Carte collaborative des lieux de mémoire maritime</p>
-
         <Link
           href="/"
           style={{
@@ -85,21 +70,17 @@ export default function LieuxPage() {
         </Link>
       </header>
 
-      {/* Chargement / erreurs */}
       {loading && <p>Chargement des lieux…</p>}
       {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
 
-      {/* 🗺️ Carte interactive */}
-      {!loading && !errorMsg && Array.isArray(lieux) && lieux.length > 0 && (
-        <MapLieuxClient lieux={lieux} />
-      )}
+      {/* Carte interactive */}
+      {!loading && !errorMsg && <MapLieuxClient lieux={lieux} />}
 
       {/* Liste */}
-      {!loading && !errorMsg && Array.isArray(lieux) && lieux.length === 0 && (
+      {!loading && !errorMsg && lieux.length === 0 && (
         <p>Aucun lieu trouvé pour le moment.</p>
       )}
-
-      {!loading && !errorMsg && Array.isArray(lieux) && lieux.length > 0 && (
+      {!loading && !errorMsg && lieux.length > 0 && (
         <ul>
           {lieux.map((lieu) => (
             <li
@@ -114,7 +95,9 @@ export default function LieuxPage() {
               {lieu.description && <p>{lieu.description}</p>}
               {lieu.country && <p>Pays : {lieu.country}</p>}
               {lieu.status && <p>Statut : {lieu.status}</p>}
-              <p>Coordonnées : {lieu.latitude}, {lieu.longitude}</p>
+              <p>
+                Coordonnées : {lieu.latitude}, {lieu.longitude}
+              </p>
             </li>
           ))}
         </ul>
