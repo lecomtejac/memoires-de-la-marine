@@ -34,7 +34,7 @@ export default function Home() {
           <p style={{ fontSize: 16, lineHeight: 1.6 }}>
             Le site a vocation à devenir un atlas interactif, collaboratif et géolocalisé. 
             Chaque contribution enrichit la mémoire des marins, des monuments, des épaves, des sites historiques liés à la mer... 
-            Toutes traces de l'histoire navale française laissées du passé a vocation à être recensées par ce stie 
+            Toutes traces de l'histoire navale française laissées du passé a vocation à être recensées par ce site 
           </p>
         </section>
 
