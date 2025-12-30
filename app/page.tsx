@@ -1,95 +1,54 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
-// Chemin corrigé : depuis app/page.tsx vers lib/supabaseClient.ts
-import { supabase } from '../lib/supabaseClient';
-
-interface Lieu {
-  id: string;
-  title: string;
-  description?: string | null;
-  country?: string | null;
-  status?: string | null;
-  latitude: number;
-  longitude: number;
-}
 
 export default function HomePage() {
-  const [lieux, setLieux] = useState<Lieu[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchLieux = async () => {
-      try {
-        const { data, error } = await supabase.from('locations').select('*');
-        if (error) throw error;
-
-        const filteredData: Lieu[] = (data ?? []).map((row: any) => ({
-          id: row.id,
-          title: row.title ?? 'Titre inconnu',
-          description: row.description ?? null,
-          country: row.country ?? null,
-          status: row.status ?? null,
-          latitude: row.latitude ?? 0,
-          longitude: row.longitude ?? 0,
-        }));
-
-        setLieux(filteredData);
-      } catch (err: any) {
-        console.error('Erreur fetch:', err);
-        setErrorMsg(err.message ?? 'Erreur lors de la récupération des lieux');
-        setLieux([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchLieux();
-  }, []);
-
   return (
-    <div style={{ padding: '1rem', fontFamily: 'sans-serif' }}>
+    <div style={{ padding: '2rem', fontFamily: 'sans-serif', maxWidth: '800px', margin: '0 auto' }}>
+      {/* Entête */}
       <header style={{ marginBottom: '2rem', textAlign: 'center' }}>
         <h1>Mémoire de la Marine</h1>
-        <p>Liste des lieux de mémoire maritime</p>
-        <Link
-          href="/"
-          style={{
-            display: 'inline-block',
-            marginTop: '1rem',
-            padding: '0.5rem 1rem',
-            backgroundColor: '#0070f3',
-            color: '#fff',
-            borderRadius: '5px',
-            textDecoration: 'none',
-          }}
-        >
-          Retour à l&apos;accueil
-        </Link>
+        <p style={{ fontSize: '1.2rem', marginTop: '0.5rem' }}>
+          Ce projet vise à recenser tous les lieux de mémoire maritime : tombes de marins, monuments,
+          plaques commémoratives, épaves, musées et sites symboliques.
+        </p>
+        <p style={{ fontSize: '1rem', marginTop: '1rem', color: '#555' }}>
+          Contribuez à enrichir cette mémoire collective en découvrant ou ajoutant des lieux de mémoire.
+        </p>
       </header>
 
-      {loading && <p>Chargement des lieux…</p>}
-      {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
+      {/* Bouton vers la page lieux */}
+      <div style={{ textAlign: 'center', marginTop: '3rem' }}>
+        <Link
+          href="/lieux"
+          style={{
+            display: 'inline-block',
+            padding: '1rem 2rem',
+            backgroundColor: '#0070f3',
+            color: '#fff',
+            borderRadius: '8px',
+            textDecoration: 'none',
+            fontWeight: 'bold',
+            fontSize: '1.2rem',
+          }}
+        >
+          Voir les lieux de mémoire
+        </Link>
+      </div>
 
-      {!loading && !errorMsg && lieux.length === 0 && <p>Aucun lieu trouvé pour le moment.</p>}
-
-      {!loading && !errorMsg && lieux.length > 0 && (
-        <ul>
-          {lieux.map((lieu) => (
-            <li key={lieu.id} style={{ marginBottom: '1rem' }}>
-              <strong>{lieu.title}</strong>
-              {lieu.description && <p>{lieu.description}</p>}
-              {lieu.country && <p>Pays : {lieu.country}</p>}
-              {lieu.status && <p>Statut : {lieu.status}</p>}
-              <p>
-                Coordonnées : {lieu.latitude}, {lieu.longitude}
-              </p>
-            </li>
-          ))}
-        </ul>
-      )}
+      {/* Section explicative */}
+      <section style={{ marginTop: '4rem', lineHeight: '1.6', color: '#333' }}>
+        <h2>À propos du projet</h2>
+        <p>
+          L’objectif est de créer une carte collaborative des lieux de mémoire maritime, avec fiches détaillées, photos,
+          informations historiques et contribution des utilisateurs. Chaque lieu peut être validé par un administrateur
+          pour garantir la qualité et la fiabilité des données.
+        </p>
+        <p>
+          Les types de lieux recensés incluent : tombes, monuments, plaques, épaves, sites de bataille, lieux de débarquement
+          et musées. La base de données est construite sur Supabase et le site est développé avec Next.js.
+        </p>
+      </section>
     </div>
   );
 }
