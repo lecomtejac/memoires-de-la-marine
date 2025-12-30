@@ -54,7 +54,7 @@ export default function Home() {
             marginRight: "auto",
           }}
         >
-          Bienvenue sur le site <strong>Mémoires de la Marine</strong>, un projet collaboratif dédié à la consultation et au recensement des lieux de mémoire liés à l’histoire navale française.
+          Bienvenue sur le site <strong>Mémoires de la Marine</strong>, un projet collaboratif dédié à la consultation et au recensement des lieux de mémoires liés à l’histoire navale française.
         </p>
 
         <section
