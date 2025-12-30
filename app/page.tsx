@@ -1,5 +1,4 @@
 import React from "react";
-import Link from "next/link";
 
 export default function Home() {
   return (
@@ -48,7 +47,7 @@ export default function Home() {
         <p
           style={{
             fontSize: 20,
-            marginBottom: 20,
+            marginBottom: 50,
             textAlign: "center",
             maxWidth: 800,
             marginLeft: "auto",
@@ -58,27 +57,6 @@ export default function Home() {
           Bienvenue sur le site <strong>Mémoires de la Marine</strong>, un projet collaboratif dédié à la consultation et au recensement des lieux de mémoires liés à l’histoire navale française.
         </p>
 
-        {/* Bouton pour accéder à la page lieux */}
-        <div style={{ textAlign: "center", marginBottom: 50 }}>
-          <Link href="/lieux">
-            <a
-              style={{
-                backgroundColor: "#0b3d91",
-                color: "#fff",
-                padding: "14px 28px",
-                borderRadius: 8,
-                fontSize: 18,
-                fontWeight: "bold",
-                textDecoration: "none",
-                boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-              }}
-            >
-              Explorer tous les lieux 🌊
-            </a>
-          </Link>
-        </div>
-
-        {/* Section 1 */}
         <section
           style={{
             backgroundColor: "#f4f8ff",
@@ -96,7 +74,6 @@ export default function Home() {
           </p>
         </section>
 
-        {/* Section 2 */}
         <section
           style={{
             backgroundColor: "#e8f7f2",
@@ -114,7 +91,6 @@ export default function Home() {
           </p>
         </section>
 
-        {/* Section 3 */}
         <section
           style={{
             backgroundColor: "#fff9f4",
