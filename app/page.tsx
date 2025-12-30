@@ -41,7 +41,7 @@ export default function Home() {
             color: "#0b3d91",
           }}
         >
-          Mémoire de la Marine
+          Mémoires de la Marine
         </h1>
 
         <p
