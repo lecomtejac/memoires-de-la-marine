@@ -14,7 +14,7 @@ interface Lieu {
   longitude: number;
 }
 
-export default function LieuxPage() {
+export default function HomePage() {
   const [lieux, setLieux] = useState<Lieu[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -50,7 +50,6 @@ export default function LieuxPage() {
 
   return (
     <div style={{ padding: '1rem', fontFamily: 'sans-serif' }}>
-      {/* Entête */}
       <header style={{ marginBottom: '2rem', textAlign: 'center' }}>
         <h1>Mémoire de la Marine</h1>
         <p>Liste des lieux de mémoire maritime</p>
@@ -67,4 +66,29 @@ export default function LieuxPage() {
           }}
         >
           Retour à l&apos;accueil
-        </L
+        </Link>
+      </header>
+
+      {loading && <p>Chargement des lieux…</p>}
+      {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
+
+      {!loading && !errorMsg && lieux.length === 0 && <p>Aucun lieu trouvé pour le moment.</p>}
+
+      {!loading && !errorMsg && lieux.length > 0 && (
+        <ul>
+          {lieux.map((lieu) => (
+            <li key={lieu.id} style={{ marginBottom: '1rem' }}>
+              <strong>{lieu.title}</strong>
+              {lieu.description && <p>{lieu.description}</p>}
+              {lieu.country && <p>Pays : {lieu.country}</p>}
+              {lieu.status && <p>Statut : {lieu.status}</p>}
+              <p>
+                Coordonnées : {lieu.latitude}, {lieu.longitude}
+              </p>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
