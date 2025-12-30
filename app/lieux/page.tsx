@@ -72,7 +72,9 @@ export default function LieuxPage() {
       {loading && <p>Chargement des lieux…</p>}
       {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
 
-      {!loading && !errorMsg && lieux.length === 0 && <p>Aucun lieu trouvé pour le moment.</p>}
+      {!loading && !errorMsg && lieux.length === 0 && (
+        <p>Aucun lieu trouvé pour le moment.</p>
+      )}
 
       {!loading && !errorMsg && lieux.length > 0 && (
         <ul>
