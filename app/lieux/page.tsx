@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
-import Link from 'next/link';
 
 interface Lieu {
   id: string;
   title: string;
+  description?: string | null;
+  country?: string | null;
+  status?: string | null;
   latitude: number;
   longitude: number;
 }
@@ -19,20 +21,23 @@ export default function LieuxPage() {
   useEffect(() => {
     const fetchLieux = async () => {
       try {
-        const { data, error } = await supabase.from('locations').select('id, title, latitude, longitude');
+        const { data, error } = await supabase.from('locations').select('*');
         if (error) throw error;
 
-        setLieux(
-          (data ?? []).map((row: any) => ({
-            id: row.id,
-            title: row.title ?? 'Titre inconnu',
-            latitude: row.latitude ?? 0,
-            longitude: row.longitude ?? 0,
-          }))
-        );
+        const filteredData: Lieu[] = (data ?? []).map((row: any) => ({
+          id: row.id,
+          title: row.title ?? 'Titre inconnu',
+          description: row.description ?? null,
+          country: row.country ?? null,
+          status: row.status ?? null,
+          latitude: row.latitude ?? 0,
+          longitude: row.longitude ?? 0,
+        }));
+
+        setLieux(filteredData);
       } catch (err: any) {
         console.error('Erreur fetch:', err);
-        setErrorMsg(err.message ?? 'Erreur lors de la récupération');
+        setErrorMsg(err.message ?? 'Erreur lors de la récupération des lieux');
         setLieux([]);
       } finally {
         setLoading(false);
@@ -42,37 +47,26 @@ export default function LieuxPage() {
     fetchLieux();
   }, []);
 
-  if (loading) return <p>Chargement des lieux…</p>;
-  if (errorMsg) return <p style={{ color: 'red' }}>{errorMsg}</p>;
-
   return (
     <div style={{ padding: '1rem', fontFamily: 'sans-serif' }}>
       <header style={{ marginBottom: '2rem', textAlign: 'center' }}>
-        <h1>Mémoire de la Marine</h1>
-        <p>Tableau des lieux de mémoire maritime</p>
-        <Link
-          href="/"
-          style={{
-            display: 'inline-block',
-            marginTop: '1rem',
-            padding: '0.5rem 1rem',
-            backgroundColor: '#0070f3',
-            color: '#fff',
-            borderRadius: '5px',
-            textDecoration: 'none',
-          }}
-        >
-          Retour à l&apos;accueil
-        </Link>
+        <h1>Lieux de mémoire maritime</h1>
       </header>
 
-      {lieux.length === 0 ? (
-        <p>Aucun lieu trouvé pour le moment.</p>
-      ) : (
+      {loading && <p>Chargement des lieux…</p>}
+      {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
+
+      {!loading && !errorMsg && lieux.length === 0 && <p>Aucun lieu trouvé.</p>}
+
+      {!loading && !errorMsg && lieux.length > 0 && (
         <ul>
           {lieux.map((lieu) => (
-            <li key={lieu.id} style={{ marginBottom: '1rem' }}>
-              <strong>{lieu.title}</strong> — {lieu.latitude}, {lieu.longitude}
+            <li key={lieu.id} style={{ marginBottom: '1rem', borderBottom: '1px solid #ccc', paddingBottom: '0.5rem' }}>
+              <h2>{lieu.title}</h2>
+              {lieu.description && <p>{lieu.description}</p>}
+              {lieu.country && <p>Pays : {lieu.country}</p>}
+              {lieu.status && <p>Statut : {lieu.status}</p>}
+              <p>Coordonnées : {lieu.latitude}, {lieu.longitude}</p>
             </li>
           ))}
         </ul>
