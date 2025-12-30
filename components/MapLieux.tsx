@@ -1,9 +1,9 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { Lieu } from './types'; // optionnel : définis ton interface
+import { Lieu } from './types'; // optionnel
 
-// Import de MapLieux uniquement côté client
+// Leaflet doit être importé uniquement côté client
 const MapLieux = dynamic(() => import('./MapLieux'), { ssr: false });
 
 interface MapLieuxClientProps {
@@ -11,6 +11,8 @@ interface MapLieuxClientProps {
 }
 
 export default function MapLieuxClient({ lieux }: MapLieuxClientProps) {
-  if (!lieux || lieux.length === 0) return null;
+  // si lieux undefined ou vide, ne rien afficher
+  if (!Array.isArray(lieux) || lieux.length === 0) return null;
+
   return <MapLieux lieux={lieux} />;
 }
