@@ -26,21 +26,22 @@ export default function Home() {
 
         <p style={{ fontSize: 18, lineHeight: 1.6, marginBottom: 40 }}>
           Bienvenue sur le site <strong>Mémoires de la Marine</strong>, un projet collaboratif dédié à la consultation et au recensement  
-          des lieux de mémoire liés à l’histoire maritime et navale française.  
+          des lieux de mémoire liés à l’histoire navale française.  
         </p>
 
         <section style={{ marginBottom: 50 }}>
           <h2 style={{ fontSize: 28, marginBottom: 15 }}>🌊 Un atlas vivant de la mémoire maritime</h2>
           <p style={{ fontSize: 16, lineHeight: 1.6 }}>
             Le site a vocation à devenir un atlas interactif, collaboratif et géolocalisé. 
-            Chaque contribution enrichit la mémoire des marins, des monuments, des épaves, des sites historiques liés à la mer... Toutes traces de l'histoire navale française laissées du passé a vocation à être recensée par ce stie 
+            Chaque contribution enrichit la mémoire des marins, des monuments, des épaves, des sites historiques liés à la mer... 
+            Toutes traces de l'histoire navale française laissées du passé a vocation à être recensées par ce stie 
           </p>
         </section>
 
         <section style={{ marginBottom: 50 }}>
           <h2 style={{ fontSize: 28, marginBottom: 15 }}>🧭 Projet collaboratif et modéré</h2>
           <p style={{ fontSize: 16, lineHeight: 1.6 }}>
-            Toute personne peut consulter ou proposer un nouveau lieu de mémoire. Les contributions sont ensuite vérifiées et enrichies 
+            Toute personne peut consulter ou proposer (après inscription) un nouveau lieu de mémoire. Les contributions sont ensuite vérifiées et enrichies 
             pour garantir la qualité, la fiabilité et le respect du caractère mémoriel du projet.
           </p>
         </section>
@@ -48,9 +49,8 @@ export default function Home() {
         <section>
           <h2 style={{ fontSize: 28, marginBottom: 15 }}>⚓ Pourquoi ce site ?</h2>
           <ul style={{ fontSize: 16, lineHeight: 1.8 }}>
-            <li>Recenser la mémoire maritime et navale</li>
+            <li>Recenser la mémoire navale de la France</li>
             <li>Rendre visibles des lieux parfois oubliés</li>
-            <li>Transmettre cette mémoire</li>
             <li>Créer une base de connaissance ouverte et durable</li>
           </ul>
         </section>
