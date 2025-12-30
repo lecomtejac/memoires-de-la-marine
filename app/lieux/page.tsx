@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabaseClient';
 import Link from 'next/link';
+
+import { supabase } from '../../lib/supabaseClient';
+import MapLieux from '@/components/MapLieux';
 
 interface Lieu {
   id: string;
@@ -29,17 +31,20 @@ export default function LieuxPage() {
         if (error) {
           console.error('Erreur Supabase:', error.message);
           setErrorMsg(error.message);
-        } else if (data) {
-          // Vérifie que chaque ligne a bien les colonnes attendues
-          const filteredData = data.map((row: any) => ({
+          return;
+        }
+
+        if (data) {
+          const filteredData: Lieu[] = data.map((row: any) => ({
             id: row.id,
             title: row.title ?? 'Titre inconnu',
             description: row.description ?? null,
             country: row.country ?? null,
             status: row.status ?? null,
-            latitude: row.latitude ?? 0,
-            longitude: row.longitude ?? 0,
+            latitude: row.latitude,
+            longitude: row.longitude,
           }));
+
           setLieux(filteredData);
         }
       } catch (err) {
@@ -59,6 +64,7 @@ export default function LieuxPage() {
       <header style={{ marginBottom: '2rem', textAlign: 'center' }}>
         <h1>Mémoire de la Marine</h1>
         <p>Carte collaborative des lieux de mémoire maritime</p>
+
         <Link
           href="/"
           style={{
@@ -71,18 +77,25 @@ export default function LieuxPage() {
             textDecoration: 'none',
           }}
         >
-          Retour à l'accueil
+          Retour à l&apos;accueil
         </Link>
       </header>
 
-      {/* Contenu */}
-      {loading ? (
-        <p>Chargement des lieux…</p>
-      ) : errorMsg ? (
-        <p style={{ color: 'red' }}>{errorMsg}</p>
-      ) : lieux.length === 0 ? (
+      {/* Chargement / erreurs */}
+      {loading && <p>Chargement des lieux…</p>}
+      {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
+
+      {/* 🗺️ Carte interactive */}
+      {!loading && !errorMsg && lieux.length > 0 && (
+        <MapLieux lieux={lieux} />
+      )}
+
+      {/* Liste (base unique, même source que la carte) */}
+      {!loading && !errorMsg && lieux.length === 0 && (
         <p>Aucun lieu trouvé pour le moment.</p>
-      ) : (
+      )}
+
+      {!loading && !errorMsg && lieux.length > 0 && (
         <ul>
           {lieux.map((lieu) => (
             <li
@@ -94,10 +107,14 @@ export default function LieuxPage() {
               }}
             >
               <h2>{lieu.title}</h2>
+
               {lieu.description && <p>{lieu.description}</p>}
               {lieu.country && <p>Pays : {lieu.country}</p>}
               {lieu.status && <p>Statut : {lieu.status}</p>}
-              <p>Coordonnées : {lieu.latitude}, {lieu.longitude}</p>
+
+              <p>
+                Coordonnées : {lieu.latitude}, {lieu.longitude}
+              </p>
             </li>
           ))}
         </ul>
