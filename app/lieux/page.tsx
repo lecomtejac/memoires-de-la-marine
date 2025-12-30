@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic';
 
 import { supabase } from '../../lib/supabaseClient';
 
-// Import dynamique de MapLieux pour éviter les erreurs côté serveur
+// Import dynamique de la carte
 const MapLieux = dynamic(() => import('@/components/MapLieux'), { ssr: false });
 
 interface Lieu {
@@ -34,25 +34,29 @@ export default function LieuxPage() {
         if (error) {
           console.error('Erreur Supabase:', error.message);
           setErrorMsg(error.message);
+          setLieux([]); // Toujours définir un tableau
           return;
         }
 
         if (data) {
-          const filteredData: Lieu[] = data.map((row: any) => ({
-            id: row.id,
-            title: row.title ?? 'Titre inconnu',
-            description: row.description ?? null,
-            country: row.country ?? null,
-            status: row.status ?? null,
-            latitude: row.latitude,
-            longitude: row.longitude,
-          }));
+          const filteredData: Lieu[] = data
+            .filter(Boolean) // filtre valeurs null/undefined
+            .map((row: any) => ({
+              id: row.id,
+              title: row.title ?? 'Titre inconnu',
+              description: row.description ?? null,
+              country: row.country ?? null,
+              status: row.status ?? null,
+              latitude: row.latitude ?? 0,
+              longitude: row.longitude ?? 0,
+            }));
 
           setLieux(filteredData);
         }
       } catch (err) {
         console.error('Erreur fetch:', err);
         setErrorMsg('Erreur lors de la récupération des lieux');
+        setLieux([]); // fallback
       } finally {
         setLoading(false);
       }
@@ -89,16 +93,16 @@ export default function LieuxPage() {
       {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
 
       {/* 🗺️ Carte interactive */}
-      {!loading && !errorMsg && lieux.length > 0 && (
+      {!loading && !errorMsg && Array.isArray(lieux) && lieux.length > 0 && (
         <MapLieux lieux={lieux} />
       )}
 
-      {/* Liste (base unique, même source que la carte) */}
-      {!loading && !errorMsg && lieux.length === 0 && (
+      {/* Liste */}
+      {!loading && !errorMsg && Array.isArray(lieux) && lieux.length === 0 && (
         <p>Aucun lieu trouvé pour le moment.</p>
       )}
 
-      {!loading && !errorMsg && lieux.length > 0 && (
+      {!loading && !errorMsg && Array.isArray(lieux) && lieux.length > 0 && (
         <ul>
           {lieux.map((lieu) => (
             <li
