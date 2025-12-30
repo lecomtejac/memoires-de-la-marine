@@ -25,8 +25,8 @@ export default function Home() {
         </h1>
 
         <p style={{ fontSize: 18, lineHeight: 1.6, marginBottom: 40 }}>
-          Bienvenue sur <strong>Mémoire de la Marine</strong>, un projet collaboratif dédié au recensement et à la transmission 
-          des lieux de mémoire liés à l’histoire maritime et navale.  
+          Bienvenue sur le site <strong>Mémoire de la Marine</strong>, un projet collaboratif dédié au recensement et à la consultation 
+          des lieux de mémoire liés à l’histoire maritime et navale française.  
         </p>
 
         <section style={{ marginBottom: 50 }}>
@@ -40,7 +40,7 @@ export default function Home() {
         <section style={{ marginBottom: 50 }}>
           <h2 style={{ fontSize: 28, marginBottom: 15 }}>🧭 Projet collaboratif et modéré</h2>
           <p style={{ fontSize: 16, lineHeight: 1.6 }}>
-            Toute personne peut proposer un lieu de mémoire. Les contributions sont ensuite vérifiées et enrichies 
+            Toute personne peut consulter ou proposer un nouveau lieu de mémoire. Les contributions sont ensuite vérifiées et enrichies 
             pour garantir la qualité, la fiabilité et le respect du caractère mémoriel du projet.
           </p>
         </section>
@@ -48,9 +48,9 @@ export default function Home() {
         <section>
           <h2 style={{ fontSize: 28, marginBottom: 15 }}>⚓ Pourquoi ce site ?</h2>
           <ul style={{ fontSize: 16, lineHeight: 1.8 }}>
-            <li>Préserver la mémoire maritime et navale</li>
+            <li>Recenser la mémoire maritime et navale</li>
             <li>Rendre visibles des lieux parfois oubliés</li>
-            <li>Transmettre aux générations futures</li>
+            <li>Transmettre cette mémoire</li>
             <li>Créer une base de connaissance ouverte et durable</li>
           </ul>
         </section>
