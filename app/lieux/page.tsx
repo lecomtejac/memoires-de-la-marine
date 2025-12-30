@@ -51,8 +51,7 @@ export default function LieuxPage() {
   return (
     <div style={{ padding: '1rem', fontFamily: 'sans-serif' }}>
       <header style={{ marginBottom: '2rem', textAlign: 'center' }}>
-        <h1>Mémoire de la Marine</h1>
-        <p>Liste des lieux de mémoire maritime</p>
+        <h1>Lieux de mémoire maritime</h1>
         <Link
           href="/"
           style={{
@@ -65,16 +64,13 @@ export default function LieuxPage() {
             textDecoration: 'none',
           }}
         >
-          Retour à l&apos;accueil
+          Retour à l'accueil
         </Link>
       </header>
 
       {loading && <p>Chargement des lieux…</p>}
       {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
-
-      {!loading && !errorMsg && lieux.length === 0 && (
-        <p>Aucun lieu trouvé pour le moment.</p>
-      )}
+      {!loading && !errorMsg && lieux.length === 0 && <p>Aucun lieu trouvé.</p>}
 
       {!loading && !errorMsg && lieux.length > 0 && (
         <ul>
