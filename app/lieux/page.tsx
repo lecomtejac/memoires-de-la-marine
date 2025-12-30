@@ -2,9 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 
 import { supabase } from '../../lib/supabaseClient';
-import MapLieux from '@/components/MapLieux';
+
+// Import dynamique de MapLieux pour éviter les erreurs côté serveur
+const MapLieux = dynamic(() => import('@/components/MapLieux'), { ssr: false });
 
 interface Lieu {
   id: string;
