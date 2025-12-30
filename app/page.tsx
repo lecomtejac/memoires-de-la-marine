@@ -1,147 +1,70 @@
-import React from "react";
-import Link from "next/link";
+'use client';
 
-export default function Home() {
-  return (
-    <>
-      {/* Bandeau site en construction */}
-      <div
-        style={{
-          backgroundColor: "#fff4e5",
-          borderBottom: "3px solid #f0c36d",
-          padding: "14px 20px",
-          textAlign: "center",
-          fontSize: 14,
-          fontWeight: "bold",
-          color: "#b85c00",
-          boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-          position: "sticky",
-          top: 0,
-          zIndex: 1000,
-        }}
-      >
-        🚧 Site en construction — <strong>Mémoires de la Marine</strong> est en cours de développement. 
-        Les contenus et fonctionnalités seront ajoutés progressivement.
-      </div>
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { supabase } from '../../lib/supabaseClient';
 
-      <main
-        style={{
-          maxWidth: 960,
-          margin: "0 auto",
-          padding: "60px 20px",
-          fontFamily: "Arial, sans-serif",
-          color: "#222",
-          lineHeight: 1.7,
-        }}
-      >
-        <h1
-          style={{
-            fontSize: 48,
-            marginBottom: 25,
-            textAlign: "center",
-            color: "#0b3d91",
-          }}
-        >
-          Mémoires de la Marine
-        </h1>
-
-        <p
-          style={{
-            fontSize: 20,
-            marginBottom: 30,
-            textAlign: "center",
-            maxWidth: 800,
-            marginLeft: "auto",
-            marginRight: "auto",
-          }}
-        >
-          Bienvenue sur le site <strong>Mémoires de la Marine</strong>, un projet collaboratif dédié à la consultation et au recensement des lieux de mémoires liés à l’histoire navale française.
-        </p>
-
-        {/* Bouton pour accéder aux lieux */}
-        <div style={{ textAlign: "center", marginBottom: 50 }}>
-          <Link href="/lieux">
-            <a
-              style={{
-                backgroundColor: "#0b3d91",
-                color: "#fff",
-                padding: "14px 28px",
-                borderRadius: 8,
-                textDecoration: "none",
-                fontSize: 18,
-                fontWeight: "bold",
-                boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-              }}
-            >
-              Afficher les lieux
-            </a>
-          </Link>
-        </div>
-
-        <section
-          style={{
-            backgroundColor: "#f4f8ff",
-            padding: "30px 25px",
-            borderRadius: 12,
-            marginBottom: 40,
-            boxShadow: "0 4px 8px rgba(0,0,0,0.05)",
-          }}
-        >
-          <h2 style={{ fontSize: 32, marginBottom: 15, color: "#0b3d91" }}>
-            🌊 Un atlas vivant de la mémoire maritime
-          </h2>
-          <p style={{ fontSize: 18 }}>
-            Le site a vocation à devenir un atlas interactif, collaboratif et géolocalisé. Chaque contribution enrichit la mémoire des marins, des monuments, des épaves et des sites historiques liés à la mer. Toutes les traces de l'histoire navale française seront recensées et valorisées.
-          </p>
-        </section>
-
-        <section
-          style={{
-            backgroundColor: "#e8f7f2",
-            padding: "30px 25px",
-            borderRadius: 12,
-            marginBottom: 40,
-            boxShadow: "0 4px 8px rgba(0,0,0,0.05)",
-          }}
-        >
-          <h2 style={{ fontSize: 32, marginBottom: 15, color: "#0a6b45" }}>
-            🧭 Projet collaboratif et modéré
-          </h2>
-          <p style={{ fontSize: 18 }}>
-            Toute personne peut consulter ou proposer (après inscription) un nouveau lieu de mémoire. Les contributions sont ensuite vérifiées et enrichies pour garantir la qualité, la fiabilité et le respect du caractère mémoriel du projet.
-          </p>
-        </section>
-
-        <section
-          style={{
-            backgroundColor: "#fff9f4",
-            padding: "30px 25px",
-            borderRadius: 12,
-            marginBottom: 50,
-            boxShadow: "0 4px 8px rgba(0,0,0,0.05)",
-          }}
-        >
-          <h2 style={{ fontSize: 32, marginBottom: 15, color: "#b85c00" }}>
-            ⚓ Pourquoi ce site ?
-          </h2>
-          <ul style={{ fontSize: 18, lineHeight: 2, paddingLeft: 20 }}>
-            <li>Recenser la mémoire navale de la France</li>
-            <li>Rendre visibles des lieux parfois oubliés</li>
-            <li>Créer une base de connaissance ouverte et durable</li>
-          </ul>
-        </section>
-
-        <p
-          style={{
-            marginTop: 50,
-            fontStyle: "italic",
-            color: "#555",
-            textAlign: "center",
-          }}
-        >
-          Le projet est en construction active. La carte interactive, les contributions et fonctionnalités collaboratives seront ajoutées prochainement.
-        </p>
-      </main>
-    </>
-  );
+interface Lieu {
+  id: string;
+  title: string;
+  description?: string | null;
+  country?: string | null;
+  status?: string | null;
+  latitude: number;
+  longitude: number;
 }
+
+export default function LieuxPage() {
+  const [lieux, setLieux] = useState<Lieu[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchLieux = async () => {
+      try {
+        const { data, error } = await supabase.from('locations').select('*');
+        if (error) throw error;
+
+        const filteredData: Lieu[] = (data ?? []).map((row: any) => ({
+          id: row.id,
+          title: row.title ?? 'Titre inconnu',
+          description: row.description ?? null,
+          country: row.country ?? null,
+          status: row.status ?? null,
+          latitude: row.latitude ?? 0,
+          longitude: row.longitude ?? 0,
+        }));
+
+        setLieux(filteredData);
+      } catch (err: any) {
+        console.error('Erreur fetch:', err);
+        setErrorMsg(err.message ?? 'Erreur lors de la récupération des lieux');
+        setLieux([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLieux();
+  }, []);
+
+  return (
+    <div style={{ padding: '1rem', fontFamily: 'sans-serif' }}>
+      {/* Entête */}
+      <header style={{ marginBottom: '2rem', textAlign: 'center' }}>
+        <h1>Mémoire de la Marine</h1>
+        <p>Liste des lieux de mémoire maritime</p>
+        <Link
+          href="/"
+          style={{
+            display: 'inline-block',
+            marginTop: '1rem',
+            padding: '0.5rem 1rem',
+            backgroundColor: '#0070f3',
+            color: '#fff',
+            borderRadius: '5px',
+            textDecoration: 'none',
+          }}
+        >
+          Retour à l&apos;accueil
+        </L
