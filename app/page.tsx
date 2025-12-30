@@ -15,7 +15,7 @@ export default function Home() {
           color: "#b85c00",
         }}
       >
-        🚧 Site en construction — Mémoire de la Marine est en cours de développement. 
+        🚧 Site en construction — Mémoires de la Marine est en cours de développement. 
         Les contenus et fonctionnalités seront ajoutés progressivement.
       </div>
 
@@ -25,15 +25,15 @@ export default function Home() {
         </h1>
 
         <p style={{ fontSize: 18, lineHeight: 1.6, marginBottom: 40 }}>
-          Bienvenue sur le site <strong>Mémoire de la Marine</strong>, un projet collaboratif dédié au recensement et à la consultation 
+          Bienvenue sur le site <strong>Mémoires de la Marine</strong>, un projet collaboratif dédié à la consultation et au recensement  
           des lieux de mémoire liés à l’histoire maritime et navale française.  
         </p>
 
         <section style={{ marginBottom: 50 }}>
           <h2 style={{ fontSize: 28, marginBottom: 15 }}>🌊 Un atlas vivant de la mémoire maritime</h2>
           <p style={{ fontSize: 16, lineHeight: 1.6 }}>
-            Le site a vocation à devenir un atlas interactif et géolocalisé. 
-            Chaque contribution enrichit la mémoire des marins, des monuments, des épaves et des sites historiques liés à la mer.
+            Le site a vocation à devenir un atlas interactif, collaboratif et géolocalisé. 
+            Chaque contribution enrichit la mémoire des marins, des monuments, des épaves, des sites historiques liés à la mer... Toutes traces de l'histoire navale française laissées du passé a vocation à être recensée par ce stie 
           </p>
         </section>
 
