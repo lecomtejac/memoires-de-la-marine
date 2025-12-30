@@ -6,9 +6,12 @@ import Link from 'next/link';
 
 interface Lieu {
   id: string;
-  name: string;
-  type: string[];
-  description: string;
+  title: string;
+  description: string | null;
+  country: string | null;
+  status: string | null;
+  latitude: number;
+  longitude: number;
 }
 
 export default function LieuxPage() {
@@ -21,6 +24,8 @@ export default function LieuxPage() {
         const { data, error } = await supabase
           .from('locations')
           .select('*');
+
+        console.log('Supabase data:', data, 'error:', error);
 
         if (error) {
           console.error('Erreur Supabase:', error.message);
@@ -59,19 +64,4 @@ export default function LieuxPage() {
       {/* Contenu */}
       {loading ? (
         <p>Chargement des lieux…</p>
-      ) : lieux.length === 0 ? (
-        <p>Aucun lieu trouvé pour le moment.</p>
-      ) : (
-        <ul>
-          {lieux.map((lieu) => (
-            <li key={lieu.id} style={{ marginBottom: '1.5rem', borderBottom: '1px solid #ccc', paddingBottom: '0.5rem' }}>
-              <h2>{lieu.name}</h2>
-              {lieu.type.length > 0 && <p>Type : {lieu.type.join(', ')}</p>}
-              {lieu.description && <p>{lieu.description}</p>}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
+      ) : li
