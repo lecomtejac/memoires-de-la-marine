@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabaseClient';
-import Link from 'next/link';
+import { supabase } from '../../lib/supabaseClient'; // chemin relatif depuis app/lieux
 
 interface Lieu {
   id: string;
@@ -22,29 +21,24 @@ export default function LieuxPage() {
   useEffect(() => {
     const fetchLieux = async () => {
       try {
-        const { data, error } = await supabase
-          .from('locations')
-          .select('*');
+        const { data, error } = await supabase.from('locations').select('*');
+        if (error) throw error;
 
-        if (error) {
-          console.error('Erreur Supabase:', error.message);
-          setErrorMsg(error.message);
-        } else if (data) {
-          // Vérifie que chaque ligne a bien les colonnes attendues
-          const filteredData = data.map((row: any) => ({
-            id: row.id,
-            title: row.title ?? 'Titre inconnu',
-            description: row.description ?? null,
-            country: row.country ?? null,
-            status: row.status ?? null,
-            latitude: row.latitude ?? 0,
-            longitude: row.longitude ?? 0,
-          }));
-          setLieux(filteredData);
-        }
-      } catch (err) {
+        const filteredData: Lieu[] = (data ?? []).map((row: any) => ({
+          id: row.id,
+          title: row.title ?? 'Titre inconnu',
+          description: row.description ?? null,
+          country: row.country ?? null,
+          status: row.status ?? null,
+          latitude: row.latitude ?? 0,
+          longitude: row.longitude ?? 0,
+        }));
+
+        setLieux(filteredData);
+      } catch (err: any) {
         console.error('Erreur fetch:', err);
-        setErrorMsg('Erreur lors de la récupération des lieux');
+        setErrorMsg(err.message ?? 'Erreur lors de la récupération des lieux');
+        setLieux([]);
       } finally {
         setLoading(false);
       }
@@ -55,49 +49,24 @@ export default function LieuxPage() {
 
   return (
     <div style={{ padding: '1rem', fontFamily: 'sans-serif' }}>
-      {/* Entête */}
-      <header style={{ marginBottom: '2rem', textAlign: 'center' }}>
-        <h1>Mémoire de la Marine</h1>
-        <p>Carte collaborative des lieux de mémoire maritime</p>
-        <Link
-          href="/"
-          style={{
-            display: 'inline-block',
-            marginTop: '1rem',
-            padding: '0.5rem 1rem',
-            backgroundColor: '#0070f3',
-            color: '#fff',
-            borderRadius: '5px',
-            textDecoration: 'none',
-          }}
-        >
-          Retour à l'accueil
-        </Link>
-      </header>
+      <h1>Liste des lieux de mémoire</h1>
 
-      {/* Contenu */}
-      {loading ? (
-        <p>Chargement des lieux…</p>
-      ) : errorMsg ? (
-        <p style={{ color: 'red' }}>{errorMsg}</p>
-      ) : lieux.length === 0 ? (
-        <p>Aucun lieu trouvé pour le moment.</p>
-      ) : (
+      {loading && <p>Chargement des lieux…</p>}
+      {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
+
+      {!loading && !errorMsg && lieux.length === 0 && <p>Aucun lieu trouvé.</p>}
+
+      {!loading && !errorMsg && lieux.length > 0 && (
         <ul>
           {lieux.map((lieu) => (
-            <li
-              key={lieu.id}
-              style={{
-                marginBottom: '1.5rem',
-                borderBottom: '1px solid #ccc',
-                paddingBottom: '0.5rem',
-              }}
-            >
-              <h2>{lieu.title}</h2>
+            <li key={lieu.id} style={{ marginBottom: '1rem' }}>
+              <strong>{lieu.title}</strong>
               {lieu.description && <p>{lieu.description}</p>}
               {lieu.country && <p>Pays : {lieu.country}</p>}
               {lieu.status && <p>Statut : {lieu.status}</p>}
-              <p>Coordonnées : {lieu.latitude}, {lieu.longitude}</p>
+              <p>
+                Coordonnées : {lieu.latitude}, {lieu.longitude}
+              </p>
             </li>
           ))}
         </ul>
