@@ -4,7 +4,23 @@ import Link from 'next/link';
 
 export default function HomePage() {
   return (
-    <div style={{ padding: '2rem', fontFamily: 'sans-serif', maxWidth: '800px', margin: '0 auto' }}>
+    <div style={{ fontFamily: 'sans-serif', maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
+      
+      {/* Bannière "en construction" */}
+      <div
+        style={{
+          backgroundColor: '#ffcc00',
+          color: '#000',
+          padding: '1rem',
+          textAlign: 'center',
+          fontWeight: 'bold',
+          borderRadius: '5px',
+          marginBottom: '2rem',
+        }}
+      >
+        ⚠️ Ce site est en construction ⚠️
+      </div>
+
       {/* Entête */}
       <header style={{ marginBottom: '2rem', textAlign: 'center' }}>
         <h1>Mémoire de la Marine</h1>
