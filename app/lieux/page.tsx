@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { supabase } from '../../lib/supabaseClient';
 
 interface Lieu {
@@ -50,23 +51,40 @@ export default function LieuxPage() {
   return (
     <div style={{ padding: '1rem', fontFamily: 'sans-serif' }}>
       <header style={{ marginBottom: '2rem', textAlign: 'center' }}>
-        <h1>Lieux de mémoire maritime</h1>
+        <h1>Mémoire de la Marine</h1>
+        <p>Liste des lieux de mémoire maritime</p>
+        <Link
+          href="/"
+          style={{
+            display: 'inline-block',
+            marginTop: '1rem',
+            padding: '0.5rem 1rem',
+            backgroundColor: '#0070f3',
+            color: '#fff',
+            borderRadius: '5px',
+            textDecoration: 'none',
+          }}
+        >
+          Retour à l&apos;accueil
+        </Link>
       </header>
 
       {loading && <p>Chargement des lieux…</p>}
       {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
 
-      {!loading && !errorMsg && lieux.length === 0 && <p>Aucun lieu trouvé.</p>}
+      {!loading && !errorMsg && lieux.length === 0 && <p>Aucun lieu trouvé pour le moment.</p>}
 
       {!loading && !errorMsg && lieux.length > 0 && (
         <ul>
           {lieux.map((lieu) => (
-            <li key={lieu.id} style={{ marginBottom: '1rem', borderBottom: '1px solid #ccc', paddingBottom: '0.5rem' }}>
-              <h2>{lieu.title}</h2>
+            <li key={lieu.id} style={{ marginBottom: '1rem' }}>
+              <strong>{lieu.title}</strong>
               {lieu.description && <p>{lieu.description}</p>}
               {lieu.country && <p>Pays : {lieu.country}</p>}
               {lieu.status && <p>Statut : {lieu.status}</p>}
-              <p>Coordonnées : {lieu.latitude}, {lieu.longitude}</p>
+              <p>
+                Coordonnées : {lieu.latitude}, {lieu.longitude}
+              </p>
             </li>
           ))}
         </ul>
