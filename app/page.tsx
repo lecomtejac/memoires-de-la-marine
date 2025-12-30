@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { supabase } from '../../lib/supabaseClient';
+// Chemin corrigé : depuis app/page.tsx vers lib/supabaseClient.ts
+import { supabase } from '../lib/supabaseClient';
 
 interface Lieu {
   id: string;
