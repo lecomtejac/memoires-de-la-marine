@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import MapLieuxClient from '@/components/MapLieuxClient';
+import MapLieux from '@/components/MapLieux';
 import { supabase } from '../../lib/supabaseClient';
 
 interface Lieu {
@@ -26,7 +26,8 @@ export default function LieuxPage() {
         const { data, error } = await supabase.from('locations').select('*');
         if (error) throw error;
 
-        const filteredData = (data ?? []).map((row: any) => ({
+        // On filtre les lignes non null et on fournit des valeurs par défaut
+        const filteredData: Lieu[] = (data ?? []).map((row: any) => ({
           id: row.id,
           title: row.title ?? 'Titre inconnu',
           description: row.description ?? null,
@@ -38,7 +39,7 @@ export default function LieuxPage() {
 
         setLieux(filteredData);
       } catch (err: any) {
-        console.error(err);
+        console.error('Erreur fetch:', err);
         setErrorMsg(err.message ?? 'Erreur lors de la récupération des lieux');
         setLieux([]);
       } finally {
@@ -51,6 +52,7 @@ export default function LieuxPage() {
 
   return (
     <div style={{ padding: '1rem', fontFamily: 'sans-serif' }}>
+      {/* Entête */}
       <header style={{ marginBottom: '2rem', textAlign: 'center' }}>
         <h1>Mémoire de la Marine</h1>
         <p>Carte collaborative des lieux de mémoire maritime</p>
@@ -70,13 +72,14 @@ export default function LieuxPage() {
         </Link>
       </header>
 
+      {/* Chargement / erreurs */}
       {loading && <p>Chargement des lieux…</p>}
       {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
 
       {/* Carte interactive */}
-      {!loading && !errorMsg && <MapLieuxClient lieux={lieux} />}
+      {!loading && !errorMsg && lieux.length > 0 && <MapLieux lieux={lieux} />}
 
-      {/* Liste */}
+      {/* Liste des lieux */}
       {!loading && !errorMsg && lieux.length === 0 && (
         <p>Aucun lieu trouvé pour le moment.</p>
       )}
