@@ -1,15 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { supabase } from '../../lib/supabaseClient';
+import Link from 'next/link';
 
 interface Lieu {
   id: string;
   title: string;
-  description?: string | null;
-  country?: string | null;
-  status?: string | null;
   latitude: number;
   longitude: number;
 }
@@ -22,16 +19,13 @@ export default function LieuxPage() {
   useEffect(() => {
     const fetchLieux = async () => {
       try {
-        const { data, error } = await supabase.from('locations').select('*');
+        const { data, error } = await supabase.from('locations').select('id, title, latitude, longitude');
         if (error) throw error;
 
         setLieux(
           (data ?? []).map((row: any) => ({
             id: row.id,
             title: row.title ?? 'Titre inconnu',
-            description: row.description ?? null,
-            country: row.country ?? null,
-            status: row.status ?? null,
             latitude: row.latitude ?? 0,
             longitude: row.longitude ?? 0,
           }))
@@ -48,13 +42,14 @@ export default function LieuxPage() {
     fetchLieux();
   }, []);
 
+  if (loading) return <p>Chargement des lieux…</p>;
+  if (errorMsg) return <p style={{ color: 'red' }}>{errorMsg}</p>;
+
   return (
     <div style={{ padding: '1rem', fontFamily: 'sans-serif' }}>
-      {/* Entête */}
       <header style={{ marginBottom: '2rem', textAlign: 'center' }}>
         <h1>Mémoire de la Marine</h1>
-        <p>Liste des lieux de mémoire maritime</p>
-
+        <p>Tableau des lieux de mémoire maritime</p>
         <Link
           href="/"
           style={{
@@ -71,33 +66,13 @@ export default function LieuxPage() {
         </Link>
       </header>
 
-      {/* Chargement / erreurs */}
-      {loading && <p>Chargement des lieux…</p>}
-      {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
-
-      {/* Liste des lieux */}
-      {!loading && !errorMsg && lieux.length === 0 && (
+      {lieux.length === 0 ? (
         <p>Aucun lieu trouvé pour le moment.</p>
-      )}
-
-      {!loading && !errorMsg && lieux.length > 0 && (
+      ) : (
         <ul>
           {lieux.map((lieu) => (
-            <li
-              key={lieu.id}
-              style={{
-                marginBottom: '1.5rem',
-                borderBottom: '1px solid #ccc',
-                paddingBottom: '0.5rem',
-              }}
-            >
-              <h2>{lieu.title}</h2>
-              {lieu.description && <p>{lieu.description}</p>}
-              {lieu.country && <p>Pays : {lieu.country}</p>}
-              {lieu.status && <p>Statut : {lieu.status}</p>}
-              <p>
-                Coordonnées : {lieu.latitude}, {lieu.longitude}
-              </p>
+            <li key={lieu.id} style={{ marginBottom: '1rem' }}>
+              <strong>{lieu.title}</strong> — {lieu.latitude}, {lieu.longitude}
             </li>
           ))}
         </ul>
