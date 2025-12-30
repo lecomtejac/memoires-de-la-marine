@@ -2,12 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
 
 import { supabase } from '../../lib/supabaseClient';
-
-// Import dynamique de la carte
-const MapLieux = dynamic(() => import('@/components/MapLieux'), { ssr: false });
+import MapLieuxClient from '@/components/MapLieuxClient'; // <-- utilise le wrapper
 
 interface Lieu {
   id: string;
@@ -40,7 +37,7 @@ export default function LieuxPage() {
 
         if (data) {
           const filteredData: Lieu[] = data
-            .filter(Boolean) // filtre valeurs null/undefined
+            .filter(Boolean)
             .map((row: any) => ({
               id: row.id,
               title: row.title ?? 'Titre inconnu',
@@ -56,7 +53,7 @@ export default function LieuxPage() {
       } catch (err) {
         console.error('Erreur fetch:', err);
         setErrorMsg('Erreur lors de la récupération des lieux');
-        setLieux([]); // fallback
+        setLieux([]);
       } finally {
         setLoading(false);
       }
@@ -94,7 +91,7 @@ export default function LieuxPage() {
 
       {/* 🗺️ Carte interactive */}
       {!loading && !errorMsg && Array.isArray(lieux) && lieux.length > 0 && (
-        <MapLieux lieux={lieux} />
+        <MapLieuxClient lieux={lieux} />
       )}
 
       {/* Liste */}
@@ -114,14 +111,10 @@ export default function LieuxPage() {
               }}
             >
               <h2>{lieu.title}</h2>
-
               {lieu.description && <p>{lieu.description}</p>}
               {lieu.country && <p>Pays : {lieu.country}</p>}
               {lieu.status && <p>Statut : {lieu.status}</p>}
-
-              <p>
-                Coordonnées : {lieu.latitude}, {lieu.longitude}
-              </p>
+              <p>Coordonnées : {lieu.latitude}, {lieu.longitude}</p>
             </li>
           ))}
         </ul>
