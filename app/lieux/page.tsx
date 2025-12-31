@@ -2,10 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
-
-// Leaflet
-import { MapContainer, TileLayer } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
+import MapLieux from './MapLieux'; // import client-only
 
 interface Lieu {
   id: string;
@@ -55,32 +52,14 @@ export default function LieuxPage() {
     <div style={{ padding: '1rem', fontFamily: 'sans-serif' }}>
       <h1>Carte des lieux de mémoire</h1>
 
-      {/* 🗺️ CARTE */}
-      <div style={{ height: '70vh', marginBottom: '2rem' }}>
-        <MapContainer
-          {...{
-            center: [46.603354, 1.888334],
-            zoom: 6,
-            scrollWheelZoom: true,
-            style: { height: '100%', width: '100%' },
-          } as any}
-        >
-          <TileLayer
-            {...{
-              attribution: "&copy; OpenStreetMap contributors",
-              url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-            } as any}
-          />
-        </MapContainer>
-      </div>
+      {/* 🗺️ CARTE CLIENT-ONLY */}
+      <MapLieux />
 
       {/* 📋 LISTE */}
       <h2>Liste des lieux de mémoire</h2>
-
       {loading && <p>Chargement des lieux…</p>}
       {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
       {!loading && !errorMsg && lieux.length === 0 && <p>Aucun lieu trouvé.</p>}
-
       {!loading && !errorMsg && lieux.length > 0 && (
         <ul>
           {lieux.map((lieu) => (
