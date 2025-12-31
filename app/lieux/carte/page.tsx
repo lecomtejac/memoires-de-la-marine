@@ -12,16 +12,14 @@ export default function CarteLieuxPage() {
         padding: '2rem',
       }}
     >
-      {/* En-tête */}
       <header style={{ marginBottom: '1.5rem' }}>
         <h1>Carte des lieux de mémoire</h1>
         <p style={{ color: '#555', marginTop: '0.5rem' }}>
-          Cette carte affichera à terme l’ensemble des lieux de mémoire maritime :
-          tombes, monuments, épaves, musées et sites historiques.
+          Carte générale des lieux de mémoire maritime. Les points seront ajoutés
+          ultérieurement.
         </p>
       </header>
 
-      {/* Bouton retour */}
       <div style={{ marginBottom: '1.5rem' }}>
         <Link
           href="/lieux"
@@ -39,7 +37,6 @@ export default function CarteLieuxPage() {
         </Link>
       </div>
 
-      {/* Carte */}
       <div
         style={{
           width: '100%',
@@ -50,15 +47,14 @@ export default function CarteLieuxPage() {
         }}
       >
         <iframe
-          src="https://www.openstreetmap.org/export/embed.html"
+          src="https://www.openstreetmap.org/export/embed.html?bbox=-5.5%2C41.0%2C9.8%2C51.5&layer=mapnik"
           style={{ width: '100%', height: '100%', border: 0 }}
           loading="lazy"
         />
       </div>
 
-      {/* Texte bas de page */}
       <p style={{ marginTop: '1rem', color: '#666', fontSize: '0.9rem' }}>
-        Carte générale – les marqueurs seront ajoutés ultérieurement.
+        Carte centrée sur la France.
       </p>
     </div>
   );
