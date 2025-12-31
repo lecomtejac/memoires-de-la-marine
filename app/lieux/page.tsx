@@ -5,11 +5,7 @@ import { supabase } from '../../lib/supabaseClient';
 
 // Leaflet
 import { MapContainer, TileLayer } from 'react-leaflet';
-import type { LatLngExpression } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-
-// 👉 Centre de la carte (typé correctement pour TypeScript)
-const franceCenter: LatLngExpression = [46.603354, 1.888334];
 
 interface Lieu {
   id: string;
@@ -29,10 +25,7 @@ export default function LieuxPage() {
   useEffect(() => {
     const fetchLieux = async () => {
       try {
-        const { data, error } = await supabase
-          .from('locations')
-          .select('*');
-
+        const { data, error } = await supabase.from('locations').select('*');
         if (error) throw error;
 
         const filteredData: Lieu[] = (data ?? []).map((row: any) => ({
@@ -63,21 +56,23 @@ export default function LieuxPage() {
       <h1>Carte des lieux de mémoire</h1>
 
       {/* 🗺️ CARTE */}
-<div style={{ height: '70vh', marginBottom: '2rem' }}>
-  <MapContainer
-    {...{
-      center: [46.603354, 1.888334],
-      zoom: 6,
-      scrollWheelZoom: true,
-      style: { height: '100%', width: '100%' },
-    } as any}
-  >
-    <TileLayer
-      attribution="&copy; OpenStreetMap contributors"
-      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-    />
-  </MapContainer>
-</div>
+      <div style={{ height: '70vh', marginBottom: '2rem' }}>
+        <MapContainer
+          {...{
+            center: [46.603354, 1.888334],
+            zoom: 6,
+            scrollWheelZoom: true,
+            style: { height: '100%', width: '100%' },
+          } as any}
+        >
+          <TileLayer
+            {...{
+              attribution: "&copy; OpenStreetMap contributors",
+              url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            } as any}
+          />
+        </MapContainer>
+      </div>
 
       {/* 📋 LISTE */}
       <h2>Liste des lieux de mémoire</h2>
