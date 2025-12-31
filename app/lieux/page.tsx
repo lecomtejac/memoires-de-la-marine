@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabaseClient';
+import { supabase } from '../../lib/supabaseClient'; // chemin relatif depuis app/lieux
 
 interface Lieu {
   id: string;
@@ -24,17 +24,17 @@ export default function LieuxPage() {
         const { data, error } = await supabase.from('locations').select('*');
         if (error) throw error;
 
-        setLieux(
-          (data ?? []).map((row: any) => ({
-            id: row.id,
-            title: row.title ?? 'Titre inconnu',
-            description: row.description ?? null,
-            country: row.country ?? null,
-            status: row.status ?? null,
-            latitude: row.latitude ?? 0,
-            longitude: row.longitude ?? 0,
-          }))
-        );
+        const filteredData: Lieu[] = (data ?? []).map((row: any) => ({
+          id: row.id,
+          title: row.title ?? 'Titre inconnu',
+          description: row.description ?? null,
+          country: row.country ?? null,
+          status: row.status ?? null,
+          latitude: row.latitude ?? 0,
+          longitude: row.longitude ?? 0,
+        }));
+
+        setLieux(filteredData);
       } catch (err: any) {
         console.error('Erreur fetch:', err);
         setErrorMsg(err.message ?? 'Erreur lors de la récupération des lieux');
@@ -53,9 +53,10 @@ export default function LieuxPage() {
 
       {loading && <p>Chargement des lieux…</p>}
       {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
-      {!loading && lieux.length === 0 && <p>Aucun lieu trouvé.</p>}
 
-      {!loading && lieux.length > 0 && (
+      {!loading && !errorMsg && lieux.length === 0 && <p>Aucun lieu trouvé.</p>}
+
+      {!loading && !errorMsg && lieux.length > 0 && (
         <ul>
           {lieux.map((lieu) => (
             <li key={lieu.id} style={{ marginBottom: '1rem' }}>
