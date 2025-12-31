@@ -4,8 +4,6 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
-// Pour que le marker s'affiche correctement avec Leaflet v1+
-// (sinon le marker ne s'affiche pas avec Webpack/Next.js)
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 
 L.Icon.Default.mergeOptions({
@@ -17,20 +15,25 @@ L.Icon.Default.mergeOptions({
     'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
 });
 
-export default function LeafletMap() {
-  const defaultPosition: [number, number] = [48.8566, 2.3522]; // Paris
+// On définit un type pour les props
+interface LeafletMapProps {
+  position: [number, number]; // latitude et longitude
+  zoom?: number;
+}
+
+export default function LeafletMap({ position, zoom = 5 }: LeafletMapProps) {
   const mapStyle = { height: '500px', width: '100%' };
 
   return (
     // @ts-ignore pour contourner les erreurs TypeScript
-    <MapContainer center={defaultPosition} zoom={5} style={mapStyle}>
+    <MapContainer center={position} zoom={zoom} style={mapStyle}>
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         // @ts-ignore
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
       />
-      <Marker position={defaultPosition}>
-        <Popup>Test Marker</Popup>
+      <Marker position={position}>
+        <Popup>Marker Test</Popup>
       </Marker>
     </MapContainer>
   );
