@@ -49,12 +49,29 @@ export default function LieuxPage() {
   }, []);
 
   return (
-    <div style={{ padding: '1rem', fontFamily: 'sans-serif', maxWidth: '800px', margin: '0 auto' }}>
+    <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
       <h1>Liste des lieux de mémoire</h1>
+
+      {/* 🔘 Bouton voir la carte */}
+      <div style={{ margin: '2rem 0' }}>
+        <Link
+          href="/lieux/carte"
+          style={{
+            display: 'inline-block',
+            padding: '0.8rem 1.5rem',
+            backgroundColor: '#0070f3',
+            color: '#fff',
+            borderRadius: '6px',
+            textDecoration: 'none',
+            fontWeight: 'bold',
+          }}
+        >
+          🗺️ Voir la carte
+        </Link>
+      </div>
 
       {loading && <p>Chargement des lieux…</p>}
       {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
-
       {!loading && !errorMsg && lieux.length === 0 && <p>Aucun lieu trouvé.</p>}
 
       {!loading && !errorMsg && lieux.length > 0 && (
@@ -65,32 +82,10 @@ export default function LieuxPage() {
               {lieu.description && <p>{lieu.description}</p>}
               {lieu.country && <p>Pays : {lieu.country}</p>}
               {lieu.status && <p>Statut : {lieu.status}</p>}
-              <p>
-                Coordonnées : {lieu.latitude}, {lieu.longitude}
-              </p>
             </li>
           ))}
         </ul>
       )}
-
-      {/* Bouton vers la page carte */}
-      <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-        <Link
-          href="/lieux/carte"
-          style={{
-            display: 'inline-block',
-            padding: '1rem 2rem',
-            backgroundColor: '#0070f3',
-            color: '#fff',
-            borderRadius: '8px',
-            textDecoration: 'none',
-            fontWeight: 'bold',
-            fontSize: '1.1rem',
-          }}
-        >
-          Voir la carte
-        </Link>
-      </div>
     </div>
   );
 }
