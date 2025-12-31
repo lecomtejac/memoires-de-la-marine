@@ -63,19 +63,21 @@ export default function LieuxPage() {
       <h1>Carte des lieux de mémoire</h1>
 
       {/* 🗺️ CARTE */}
-      <div style={{ height: '70vh', marginBottom: '2rem' }}>
-        <MapContainer
-          center={franceCenter}
-          zoom={6}
-          scrollWheelZoom={true}
-          style={{ height: '100%', width: '100%' }}
-        >
-          <TileLayer
-            attribution="&copy; OpenStreetMap contributors"
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-        </MapContainer>
-      </div>
+<div style={{ height: '70vh', marginBottom: '2rem' }}>
+  <MapContainer
+    {...{
+      center: [46.603354, 1.888334],
+      zoom: 6,
+      scrollWheelZoom: true,
+      style: { height: '100%', width: '100%' },
+    } as any}
+  >
+    <TileLayer
+      attribution="&copy; OpenStreetMap contributors"
+      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+    />
+  </MapContainer>
+</div>
 
       {/* 📋 LISTE */}
       <h2>Liste des lieux de mémoire</h2>
