@@ -1,7 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabaseClient'; // chemin relatif depuis app/lieux
+import { supabase } from '../../lib/supabaseClient';
+
+// Leaflet
+import { MapContainer, TileLayer } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
 
 interface Lieu {
   id: string;
@@ -21,7 +25,10 @@ export default function LieuxPage() {
   useEffect(() => {
     const fetchLieux = async () => {
       try {
-        const { data, error } = await supabase.from('locations').select('*');
+        const { data, error } = await supabase
+          .from('locations')
+          .select('*');
+
         if (error) throw error;
 
         const filteredData: Lieu[] = (data ?? []).map((row: any) => ({
@@ -49,11 +56,28 @@ export default function LieuxPage() {
 
   return (
     <div style={{ padding: '1rem', fontFamily: 'sans-serif' }}>
-      <h1>Liste des lieux de mémoire</h1>
+      <h1>Carte des lieux de mémoire</h1>
+
+      {/* 🗺️ CARTE */}
+      <div style={{ height: '70vh', marginBottom: '2rem' }}>
+        <MapContainer
+          center={[46.603354, 1.888334]} // centre France
+          zoom={6}
+          scrollWheelZoom={true}
+          style={{ height: '100%', width: '100%' }}
+        >
+          <TileLayer
+            attribution="&copy; OpenStreetMap contributors"
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+        </MapContainer>
+      </div>
+
+      {/* 📋 LISTE (inchangée) */}
+      <h2>Liste des lieux de mémoire</h2>
 
       {loading && <p>Chargement des lieux…</p>}
       {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
-
       {!loading && !errorMsg && lieux.length === 0 && <p>Aucun lieu trouvé.</p>}
 
       {!loading && !errorMsg && lieux.length > 0 && (
