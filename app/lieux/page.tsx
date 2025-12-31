@@ -2,10 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
-import dynamic from 'next/dynamic';
-
-// Import dynamique de la carte pour désactiver le SSR
-const MapLieux = dynamic(() => import('./MapLieux'), { ssr: false });
+import MapLieux from './MapLieux';
 
 interface Lieu {
   id: string;
@@ -51,13 +48,22 @@ export default function LieuxPage() {
     fetchLieux();
   }, []);
 
+  // Définir un centre moyen pour la carte
+  const defaultCenter: [number, number] =
+    lieux.length > 0
+      ? [lieux[0].latitude, lieux[0].longitude]
+      : [46.603354, 1.888334]; // France
+
   return (
     <div style={{ padding: '1rem', fontFamily: 'sans-serif' }}>
       <h1>Carte des lieux de mémoire</h1>
 
-      {/* 🗺️ Carte client-only */}
-      <MapLieux />
+      {/* 🗺️ CARTE */}
+      <div style={{ marginBottom: '2rem' }}>
+        <MapLieux center={defaultCenter} />
+      </div>
 
+      {/* 📋 LISTE */}
       <h2>Liste des lieux de mémoire</h2>
 
       {loading && <p>Chargement des lieux…</p>}
