@@ -1,9 +1,8 @@
-'use client';
-
 import dynamic from 'next/dynamic';
 
+// Charge Leaflet seulement côté client
 const LeafletMap = dynamic(() => import('../../../components/LeafletMap'), {
-  ssr: false, // important pour Next.js App Router
+  ssr: false,
 });
 
 export default function Page() {
