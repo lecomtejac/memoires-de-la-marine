@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabaseClient'; // chemin vers ton client existant
+import { supabase } from '../../lib/supabaseClient'; // chemin vers ton client existant
 
 type Lieu = {
   id: string;
