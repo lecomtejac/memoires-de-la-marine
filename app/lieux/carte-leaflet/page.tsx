@@ -1,38 +1,26 @@
 'use client';
 
-import dynamic from 'next/dynamic';
-import { useEffect, useState } from 'react';
-import { supabase } from '../../../lib/supabaseClient';
-import { MarkerData } from '../components/Map';
-
-const MapComponent = dynamic(() => import('../components/Map'), { ssr: false });
+import { MapContainer, TileLayer } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
 
 export default function CarteLeafletPage() {
-  const [lieux, setLieux] = useState<MarkerData[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchLieux = async () => {
-      const { data } = await supabase
-        .from('locations')
-        .select('id,title,latitude,longitude');
-      setLieux(data ?? []);
-      setLoading(false);
-    };
-    fetchLieux();
-  }, []);
+  // Position initiale (Paris)
+  const defaultPosition: [number, number] = [48.8566, 2.3522];
 
   return (
     <div style={{ padding: '1rem' }}>
-      <h1>Carte Leaflet des lieux de mémoire</h1>
+      <h1>Carte Leaflet minimal</h1>
 
-      {loading ? (
-        <p>Chargement de la carte…</p>
-      ) : (
-        <div style={{ height: '600px', width: '100%' }}>
-          <MapComponent markers={lieux} />
-        </div>
-      )}
+      <MapContainer
+        style={{ height: '600px', width: '100%' }}
+        center={defaultPosition}
+        zoom={5}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+      </MapContainer>
     </div>
   );
 }
