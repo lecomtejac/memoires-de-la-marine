@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { supabase } from '../../lib/supabaseClient';
+import Link from 'next/link';
 
 interface Lieu {
   id: string;
@@ -49,29 +49,40 @@ export default function LieuxPage() {
   }, []);
 
   return (
-    <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
+    <div style={{ padding: '1rem', fontFamily: 'sans-serif' }}>
       <h1>Liste des lieux de mémoire</h1>
 
-      {/* 🔘 Bouton voir la carte */}
-      <div style={{ margin: '2rem 0' }}>
+      {/* Boutons pour cartes */}
+      <div style={{ marginBottom: '2rem', display: 'flex', gap: '1rem' }}>
         <Link
           href="/lieux/carte"
           style={{
-            display: 'inline-block',
-            padding: '0.8rem 1.5rem',
+            padding: '0.5rem 1rem',
             backgroundColor: '#0070f3',
             color: '#fff',
-            borderRadius: '6px',
+            borderRadius: '5px',
             textDecoration: 'none',
-            fontWeight: 'bold',
           }}
         >
-          🗺️ Voir la carte
+          Carte E-Frame
+        </Link>
+        <Link
+          href="/lieux/carte-leaflet"
+          style={{
+            padding: '0.5rem 1rem',
+            backgroundColor: '#00b300',
+            color: '#fff',
+            borderRadius: '5px',
+            textDecoration: 'none',
+          }}
+        >
+          Carte Leaflet
         </Link>
       </div>
 
       {loading && <p>Chargement des lieux…</p>}
       {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
+
       {!loading && !errorMsg && lieux.length === 0 && <p>Aucun lieu trouvé.</p>}
 
       {!loading && !errorMsg && lieux.length > 0 && (
@@ -82,6 +93,9 @@ export default function LieuxPage() {
               {lieu.description && <p>{lieu.description}</p>}
               {lieu.country && <p>Pays : {lieu.country}</p>}
               {lieu.status && <p>Statut : {lieu.status}</p>}
+              <p>
+                Coordonnées : {lieu.latitude}, {lieu.longitude}
+              </p>
             </li>
           ))}
         </ul>
