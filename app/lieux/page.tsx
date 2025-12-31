@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabaseClient'; // chemin relatif depuis app/lieux
+import Link from 'next/link';
+import { supabase } from '../../lib/supabaseClient';
 
 interface Lieu {
   id: string;
@@ -48,7 +49,7 @@ export default function LieuxPage() {
   }, []);
 
   return (
-    <div style={{ padding: '1rem', fontFamily: 'sans-serif' }}>
+    <div style={{ padding: '1rem', fontFamily: 'sans-serif', maxWidth: '800px', margin: '0 auto' }}>
       <h1>Liste des lieux de mémoire</h1>
 
       {loading && <p>Chargement des lieux…</p>}
@@ -71,6 +72,25 @@ export default function LieuxPage() {
           ))}
         </ul>
       )}
+
+      {/* Bouton vers la page carte */}
+      <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+        <Link
+          href="/lieux/carte"
+          style={{
+            display: 'inline-block',
+            padding: '1rem 2rem',
+            backgroundColor: '#0070f3',
+            color: '#fff',
+            borderRadius: '8px',
+            textDecoration: 'none',
+            fontWeight: 'bold',
+            fontSize: '1.1rem',
+          }}
+        >
+          Voir la carte
+        </Link>
+      </div>
     </div>
   );
 }
