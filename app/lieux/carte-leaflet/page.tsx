@@ -1,35 +1,31 @@
 'use client';
 
-import { MapContainer, useMap } from 'react-leaflet';
+import dynamic from 'next/dynamic';
 import 'leaflet/dist/leaflet.css';
-import { useEffect } from 'react';
+import { CSSProperties } from 'react';
 
-function SetViewOnLoad({ coords }: { coords: [number, number] }) {
-  const map = useMap();
-
-  useEffect(() => {
-    // Import dynamique côté client
-    import('leaflet').then((L) => {
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      }).addTo(map);
-      map.setView(coords, 5);
-    });
-  }, [map, coords]);
-
-  return null;
-}
+// Import MapContainer dynamiquement pour éviter l'erreur window is not defined
+const MapContainer = dynamic(
+  () => import('react-leaflet').then((mod) => mod.MapContainer),
+  { ssr: false }
+);
+const TileLayer = dynamic(
+  () => import('react-leaflet').then((mod) => mod.TileLayer),
+  { ssr: false }
+);
 
 export default function CarteLeafletPage() {
+  const mapStyle: CSSProperties = { height: '600px', width: '100%' };
   const defaultPosition: [number, number] = [48.8566, 2.3522]; // Paris
 
   return (
     <div style={{ padding: '1rem' }}>
       <h1>Carte Leaflet minimal safe Vercel</h1>
-
-      <MapContainer style={{ height: '600px', width: '100%' }}>
-        <SetViewOnLoad coords={defaultPosition} />
+      <MapContainer center={defaultPosition} zoom={5} style={mapStyle}>
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        />
       </MapContainer>
     </div>
   );
