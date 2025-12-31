@@ -5,7 +5,11 @@ import { supabase } from '../../lib/supabaseClient';
 
 // Leaflet
 import { MapContainer, TileLayer } from 'react-leaflet';
+import type { LatLngExpression } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+
+// 👉 Centre de la carte (typé correctement pour TypeScript)
+const franceCenter: LatLngExpression = [46.603354, 1.888334];
 
 interface Lieu {
   id: string;
@@ -61,7 +65,7 @@ export default function LieuxPage() {
       {/* 🗺️ CARTE */}
       <div style={{ height: '70vh', marginBottom: '2rem' }}>
         <MapContainer
-          center={[46.603354, 1.888334]} // centre France
+          center={franceCenter}
           zoom={6}
           scrollWheelZoom={true}
           style={{ height: '100%', width: '100%' }}
@@ -73,7 +77,7 @@ export default function LieuxPage() {
         </MapContainer>
       </div>
 
-      {/* 📋 LISTE (inchangée) */}
+      {/* 📋 LISTE */}
       <h2>Liste des lieux de mémoire</h2>
 
       {loading && <p>Chargement des lieux…</p>}
