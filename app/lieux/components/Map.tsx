@@ -17,16 +17,20 @@ interface MapComponentProps {
 }
 
 export default function MapComponent({ markers = [] }: MapComponentProps) {
-  const defaultPosition: [number, number] = [48.8566, 2.3522]; // Paris par défaut
+  const defaultPosition: [number, number] = [48.8566, 2.3522]; // Paris
 
   return (
-    <MapContainer center={defaultPosition} zoom={5} style={{ height: '100%', width: '100%' }}>
+    <MapContainer
+      center={defaultPosition as L.LatLngExpression}  // ⚡ correction TypeScript
+      zoom={5}
+      style={{ height: '100%', width: '100%' }}
+    >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       {markers.map((m) => (
-        <Marker key={m.id} position={[m.latitude, m.longitude]}>
+        <Marker key={m.id} position={[m.latitude, m.longitude] as L.LatLngExpression}>
           <Popup>{m.title}</Popup>
         </Marker>
       ))}
