@@ -1,7 +1,16 @@
 'use client';
 
-import { MapContainer, TileLayer } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+// Correction icône par défaut de Leaflet (problème classique en Next.js)
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+});
 
 export default function Page() {
   const defaultPosition: [number, number] = [48.8566, 2.3522]; // Paris
@@ -9,12 +18,17 @@ export default function Page() {
 
   return (
     <div style={{ padding: '2rem' }}>
-      <h1>Test carte Leaflet safe Vercel</h1>
+      <h1>Test carte Leaflet avec Marker</h1>
       <MapContainer center={defaultPosition} zoom={5} style={mapStyle}>
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         />
+        <Marker position={defaultPosition}>
+          <Popup>
+            C'est un test ! 🌊
+          </Popup>
+        </Marker>
       </MapContainer>
     </div>
   );
