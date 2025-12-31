@@ -6,7 +6,7 @@ import 'leaflet/dist/leaflet.css';
 export default function MapLieux() {
   return (
     <MapContainer
-      center={[46.603354, 1.888334]}
+      center={[46.603354, 1.888334]} // centre de la France
       zoom={6}
       scrollWheelZoom={true}
       style={{ height: '70vh', width: '100%' }}
