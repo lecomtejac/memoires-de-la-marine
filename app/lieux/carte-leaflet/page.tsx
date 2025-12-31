@@ -1,4 +1,5 @@
-// app/lieux/carte-leaflet/page.tsx
+'use client';
+
 import LeafletMap from '@/components/LeafletMap';
 
 export default function Page() {
@@ -6,7 +7,7 @@ export default function Page() {
 
   return (
     <div style={{ padding: '2rem' }}>
-      <h1>Carte Leaflet avec marker dynamique</h1>
+      <h1>Test carte Leaflet avec marker</h1>
       <LeafletMap position={defaultPosition} zoom={5} />
     </div>
   );
