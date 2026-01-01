@@ -1,6 +1,6 @@
 'use client';
 
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, Tooltip } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useEffect, useState } from 'react';
@@ -141,12 +141,15 @@ export default function LeafletMapSupabase() {
           onLocate={(lat, lng) => setUserPosition([lat, lng])}
         />
 
-        {/* 🔹 Lieux Supabase */}
+        {/* 🔹 Lieux Supabase avec tooltip au survol */}
         {lieux.map((lieu) => (
           <Marker
             key={lieu.id}
             position={[lieu.latitude, lieu.longitude]}
           >
+            <Tooltip direction="top" offset={[0, -10]} opacity={1} permanent={false}>
+              {lieu.title}
+            </Tooltip>
             <Popup>
               <strong>{lieu.title}</strong>
               <br />
