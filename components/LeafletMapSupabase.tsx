@@ -6,7 +6,7 @@ import L from 'leaflet';
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
-// 🔹 Fix icônes Leaflet pour Next.js
+// Fix icônes Leaflet pour Next.js
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
@@ -17,7 +17,7 @@ L.Icon.Default.mergeOptions({
     'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
 });
 
-// 🔹 Icône position utilisateur
+// Icône position utilisateur
 const userIcon = new L.Icon({
   iconUrl:
     'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
@@ -33,7 +33,7 @@ type Lieu = {
   longitude: number;
 };
 
-// 🔹 Ajuste automatiquement la carte aux lieux
+// Ajuste automatiquement la carte aux lieux
 function FitBounds({ lieux }: { lieux: Lieu[] }) {
   const map = useMap();
   useEffect(() => {
@@ -44,7 +44,7 @@ function FitBounds({ lieux }: { lieux: Lieu[] }) {
   return null;
 }
 
-// 🔹 Bouton Leaflet : géolocalisation utilisateur
+// Bouton Leaflet : géolocalisation utilisateur
 function LocateUserControl({ onLocate }: { onLocate: (lat: number, lng: number) => void }) {
   const map = useMap();
   useEffect(() => {
@@ -101,8 +101,7 @@ export default function LeafletMapSupabase() {
       <div style={{ width: '100%', height: '500px', position: 'relative' }}>
         <MapContainer
           style={{ width: '100%', height: '100%' }}
-          center={[48.8566, 2.3522]}
-          zoom={5}
+          {...{ center: [48.8566, 2.3522], zoom: 5 }}
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           <LocateUserControl onLocate={(lat, lng) => setUserPosition([lat, lng])} />
@@ -112,10 +111,10 @@ export default function LeafletMapSupabase() {
               key={lieu.id}
               position={[lieu.latitude, lieu.longitude]}
               eventHandlers={{
-                click: () => setSelectedLieu(lieu), // 🔹 sélection du lieu
+                click: () => setSelectedLieu(lieu),
               }}
             >
-              <Tooltip>{lieu.title}</Tooltip> {/* au survol */}
+              <Tooltip>{lieu.title}</Tooltip>
               <Popup>
                 <strong>{lieu.title}</strong>
                 <br />
@@ -152,7 +151,7 @@ export default function LeafletMapSupabase() {
         )}
       </div>
 
-      {/* 🔹 Détails sous la carte */}
+      {/* Détails sous la carte */}
       <div style={{ width: '100%', maxWidth: '800px', marginTop: '1rem' }}>
         {selectedLieu ? (
           <div
