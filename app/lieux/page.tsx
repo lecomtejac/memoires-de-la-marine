@@ -53,7 +53,7 @@ export default function LieuxPage() {
       <h1>Liste des lieux de mémoire</h1>
 
       {/* Boutons pour cartes */}
-      <div style={{ marginBottom: '2rem', display: 'flex', gap: '1rem' }}>
+      <div style={{ marginBottom: '2rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
         <Link
           href="/lieux/carte"
           style={{
@@ -77,6 +77,19 @@ export default function LieuxPage() {
           }}
         >
           Carte Leaflet
+        </Link>
+        {/* Nouveau bouton vers la page test-carte-leaflet */}
+        <Link
+          href="/test-carte-leaflet"
+          style={{
+            padding: '0.5rem 1rem',
+            backgroundColor: '#ff6600',
+            color: '#fff',
+            borderRadius: '5px',
+            textDecoration: 'none',
+          }}
+        >
+          Tester la carte Leaflet
         </Link>
       </div>
 
