@@ -1,109 +1,146 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import dynamic from 'next/dynamic';
-import { LatLngExpression, Icon } from 'leaflet';
-import { createClient } from '@supabase/supabase-js';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+import { useEffect, useState } from 'react';
+import { supabase } from '../lib/supabaseClient';
 
-const MapContainer = dynamic(
-  () => import('react-leaflet').then((mod) => mod.MapContainer),
-  { ssr: false }
-);
-const TileLayer = dynamic(
-  () => import('react-leaflet').then((mod) => mod.TileLayer),
-  { ssr: false }
-);
-const Marker = dynamic(
-  () => import('react-leaflet').then((mod) => mod.Marker),
-  { ssr: false }
-);
-const Popup = dynamic(
-  () => import('react-leaflet').then((mod) => mod.Popup),
-  { ssr: false }
-);
-const Tooltip = dynamic(
-  () => import('react-leaflet').then((mod) => mod.Tooltip),
-  { ssr: false }
-);
+// 🔹 Fix icônes Leaflet pour Next.js
+delete (L.Icon.Default.prototype as any)._getIconUrl;
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl:
+    'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+  iconUrl:
+    'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  shadowUrl:
+    'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+});
 
-interface Lieu {
+type Lieu = {
   id: string;
   title: string;
   description: string | null;
   latitude: number;
   longitude: number;
+};
+
+// 🔹 Composant pour ajuster automatiquement la carte
+function FitBounds({ lieux, userPosition }: { lieux: Lieu[]; userPosition: [number, number] | null }) {
+  const map = useMap();
+
+  useEffect(() => {
+    const positions = lieux.map((l) => [l.latitude, l.longitude] as [number, number]);
+    if (userPosition) positions.push(userPosition);
+    if (positions.length === 0) return;
+
+    const bounds = L.latLngBounds(positions);
+    map.fitBounds(bounds, { padding: [50, 50] });
+  }, [lieux, userPosition, map]);
+
+  return null;
 }
 
 export default function LeafletMapSupabase() {
   const [lieux, setLieux] = useState<Lieu[]>([]);
+  const [loading, setLoading] = useState(true);
   const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
 
-  const defaultCenter: LatLngExpression = [48.8566, 2.3522];
-  const defaultZoom = 5;
-
-  const userIcon = new Icon({
-    iconUrl: '/user-location.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-  });
+  const mapStyle = { height: '500px', width: '100%' };
 
   useEffect(() => {
-    // Récupérer les lieux depuis Supabase
-    const fetchLieux = async () => {
-      const { data, error } = await supabase.from('locations').select('*');
-      if (error) console.error('Erreur Supabase:', error.message);
+    async function fetchLieux() {
+      const { data, error } = await supabase
+        .from('locations')
+        .select('id, title, description, latitude, longitude');
+
+      if (error) console.error('Erreur Supabase Leaflet:', error.message);
       else setLieux(data as Lieu[]);
-    };
+
+      setLoading(false);
+    }
+
     fetchLieux();
 
-    // Localisation utilisateur
+    // 🔹 Récupérer la position utilisateur
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (pos) => setUserPosition([pos.coords.latitude, pos.coords.longitude]),
+        (pos) => {
+          setUserPosition([pos.coords.latitude, pos.coords.longitude]);
+        },
         (err) => console.warn('Erreur géoloc:', err.message)
       );
     }
   }, []);
 
   return (
-    <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-      <h1 style={{ textAlign: 'center' }}>Carte des lieux de mémoire</h1>
+    <div style={{ position: 'relative', height: '500px', width: '100%' }}>
+      {/* 🔹 Carte */}
+      <MapContainer {...({ style: mapStyle, zoom: 5, center: [48.8566, 2.3522] } as any)}>
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-      <div style={{ height: '500px', width: '100%' }}>
-        <MapContainer
-          style={{ width: '100%', height: '100%' }}
-          // ⚡ Utilisation des props correctes pour TypeScript
-          center={undefined}
-          zoom={undefined}
-          defaultCenter={defaultCenter}
-          defaultZoom={defaultZoom}
+        {lieux.map((lieu) => (
+          <Marker key={lieu.id} position={[lieu.latitude, lieu.longitude]}>
+            <Popup>
+              <strong>{lieu.title}</strong>
+              <br />
+              {lieu.description ?? ''}
+            </Popup>
+          </Marker>
+        ))}
+
+        {userPosition && (
+          <Marker position={userPosition} icon={new L.Icon.Default()}>
+            <Popup>Vous êtes ici</Popup>
+          </Marker>
+        )}
+
+        <FitBounds lieux={lieux} userPosition={userPosition} />
+      </MapContainer>
+
+      {/* 🔹 Overlay “Chargement…” */}
+      {loading && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            height: '100%',
+            width: '100%',
+            backgroundColor: 'rgba(255,255,255,0.8)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            fontSize: '1.2rem',
+            fontWeight: 'bold',
+            zIndex: 1000,
+          }}
         >
-          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          Chargement des lieux…
+        </div>
+      )}
 
-          {lieux.map((lieu) => (
-            <Marker key={lieu.id} position={[lieu.latitude, lieu.longitude]}>
-              <Popup>
-                <strong>{lieu.title}</strong>
-                <br />
-                {lieu.description ?? 'Pas de description'}
-              </Popup>
-              <Tooltip>{lieu.title}</Tooltip>
-            </Marker>
-          ))}
-
-          {userPosition && (
-            <Marker position={userPosition} icon={userIcon}>
-              <Popup>Vous êtes ici</Popup>
-              <Tooltip>Votre position</Tooltip>
-            </Marker>
-          )}
-        </MapContainer>
-      </div>
+      {!loading && lieux.length === 0 && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            height: '100%',
+            width: '100%',
+            backgroundColor: 'rgba(255,255,255,0.8)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            fontSize: '1.2rem',
+            fontWeight: 'bold',
+            zIndex: 1000,
+          }}
+        >
+          Aucun lieu trouvé.
+        </div>
+      )}
     </div>
   );
 }
