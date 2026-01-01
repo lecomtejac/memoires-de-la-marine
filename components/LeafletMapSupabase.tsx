@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 import { LatLngExpression, Icon } from 'leaflet';
 import { createClient } from '@supabase/supabase-js';
 
-// Import dynamique pour éviter les erreurs SSR
+// Import dynamique pour éviter le SSR
 const MapContainer = dynamic(
   () => import('react-leaflet').then((mod) => mod.MapContainer),
   { ssr: false }
@@ -47,9 +47,8 @@ export default function LeafletMapSupabase() {
   const defaultCenter: LatLngExpression = [48.8566, 2.3522];
   const defaultZoom = 5;
 
-  // Icon perso pour la localisation utilisateur
   const userIcon = new Icon({
-    iconUrl: '/user-location.png', // mettre un petit png ou svg
+    iconUrl: '/user-location.png',
     iconSize: [25, 41],
     iconAnchor: [12, 41],
   });
@@ -79,17 +78,13 @@ export default function LeafletMapSupabase() {
       <div style={{ height: '500px', width: '100%' }}>
         <MapContainer
           style={{ width: '100%', height: '100%' }}
-          zoom={defaultZoom as any}
-          center={defaultCenter as any} // ⚡ cast pour TypeScript
+          center={defaultCenter}
+          zoom={defaultZoom}
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-          {/* Markers lieux */}
           {lieux.map((lieu) => (
-            <Marker
-              key={lieu.id}
-              position={[lieu.latitude, lieu.longitude]}
-            >
+            <Marker key={lieu.id} position={[lieu.latitude, lieu.longitude]}>
               <Popup>
                 <strong>{lieu.title}</strong>
                 <br />
@@ -99,7 +94,6 @@ export default function LeafletMapSupabase() {
             </Marker>
           ))}
 
-          {/* Marker position utilisateur */}
           {userPosition && (
             <Marker position={userPosition} icon={userIcon}>
               <Popup>Vous êtes ici</Popup>
