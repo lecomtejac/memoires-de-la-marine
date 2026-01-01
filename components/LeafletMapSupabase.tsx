@@ -42,6 +42,7 @@ function FitBounds({ lieux }: { lieux: Lieu[] }) {
 
 export default function LeafletMapSupabase() {
   const [lieux, setLieux] = useState<Lieu[]>([]);
+  const [loading, setLoading] = useState(true);
   const mapStyle = { height: '500px', width: '100%' };
 
   useEffect(() => {
@@ -55,10 +56,19 @@ export default function LeafletMapSupabase() {
       } else {
         setLieux(data as Lieu[]);
       }
+      setLoading(false); // 🔹 Fin du chargement
     }
 
     fetchLieux();
   }, []);
+
+  if (loading) {
+    return <p>Chargement des lieux…</p>; // 🔹 Affichage loader
+  }
+
+  if (lieux.length === 0) {
+    return <p>Aucun lieu trouvé.</p>; // 🔹 Cas où Supabase renvoie vide
+  }
 
   return (
     <MapContainer {...({ style: mapStyle, zoom: 5, center: [48.8566, 2.3522] } as any)}>
