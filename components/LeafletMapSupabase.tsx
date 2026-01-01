@@ -16,13 +16,6 @@ L.Icon.Default.mergeOptions({
     'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
 });
 
-const userIcon = new L.Icon({
-  iconUrl:
-    'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-});
-
 type Lieu = {
   id: string;
   title: string;
@@ -31,22 +24,20 @@ type Lieu = {
   longitude: number;
 };
 
+// Hook pour centrer la carte sur les lieux
 function FitBounds({ lieux }: { lieux: Lieu[] }) {
   const map = useMap();
-
   useEffect(() => {
-    if (!lieux.length) return;
-    const bounds = L.latLngBounds(lieux.map((l) => [l.latitude, l.longitude] as [number, number]));
+    if (lieux.length === 0) return;
+    const bounds = L.latLngBounds(lieux.map(l => [l.latitude, l.longitude] as [number, number]));
     map.fitBounds(bounds, { padding: [50, 50] });
   }, [lieux, map]);
-
   return null;
 }
 
 export default function LeafletMapSupabase() {
   const [lieux, setLieux] = useState<Lieu[]>([]);
   const [loading, setLoading] = useState(true);
-  const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
   const [selectedLieu, setSelectedLieu] = useState<Lieu | null>(null);
 
   useEffect(() => {
@@ -54,16 +45,13 @@ export default function LeafletMapSupabase() {
       const { data, error } = await supabase
         .from('locations')
         .select('id, title, description, latitude, longitude');
-
       if (error) console.error(error);
       else setLieux(data as Lieu[]);
-
       setLoading(false);
     }
     fetchLieux();
   }, []);
 
-  // 🔹 Valeur par défaut du centre
   const defaultCenter: [number, number] = [48.8566, 2.3522];
   const defaultZoom = 5;
 
@@ -72,7 +60,7 @@ export default function LeafletMapSupabase() {
       <div style={{ height: '500px', width: '100%' }}>
         <MapContainer
           style={{ width: '100%', height: '100%' }}
-          center={defaultCenter}
+          center={defaultCenter as L.LatLngExpression} // ⚡ cast pour TypeScript
           zoom={defaultZoom}
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
@@ -80,10 +68,8 @@ export default function LeafletMapSupabase() {
           {lieux.map((lieu) => (
             <Marker
               key={lieu.id}
-              position={[lieu.latitude, lieu.longitude]}
-              eventHandlers={{
-                click: () => setSelectedLieu(lieu),
-              }}
+              position={[lieu.latitude, lieu.longitude] as L.LatLngExpression}
+              eventHandlers={{ click: () => setSelectedLieu(lieu) }}
             >
               <Tooltip>{lieu.title}</Tooltip>
               <Popup>
@@ -93,12 +79,6 @@ export default function LeafletMapSupabase() {
               </Popup>
             </Marker>
           ))}
-
-          {userPosition && (
-            <Marker position={userPosition} icon={userIcon}>
-              <Popup>Vous êtes ici</Popup>
-            </Marker>
-          )}
 
           <FitBounds lieux={lieux} />
         </MapContainer>
