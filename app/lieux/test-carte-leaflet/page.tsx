@@ -12,7 +12,7 @@ export default function Page() {
   return (
     <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
       
-      {/* En-tête avec bouton */}
+      {/* En-tête avec boutons */}
       <div
         style={{
           display: 'flex',
@@ -23,23 +23,41 @@ export default function Page() {
           gap: '1rem',
         }}
       >
-        <h1 style={{ margin: 0 }}>Test Carte Leaflet + Supabase</h1>
+        <h1 style={{ margin: 0 }}>Carte des lieux de mémoire</h1>
 
-        <Link
-          href="/lieux/proposer"
-          style={{
-            padding: '0.75rem 1.5rem',
-            backgroundColor: '#ff6600',
-            color: '#fff',
-            borderRadius: '8px',
-            textDecoration: 'none',
-            fontWeight: 'bold',
-            fontSize: '1rem',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          ➕ Proposer un nouveau lieu de mémoire
-        </Link>
+        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+          <Link
+            href="/"
+            style={{
+              padding: '0.75rem 1.5rem',
+              backgroundColor: '#0070f3',
+              color: '#fff',
+              borderRadius: '8px',
+              textDecoration: 'none',
+              fontWeight: 'bold',
+              fontSize: '1rem',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            ⬅ Retour accueil
+          </Link>
+
+          <Link
+            href="/lieux/proposer"
+            style={{
+              padding: '0.75rem 1.5rem',
+              backgroundColor: '#ff6600',
+              color: '#fff',
+              borderRadius: '8px',
+              textDecoration: 'none',
+              fontWeight: 'bold',
+              fontSize: '1rem',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            ➕ Proposer un nouveau lieu de mémoire
+          </Link>
+        </div>
       </div>
 
       {/* Carte Leaflet */}
