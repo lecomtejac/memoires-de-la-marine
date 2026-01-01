@@ -109,7 +109,6 @@ export default function LeafletMapSupabase() {
     useState<[number, number] | null>(null);
   const [selectedLieu, setSelectedLieu] = useState<Lieu | null>(null);
 
-  // 🔹 Récupération des lieux depuis Supabase
   useEffect(() => {
     async function fetchLieux() {
       const { data, error } = await supabase
@@ -128,11 +127,12 @@ export default function LeafletMapSupabase() {
   }, []);
 
   return (
-    <div style={{ width: '100%' }}>
+    <div style={{ position: 'relative', width: '100%' }}>
       <div style={{ height: '500px', width: '100%' }}>
         <MapContainer
           style={{ width: '100%', height: '100%' }}
-          {...({ center: [48.8566, 2.3522], zoom: 5 } as any)}
+          center={[48.8566, 2.3522]}
+          zoom={5}
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
@@ -146,7 +146,7 @@ export default function LeafletMapSupabase() {
             <Marker
               key={lieu.id}
               position={[lieu.latitude, lieu.longitude]}
-              eventHandlers={{ click: () => setSelectedLieu(lieu) }}
+              onClick={() => setSelectedLieu(lieu)}
             >
               <Tooltip>{lieu.title}</Tooltip>
               <Popup>
@@ -159,10 +159,7 @@ export default function LeafletMapSupabase() {
 
           {/* 🔹 Position utilisateur */}
           {userPosition && (
-            <Marker
-              position={userPosition}
-              {...({ icon: userIcon } as any)} // <-- correction TypeScript
-            >
+            <Marker position={userPosition} icon={userIcon}>
               <Popup>Vous êtes ici</Popup>
             </Marker>
           )}
@@ -170,26 +167,6 @@ export default function LeafletMapSupabase() {
           <FitBounds lieux={lieux} />
         </MapContainer>
       </div>
-
-      {/* 🔹 Détails du lieu sélectionné sous la carte */}
-      {selectedLieu && (
-        <div
-          style={{
-            marginTop: '20px',
-            padding: '15px',
-            border: '1px solid #ccc',
-            borderRadius: '8px',
-            backgroundColor: '#f9f9f9',
-          }}
-        >
-          <h2>{selectedLieu.title}</h2>
-          <p>{selectedLieu.description ?? 'Pas de description.'}</p>
-          <p>
-            <strong>Latitude:</strong> {selectedLieu.latitude} |{' '}
-            <strong>Longitude:</strong> {selectedLieu.longitude}
-          </p>
-        </div>
-      )}
 
       {/* 🔹 Overlay chargement */}
       {loading && (
@@ -226,6 +203,26 @@ export default function LeafletMapSupabase() {
           }}
         >
           Aucun lieu trouvé.
+        </div>
+      )}
+
+      {/* 🔹 Détails du lieu sélectionné sous la carte */}
+      {selectedLieu && (
+        <div
+          style={{
+            marginTop: '20px',
+            padding: '15px',
+            border: '1px solid #ccc',
+            borderRadius: '8px',
+            backgroundColor: '#f9f9f9',
+          }}
+        >
+          <h2>{selectedLieu.title}</h2>
+          <p>{selectedLieu.description ?? 'Pas de description.'}</p>
+          <p>
+            <strong>Latitude:</strong> {selectedLieu.latitude} |{' '}
+            <strong>Longitude:</strong> {selectedLieu.longitude}
+          </p>
         </div>
       )}
     </div>
