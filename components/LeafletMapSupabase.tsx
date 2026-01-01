@@ -127,26 +127,27 @@ export default function LeafletMapSupabase() {
   }, []);
 
   return (
-    <div style={{ position: 'relative', width: '100%' }}>
+    <div style={{ width: '100%' }}>
       <div style={{ height: '500px', width: '100%' }}>
+        {/* 🔹 Passer center et zoom via props typées correctement */}
         <MapContainer
-          style={{ width: '100%', height: '100%' }}
           center={[48.8566, 2.3522]}
           zoom={5}
+          style={{ width: '100%', height: '100%' }}
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-          {/* 🔹 Bouton géolocalisation */}
           <LocateUserControl
             onLocate={(lat, lng) => setUserPosition([lat, lng])}
           />
 
-          {/* 🔹 Lieux Supabase */}
           {lieux.map((lieu) => (
             <Marker
               key={lieu.id}
               position={[lieu.latitude, lieu.longitude]}
-              onClick={() => setSelectedLieu(lieu)}
+              eventHandlers={{
+                click: () => setSelectedLieu(lieu),
+              }}
             >
               <Tooltip>{lieu.title}</Tooltip>
               <Popup>
@@ -157,7 +158,6 @@ export default function LeafletMapSupabase() {
             </Marker>
           ))}
 
-          {/* 🔹 Position utilisateur */}
           {userPosition && (
             <Marker position={userPosition} icon={userIcon}>
               <Popup>Vous êtes ici</Popup>
@@ -168,45 +168,10 @@ export default function LeafletMapSupabase() {
         </MapContainer>
       </div>
 
-      {/* 🔹 Overlay chargement */}
-      {loading && (
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            backgroundColor: 'rgba(255,255,255,0.8)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            fontSize: '1.2rem',
-            fontWeight: 'bold',
-            zIndex: 1000,
-          }}
-        >
-          Chargement des lieux…
-        </div>
-      )}
+      {loading && <p>Chargement des lieux…</p>}
+      {!loading && lieux.length === 0 && <p>Aucun lieu trouvé.</p>}
 
-      {/* 🔹 Aucun lieu */}
-      {!loading && lieux.length === 0 && (
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            backgroundColor: 'rgba(255,255,255,0.8)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            fontSize: '1.2rem',
-            fontWeight: 'bold',
-            zIndex: 1000,
-          }}
-        >
-          Aucun lieu trouvé.
-        </div>
-      )}
-
-      {/* 🔹 Détails du lieu sélectionné sous la carte */}
+      {/* 🔹 Détails du lieu sélectionné */}
       {selectedLieu && (
         <div
           style={{
