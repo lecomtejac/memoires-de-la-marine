@@ -37,68 +37,44 @@ type Lieu = {
 // 🔹 Ajuste automatiquement la carte aux lieux
 function FitBounds({ lieux }: { lieux: Lieu[] }) {
   const map = useMap();
-
   useEffect(() => {
     if (lieux.length === 0) return;
-
-    const bounds = L.latLngBounds(
-      lieux.map((l) => [l.latitude, l.longitude] as [number, number])
-    );
+    const bounds = L.latLngBounds(lieux.map((l) => [l.latitude, l.longitude] as [number, number]));
     map.fitBounds(bounds, { padding: [50, 50] });
   }, [lieux, map]);
-
   return null;
 }
 
 // 🔹 Bouton Leaflet : géolocalisation utilisateur
-function LocateUserControl({
-  onLocate,
-}: {
-  onLocate: (lat: number, lng: number) => void;
-}) {
+function LocateUserControl({ onLocate }: { onLocate: (lat: number, lng: number) => void }) {
   const map = useMap();
-
   useEffect(() => {
     const control = L.control({ position: 'topleft' });
-
     control.onAdd = () => {
       const button = L.DomUtil.create('button');
       button.innerHTML = '📍 Ma position';
-
       button.style.background = '#fff';
       button.style.padding = '6px 10px';
       button.style.borderRadius = '6px';
       button.style.border = '1px solid #ccc';
       button.style.cursor = 'pointer';
       button.style.fontWeight = 'bold';
-
       L.DomEvent.disableClickPropagation(button);
-
       button.onclick = () => {
-        if (!navigator.geolocation) {
-          alert('La géolocalisation n’est pas supportée.');
-          return;
-        }
-
+        if (!navigator.geolocation) return alert('La géolocalisation n’est pas supportée.');
         navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const { latitude, longitude } = position.coords;
-            onLocate(latitude, longitude);
-            map.setView([latitude, longitude], 14);
+          (pos) => {
+            onLocate(pos.coords.latitude, pos.coords.longitude);
+            map.setView([pos.coords.latitude, pos.coords.longitude], 14);
           },
-          () => {
-            alert('Impossible de récupérer votre position.');
-          }
+          () => alert('Impossible de récupérer votre position.')
         );
       };
-
       return button;
     };
-
     control.addTo(map);
     return () => control.remove();
   }, [map, onLocate]);
-
   return null;
 }
 
@@ -106,8 +82,6 @@ export default function LeafletMapSupabase() {
   const [lieux, setLieux] = useState<Lieu[]>([]);
   const [loading, setLoading] = useState(true);
   const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
-
-  // 🔹 Lieu sélectionné
   const [selectedLieu, setSelectedLieu] = useState<Lieu | null>(null);
 
   useEffect(() => {
@@ -115,15 +89,10 @@ export default function LeafletMapSupabase() {
       const { data, error } = await supabase
         .from('locations')
         .select('id, title, description, latitude, longitude');
-
-      if (error) {
-        console.error('Erreur Supabase Leaflet:', error);
-      } else {
-        setLieux(data as Lieu[]);
-      }
+      if (error) console.error('Erreur Supabase Leaflet:', error);
+      else setLieux(data as Lieu[]);
       setLoading(false);
     }
-
     fetchLieux();
   }, []);
 
@@ -133,26 +102,19 @@ export default function LeafletMapSupabase() {
       <div style={{ width: '100%', height: '500px', position: 'relative' }}>
         <MapContainer
           style={{ width: '100%', height: '100%' }}
-          zoom={5}
-          center={[48.8566, 2.3522]}
+          {...({ center: [48.8566, 2.3522], zoom: 5 } as any)} // TS-safe
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-          {/* Bouton géolocalisation */}
           <LocateUserControl onLocate={(lat, lng) => setUserPosition([lat, lng])} />
 
-          {/* Lieux Supabase */}
           {lieux.map((lieu) => (
             <Marker
               key={lieu.id}
               position={[lieu.latitude, lieu.longitude]}
-              eventHandlers={{
-                click: () => setSelectedLieu(lieu),
-              }}
+              eventHandlers={{ click: () => setSelectedLieu(lieu) }}
             >
-              <Tooltip {...({ permanent: false, opacity: 1 } as any)}>
-                {lieu.title}
-              </Tooltip>
+              <Tooltip {...({ permanent: false, opacity: 1 } as any)}>{lieu.title}</Tooltip>
               <Popup>
                 <strong>{lieu.title}</strong>
                 <br />
@@ -161,7 +123,6 @@ export default function LeafletMapSupabase() {
             </Marker>
           ))}
 
-          {/* Position utilisateur */}
           {userPosition && (
             <Marker {...({ position: userPosition, icon: userIcon } as any)}>
               <Popup>Vous êtes ici</Popup>
@@ -171,7 +132,6 @@ export default function LeafletMapSupabase() {
           <FitBounds lieux={lieux} />
         </MapContainer>
 
-        {/* Overlay chargement */}
         {loading && (
           <div
             style={{
@@ -191,7 +151,7 @@ export default function LeafletMapSupabase() {
         )}
       </div>
 
-      {/* Détail du lieu sélectionné sous la carte */}
+      {/* Détail du lieu sélectionné */}
       {selectedLieu && (
         <div
           style={{
