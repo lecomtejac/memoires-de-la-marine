@@ -105,8 +105,10 @@ function LocateUserControl({
 export default function LeafletMapSupabase() {
   const [lieux, setLieux] = useState<Lieu[]>([]);
   const [loading, setLoading] = useState(true);
-  const [userPosition, setUserPosition] =
-    useState<[number, number] | null>(null);
+  const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
+
+  // 🔹 Lieu sélectionné
+  const [selectedLieu, setSelectedLieu] = useState<Lieu | null>(null);
 
   useEffect(() => {
     async function fetchLieux() {
@@ -126,95 +128,122 @@ export default function LeafletMapSupabase() {
   }, []);
 
   return (
-    <div style={{ position: 'relative', height: '500px', width: '100%' }}>
-      <MapContainer
-        {...({
-          style: { height: '500px', width: '100%' },
-          zoom: 5,
-          center: [48.8566, 2.3522],
-        } as any)}
-      >
-        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+    <div style={{ width: '100%' }}>
+      <div style={{ position: 'relative', height: '500px', width: '100%' }}>
+        <MapContainer
+          {...({
+            style: { height: '500px', width: '100%' },
+            zoom: 5,
+            center: [48.8566, 2.3522],
+          } as any)}
+        >
+          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-        {/* 🔹 Bouton géolocalisation */}
-        <LocateUserControl
-          onLocate={(lat, lng) => setUserPosition([lat, lng])}
-        />
+          {/* 🔹 Bouton géolocalisation */}
+          <LocateUserControl
+            onLocate={(lat, lng) => setUserPosition([lat, lng])}
+          />
 
-        {/* 🔹 Lieux Supabase avec tooltip au survol */}
-        {lieux.map((lieu) => (
-          <Marker
-            key={lieu.id}
-            position={[lieu.latitude, lieu.longitude]}
-          >
-            <Tooltip
+          {/* 🔹 Lieux Supabase avec tooltip et clic pour sélectionner */}
+          {lieux.map((lieu) => (
+            <Marker
+              key={lieu.id}
+              position={[lieu.latitude, lieu.longitude]}
+              eventHandlers={{
+                click: () => setSelectedLieu(lieu),
+              }}
+            >
+              <Tooltip
+                {...({
+                  direction: 'top',
+                  offset: [0, -10],
+                  opacity: 1,
+                  permanent: false,
+                } as any)}
+              >
+                {lieu.title}
+              </Tooltip>
+              <Popup>
+                <strong>{lieu.title}</strong>
+                <br />
+                {lieu.description ?? ''}
+              </Popup>
+            </Marker>
+          ))}
+
+          {/* 🔹 Position utilisateur */}
+          {userPosition && (
+            <Marker
               {...({
-                direction: 'top',
-                offset: [0, -10],
-                opacity: 1,
-                permanent: false,
+                position: userPosition,
+                icon: userIcon,
               } as any)}
             >
-              {lieu.title}
-            </Tooltip>
-            <Popup>
-              <strong>{lieu.title}</strong>
-              <br />
-              {lieu.description ?? ''}
-            </Popup>
-          </Marker>
-        ))}
+              <Popup>Vous êtes ici</Popup>
+            </Marker>
+          )}
 
-        {/* 🔹 Position utilisateur */}
-        {userPosition && (
-          <Marker
-            {...({
-              position: userPosition,
-              icon: userIcon,
-            } as any)}
+          <FitBounds lieux={lieux} />
+        </MapContainer>
+
+        {/* 🔹 Overlay chargement */}
+        {loading && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              backgroundColor: 'rgba(255,255,255,0.8)',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              fontSize: '1.2rem',
+              fontWeight: 'bold',
+              zIndex: 1000,
+            }}
           >
-            <Popup>Vous êtes ici</Popup>
-          </Marker>
+            Chargement des lieux…
+          </div>
         )}
 
-        <FitBounds lieux={lieux} />
-      </MapContainer>
+        {/* 🔹 Aucun lieu */}
+        {!loading && lieux.length === 0 && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              backgroundColor: 'rgba(255,255,255,0.8)',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              fontSize: '1.2rem',
+              fontWeight: 'bold',
+              zIndex: 1000,
+            }}
+          >
+            Aucun lieu trouvé.
+          </div>
+        )}
+      </div>
 
-      {/* 🔹 Overlay chargement */}
-      {loading && (
+      {/* 🔹 Détail du lieu sélectionné sous la carte */}
+      {selectedLieu && (
         <div
           style={{
-            position: 'absolute',
-            inset: 0,
-            backgroundColor: 'rgba(255,255,255,0.8)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            fontSize: '1.2rem',
-            fontWeight: 'bold',
-            zIndex: 1000,
+            marginTop: '1rem',
+            padding: '1rem',
+            border: '1px solid #ccc',
+            borderRadius: '8px',
+            backgroundColor: '#f9f9f9',
+            maxWidth: '800px',
+            fontFamily: 'sans-serif',
           }}
         >
-          Chargement des lieux…
-        </div>
-      )}
-
-      {/* 🔹 Aucun lieu */}
-      {!loading && lieux.length === 0 && (
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            backgroundColor: 'rgba(255,255,255,0.8)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            fontSize: '1.2rem',
-            fontWeight: 'bold',
-            zIndex: 1000,
-          }}
-        >
-          Aucun lieu trouvé.
+          <h2>{selectedLieu.title}</h2>
+          {selectedLieu.description && <p>{selectedLieu.description}</p>}
+          <p>
+            <strong>Coordonnées :</strong> {selectedLieu.latitude},{' '}
+            {selectedLieu.longitude}
+          </p>
         </div>
       )}
     </div>
