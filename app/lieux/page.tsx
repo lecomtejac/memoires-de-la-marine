@@ -52,21 +52,23 @@ export default function LieuxPage() {
     <div style={{ padding: '1rem', fontFamily: 'sans-serif' }}>
       <h1>Liste des lieux de mémoire</h1>
 
-      {/* Boutons pour cartes */}
+      {/* Boutons pour cartes / navigation */}
       <div style={{ marginBottom: '2rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+        {/* Nouveau bouton "Retour accueil" */}
         <Link
-          href="/lieux/carte"
+          href="/"
           style={{
             padding: '0.5rem 1rem',
-            backgroundColor: '#0070f3',
+            backgroundColor: '#888',
             color: '#fff',
             borderRadius: '5px',
             textDecoration: 'none',
           }}
         >
-          Carte E-Frame
+          Retour accueil
         </Link>
 
+        {/* Bouton orange "Tester la carte Leaflet" */}
         <Link
           href="/lieux/test-carte-leaflet"
           style={{
