@@ -62,27 +62,65 @@ export default function LeafletMapSupabase() {
     fetchLieux();
   }, []);
 
-  if (loading) {
-    return <p>Chargement des lieux…</p>; // 🔹 Affichage loader
-  }
-
-  if (lieux.length === 0) {
-    return <p>Aucun lieu trouvé.</p>; // 🔹 Cas où Supabase renvoie vide
-  }
-
   return (
-    <MapContainer {...({ style: mapStyle, zoom: 5, center: [48.8566, 2.3522] } as any)}>
-      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-      {lieux.map((lieu) => (
-        <Marker key={lieu.id} position={[lieu.latitude, lieu.longitude]}>
-          <Popup>
-            <strong>{lieu.title}</strong>
-            <br />
-            {lieu.description ?? ''}
-          </Popup>
-        </Marker>
-      ))}
-      <FitBounds lieux={lieux} />
-    </MapContainer>
+    <div style={{ position: 'relative', height: '500px', width: '100%' }}>
+      {/* 🔹 Carte toujours visible */}
+      <MapContainer {...({ style: mapStyle, zoom: 5, center: [48.8566, 2.3522] } as any)}>
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        {lieux.map((lieu) => (
+          <Marker key={lieu.id} position={[lieu.latitude, lieu.longitude]}>
+            <Popup>
+              <strong>{lieu.title}</strong>
+              <br />
+              {lieu.description ?? ''}
+            </Popup>
+          </Marker>
+        ))}
+        <FitBounds lieux={lieux} />
+      </MapContainer>
+
+      {/* 🔹 Overlay “Chargement…” */}
+      {loading && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            height: '100%',
+            width: '100%',
+            backgroundColor: 'rgba(255,255,255,0.8)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            fontSize: '1.2rem',
+            fontWeight: 'bold',
+            zIndex: 1000,
+          }}
+        >
+          Chargement des lieux…
+        </div>
+      )}
+
+      {!loading && lieux.length === 0 && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            height: '100%',
+            width: '100%',
+            backgroundColor: 'rgba(255,255,255,0.8)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            fontSize: '1.2rem',
+            fontWeight: 'bold',
+            zIndex: 1000,
+          }}
+        >
+          Aucun lieu trouvé.
+        </div>
+      )}
+    </div>
   );
 }
