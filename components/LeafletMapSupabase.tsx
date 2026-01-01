@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { LatLngExpression } from 'leaflet';
+import { LatLngExpression, map } from 'leaflet';
 import { createClient } from '@supabase/supabase-js';
 
-// Import dynamique de React-Leaflet pour éviter SSR
+// Import dynamique React-Leaflet
 const MapContainer = dynamic(
   () => import('react-leaflet').then((mod) => mod.MapContainer),
   { ssr: false }
@@ -23,7 +23,6 @@ const Popup = dynamic(
   { ssr: false }
 );
 
-// Supabase client
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -47,11 +46,8 @@ export default function LeafletMapSupabase() {
   useEffect(() => {
     const fetchLieux = async () => {
       const { data, error } = await supabase.from('locations').select('*');
-      if (error) {
-        console.error('Erreur Supabase:', error.message);
-      } else {
-        setLieux(data as Lieu[]);
-      }
+      if (error) console.error('Erreur Supabase:', error.message);
+      else setLieux(data as Lieu[]);
     };
     fetchLieux();
   }, []);
@@ -63,8 +59,8 @@ export default function LeafletMapSupabase() {
       <div style={{ height: '500px', width: '100%' }}>
         <MapContainer
           style={{ width: '100%', height: '100%' }}
-          center={defaultCenter as any} // ⚡ Cast pour TypeScript
-          zoom={defaultZoom as any}     // ⚡ Cast pour TypeScript
+          zoom={defaultZoom as any}
+          center={defaultCenter as any}
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
@@ -86,7 +82,7 @@ export default function LeafletMapSupabase() {
         </MapContainer>
       </div>
 
-      {/* Zone de détail sous la carte */}
+      {/* Détail sous la carte */}
       <div
         style={{
           marginTop: '20px',
