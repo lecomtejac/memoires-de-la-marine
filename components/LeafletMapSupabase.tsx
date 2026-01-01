@@ -1,6 +1,6 @@
 'use client';
 
-import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useEffect, useState } from 'react';
@@ -21,49 +21,106 @@ L.Icon.Default.mergeOptions({
 type Lieu = {
   id: string;
   title: string;
+  description: string | null;
   latitude: number;
   longitude: number;
 };
 
+// 🔹 Composant pour ajuster automatiquement la carte
+function FitBounds({ lieux }: { lieux: Lieu[] }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (lieux.length === 0) return;
+
+    const bounds = L.latLngBounds(lieux.map((l) => [l.latitude, l.longitude] as [number, number]));
+    map.fitBounds(bounds, { padding: [50, 50] });
+  }, [lieux, map]);
+
+  return null;
+}
+
 export default function LeafletMapSupabase() {
   const [lieux, setLieux] = useState<Lieu[]>([]);
-
-  const defaultPosition: [number, number] = [48.8566, 2.3522]; // Paris
+  const [loading, setLoading] = useState(true);
   const mapStyle = { height: '500px', width: '100%' };
 
   useEffect(() => {
     async function fetchLieux() {
       const { data, error } = await supabase
         .from('locations')
-        .select('id, title, latitude, longitude');
+        .select('id, title, description, latitude, longitude');
 
-      if (error) console.error('Erreur Supabase Leaflet:', error);
-      else setLieux(data as Lieu[]);
+      if (error) {
+        console.error('Erreur Supabase Leaflet:', error);
+      } else {
+        setLieux(data as Lieu[]);
+      }
+      setLoading(false); // 🔹 Fin du chargement
     }
 
     fetchLieux();
   }, []);
 
-  // 🔹 Pour tester avec 4 markers fixes si Supabase ne renvoie pas encore de données
-  const testMarkers: Lieu[] = [
-    { id: '1', title: 'Lieu 1', latitude: 48.8566, longitude: 2.3522 }, // Paris
-    { id: '2', title: 'Lieu 2', latitude: 45.7640, longitude: 4.8357 }, // Lyon
-    { id: '3', title: 'Lieu 3', latitude: 43.2965, longitude: 5.3698 }, // Marseille
-    { id: '4', title: 'Lieu 4', latitude: 50.6292, longitude: 3.0573 }, // Lille
-  ];
-
-  const markersToShow = lieux.length > 0 ? lieux : testMarkers;
-
   return (
-    <MapContainer style={mapStyle} center={defaultPosition} zoom={5}>
-      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+    <div style={{ position: 'relative', height: '500px', width: '100%' }}>
+      {/* 🔹 Carte toujours visible */}
+      <MapContainer {...({ style: mapStyle, zoom: 5, center: [48.8566, 2.3522] } as any)}>
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        {lieux.map((lieu) => (
+          <Marker key={lieu.id} position={[lieu.latitude, lieu.longitude]}>
+            <Popup>
+              <strong>{lieu.title}</strong>
+              <br />
+              {lieu.description ?? ''}
+            </Popup>
+          </Marker>
+        ))}
+        <FitBounds lieux={lieux} />
+      </MapContainer>
 
-      {markersToShow.map((lieu) => (
-        <Marker
-          key={lieu.id}
-          position={[lieu.latitude, lieu.longitude]}
-        />
-      ))}
-    </MapContainer>
+      {/* 🔹 Overlay “Chargement…” */}
+      {loading && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            height: '100%',
+            width: '100%',
+            backgroundColor: 'rgba(255,255,255,0.8)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            fontSize: '1.2rem',
+            fontWeight: 'bold',
+            zIndex: 1000,
+          }}
+        >
+          Chargement des lieux…
+        </div>
+      )}
+
+      {!loading && lieux.length === 0 && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            height: '100%',
+            width: '100%',
+            backgroundColor: 'rgba(255,255,255,0.8)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            fontSize: '1.2rem',
+            fontWeight: 'bold',
+            zIndex: 1000,
+          }}
+        >
+          Aucun lieu trouvé.
+        </div>
+      )}
+    </div>
   );
 }
