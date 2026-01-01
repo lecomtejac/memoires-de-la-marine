@@ -99,10 +99,7 @@ export default function LeafletMapSupabase() {
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       {/* Carte */}
       <div style={{ width: '100%', height: '500px', position: 'relative' }}>
-        <MapContainer
-          style={{ width: '100%', height: '100%' }}
-          {...({ center: [48.8566, 2.3522], zoom: 5 } as any)}
-        >
+        <MapContainer style={{ width: '100%', height: '100%' }} {...({ center: [48.8566, 2.3522], zoom: 5 } as any)}>
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           <LocateUserControl onLocate={(lat, lng) => setUserPosition([lat, lng])} />
 
@@ -110,9 +107,9 @@ export default function LeafletMapSupabase() {
             <Marker
               key={lieu.id}
               position={[lieu.latitude, lieu.longitude]}
-              title={lieu.title} // <-- tooltip au survol simplifié
               eventHandlers={{ click: () => setSelectedLieu(lieu) }}
             >
+              <Tooltip>{lieu.title}</Tooltip> {/* <-- tooltip au survol */}
               <Popup>
                 <strong>{lieu.title}</strong>
                 <br />
