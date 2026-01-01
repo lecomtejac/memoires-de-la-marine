@@ -8,7 +8,6 @@ import { supabase } from '../lib/supabaseClient';
 
 // 🔹 Fix icônes Leaflet pour Next.js
 delete (L.Icon.Default.prototype as any)._getIconUrl;
-
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
     'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
@@ -102,19 +101,19 @@ export default function LeafletMapSupabase() {
       <div style={{ width: '100%', height: '500px', position: 'relative' }}>
         <MapContainer
           style={{ width: '100%', height: '100%' }}
-          {...({ center: [48.8566, 2.3522], zoom: 5 } as any)} // TS-safe
+          {...({ center: [48.8566, 2.3522], zoom: 5 } as any)}
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-
           <LocateUserControl onLocate={(lat, lng) => setUserPosition([lat, lng])} />
-
           {lieux.map((lieu) => (
             <Marker
               key={lieu.id}
               position={[lieu.latitude, lieu.longitude]}
               eventHandlers={{ click: () => setSelectedLieu(lieu) }}
             >
-              <Tooltip {...({ permanent: false, opacity: 1 } as any)}>{lieu.title}</Tooltip>
+              <Tooltip direction="top" offset={[0, -10]} opacity={1} permanent={false}>
+                {lieu.title}
+              </Tooltip>
               <Popup>
                 <strong>{lieu.title}</strong>
                 <br />
@@ -122,13 +121,9 @@ export default function LeafletMapSupabase() {
               </Popup>
             </Marker>
           ))}
-
-          {userPosition && (
-            <Marker {...({ position: userPosition, icon: userIcon } as any)}>
-              <Popup>Vous êtes ici</Popup>
-            </Marker>
-          )}
-
+          {userPosition && <Marker {...({ position: userPosition, icon: userIcon } as any)}>
+            <Popup>Vous êtes ici</Popup>
+          </Marker>}
           <FitBounds lieux={lieux} />
         </MapContainer>
 
@@ -151,7 +146,7 @@ export default function LeafletMapSupabase() {
         )}
       </div>
 
-      {/* Détail du lieu sélectionné */}
+      {/* 🔹 Détails sous la carte */}
       {selectedLieu && (
         <div
           style={{
