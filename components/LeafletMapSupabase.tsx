@@ -4,7 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabaseClient'; // chemin RELATIF, sûr pour Vercel
+import { supabase } from '../lib/supabaseClient'; // chemin relatif, OK pour Vercel
 
 // Fix icônes Leaflet (Next.js)
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -48,10 +48,11 @@ export default function LeafletMapSupabase() {
   }, []);
 
   return (
+    // @ts-ignore — react-leaflet + Next.js (même solution que LeafletMap)
     <MapContainer center={defaultPosition} zoom={5} style={mapStyle}>
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; OpenStreetMap'
+        attribution="&copy; OpenStreetMap"
       />
 
       {/* 🔹 UN SEUL marker pour test */}
