@@ -4,9 +4,9 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabaseClient';
+import { supabase } from '../lib/supabaseClient'; // chemin RELATIF (Vercel OK)
 
-// Fix icônes Leaflet (Next.js)
+// 🔧 Fix icônes Leaflet (Next.js / Vercel)
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 
 L.Icon.Default.mergeOptions({
@@ -21,14 +21,14 @@ L.Icon.Default.mergeOptions({
 type Lieu = {
   id: string;
   name: string | null;
-  latitude: number;
-  longitude: number;
+  latitude: number | null;
+  longitude: number | null;
 };
 
 export default function LeafletMapSupabase() {
   const [lieux, setLieux] = useState<Lieu[]>([]);
 
-  const defaultPosition: [number, number] = [48.8566, 2.3522];
+  const defaultPosition: [number, number] = [48.8566, 2.3522]; // Paris
   const mapStyle = { height: '500px', width: '100%' };
 
   useEffect(() => {
@@ -47,16 +47,34 @@ export default function LeafletMapSupabase() {
     fetchLieux();
   }, []);
 
-  return (
-    // @ts-ignore — bug de typage react-leaflet avec Next.js
-    <MapContainer center={defaultPosition} zoom={5} style={mapStyle}>
-      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+  const premierLieuValide = lieux.find(
+    (l) => typeof l.latitude === 'number' && typeof l.longitude === 'number'
+  );
 
-      {lieux[0] && (
-        <Marker position={[lieux[0].latitude, lieux[0].longitude]}>
-          <Popup>{lieux[0].name ?? 'Lieu sans nom'}</Popup>
-        </Marker>
-      )}
-    </MapContainer>
+  return (
+    <>
+      <MapContainer center={defaultPosition} zoom={5} style={mapStyle}>
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+
+        {/* 🔹 UN SEUL marker pour test Supabase */}
+        {premierLieuValide && (
+          <Marker
+            position={[
+              premierLieuValide.latitude as number,
+              premierLieuValide.longitude as number,
+            ]}
+          >
+            <Popup>
+              {premierLieuValide.name ?? 'Lieu sans nom'}
+            </Popup>
+          </Marker>
+        )}
+      </MapContainer>
+
+      {/* 🧪 DEBUG : données Supabase affichées */}
+      <pre style={{ fontSize: 12, marginTop: 12 }}>
+        {JSON.stringify(lieux, null, 2)}
+      </pre>
+    </>
   );
 }
