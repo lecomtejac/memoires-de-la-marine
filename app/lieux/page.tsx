@@ -16,16 +16,16 @@ interface Lieu {
 
 export default function LieuxPage() {
   const [lieux, setLieux] = useState<Lieu[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchLieux = async () => {
+    async function fetchLieux() {
       try {
         const { data, error } = await supabase.from('locations').select('*');
         if (error) throw error;
 
-        const filteredData: Lieu[] = (data ?? []).map((row: any) => ({
+        const mappedData: Lieu[] = (data ?? []).map((row: any) => ({
           id: row.id,
           title: row.title ?? 'Titre inconnu',
           description: row.description ?? null,
@@ -35,7 +35,7 @@ export default function LieuxPage() {
           longitude: row.longitude ?? 0,
         }));
 
-        setLieux(filteredData);
+        setLieux(mappedData);
       } catch (err: any) {
         console.error('Erreur fetch:', err);
         setErrorMsg(err.message ?? 'Erreur lors de la récupération des lieux');
@@ -43,7 +43,7 @@ export default function LieuxPage() {
       } finally {
         setLoading(false);
       }
-    };
+    }
 
     fetchLieux();
   }, []);
@@ -78,7 +78,6 @@ export default function LieuxPage() {
         >
           Carte Leaflet
         </Link>
-        {/* Nouveau bouton orange vers /lieux/test-carte-leaflet */}
         <Link
           href="/lieux/test-carte-leaflet"
           style={{
@@ -91,3 +90,28 @@ export default function LieuxPage() {
         >
           Tester la carte Leaflet
         </Link>
+      </div>
+
+      {loading && <p>Chargement des lieux…</p>}
+      {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
+
+      {!loading && !errorMsg && lieux.length === 0 && <p>Aucun lieu trouvé.</p>}
+
+      {!loading && !errorMsg && lieux.length > 0 && (
+        <ul>
+          {lieux.map((lieu) => (
+            <li key={lieu.id} style={{ marginBottom: '1rem' }}>
+              <strong>{lieu.title}</strong>
+              {lieu.description && <p>{lieu.description}</p>}
+              {lieu.country && <p>Pays : {lieu.country}</p>}
+              {lieu.status && <p>Statut : {lieu.status}</p>}
+              <p>
+                Coordonnées : {lieu.latitude}, {lieu.longitude}
+              </p>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
