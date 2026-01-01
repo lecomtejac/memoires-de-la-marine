@@ -66,18 +66,7 @@ export default function LieuxPage() {
         >
           Carte E-Frame
         </Link>
-        <Link
-          href="/lieux/carte-leaflet"
-          style={{
-            padding: '0.5rem 1rem',
-            backgroundColor: '#00b300',
-            color: '#fff',
-            borderRadius: '5px',
-            textDecoration: 'none',
-          }}
-        >
-          Carte Leaflet
-        </Link>
+
         <Link
           href="/lieux/test-carte-leaflet"
           style={{
