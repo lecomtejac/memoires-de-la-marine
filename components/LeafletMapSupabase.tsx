@@ -5,7 +5,6 @@ import dynamic from 'next/dynamic';
 import { LatLngExpression, Icon } from 'leaflet';
 import { createClient } from '@supabase/supabase-js';
 
-// Import dynamique pour éviter le SSR
 const MapContainer = dynamic(
   () => import('react-leaflet').then((mod) => mod.MapContainer),
   { ssr: false }
@@ -78,8 +77,11 @@ export default function LeafletMapSupabase() {
       <div style={{ height: '500px', width: '100%' }}>
         <MapContainer
           style={{ width: '100%', height: '100%' }}
-          center={defaultCenter}
-          zoom={defaultZoom}
+          // ⚡ Utilisation des props correctes pour TypeScript
+          center={undefined}
+          zoom={undefined}
+          defaultCenter={defaultCenter}
+          defaultZoom={defaultZoom}
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
