@@ -128,8 +128,16 @@ export default function LeafletMapSupabase() {
   }, []);
 
   return (
-    <div style={{ width: '100%' }}>
-      <div style={{ position: 'relative', height: '500px', width: '100%' }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        width: '100%',
+      }}
+    >
+      {/* Carte */}
+      <div style={{ height: '500px', width: '100%' }}>
         <MapContainer
           {...({
             style: { height: '500px', width: '100%' },
@@ -139,12 +147,12 @@ export default function LeafletMapSupabase() {
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-          {/* 🔹 Bouton géolocalisation */}
+          {/* Bouton géolocalisation */}
           <LocateUserControl
             onLocate={(lat, lng) => setUserPosition([lat, lng])}
           />
 
-          {/* 🔹 Lieux Supabase avec tooltip et clic pour sélectionner */}
+          {/* Lieux Supabase */}
           {lieux.map((lieu) => (
             <Marker
               key={lieu.id}
@@ -171,7 +179,7 @@ export default function LeafletMapSupabase() {
             </Marker>
           ))}
 
-          {/* 🔹 Position utilisateur */}
+          {/* Position utilisateur */}
           {userPosition && (
             <Marker
               {...({
@@ -186,7 +194,7 @@ export default function LeafletMapSupabase() {
           <FitBounds lieux={lieux} />
         </MapContainer>
 
-        {/* 🔹 Overlay chargement */}
+        {/* Overlay chargement */}
         {loading && (
           <div
             style={{
@@ -205,7 +213,7 @@ export default function LeafletMapSupabase() {
           </div>
         )}
 
-        {/* 🔹 Aucun lieu */}
+        {/* Aucun lieu */}
         {!loading && lieux.length === 0 && (
           <div
             style={{
@@ -225,7 +233,7 @@ export default function LeafletMapSupabase() {
         )}
       </div>
 
-      {/* 🔹 Détail du lieu sélectionné sous la carte */}
+      {/* Détail du lieu sélectionné sous la carte */}
       {selectedLieu && (
         <div
           style={{
@@ -236,13 +244,13 @@ export default function LeafletMapSupabase() {
             backgroundColor: '#f9f9f9',
             maxWidth: '800px',
             fontFamily: 'sans-serif',
+            width: '100%',
           }}
         >
           <h2>{selectedLieu.title}</h2>
           {selectedLieu.description && <p>{selectedLieu.description}</p>}
           <p>
-            <strong>Coordonnées :</strong> {selectedLieu.latitude},{' '}
-            {selectedLieu.longitude}
+            <strong>Coordonnées :</strong> {selectedLieu.latitude}, {selectedLieu.longitude}
           </p>
         </div>
       )}
