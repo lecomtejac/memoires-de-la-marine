@@ -1,6 +1,6 @@
 'use client';
 
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useEffect, useState } from 'react';
@@ -56,7 +56,7 @@ export default function LeafletMapSupabase() {
       } else {
         setLieux(data as Lieu[]);
       }
-      setLoading(false); // 🔹 Fin du chargement
+      setLoading(false);
     }
 
     fetchLieux();
@@ -64,22 +64,40 @@ export default function LeafletMapSupabase() {
 
   return (
     <div style={{ position: 'relative', height: '500px', width: '100%' }}>
-      {/* 🔹 Carte toujours visible */}
       <MapContainer {...({ style: mapStyle, zoom: 5, center: [48.8566, 2.3522] } as any)}>
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-        {lieux.map((lieu) => (
-          <Marker key={lieu.id} position={[lieu.latitude, lieu.longitude]}>
-            <Popup>
-              <strong>{lieu.title}</strong>
-              <br />
-              {lieu.description ?? ''}
-            </Popup>
-          </Marker>
-        ))}
+
+        {lieux.map((lieu) => {
+          const [tooltipOpen, setTooltipOpen] = useState(true);
+
+          return (
+            <Marker
+              key={lieu.id}
+              position={[lieu.latitude, lieu.longitude]}
+              eventHandlers={{
+                click: () => setTooltipOpen(false), // 🔹 Tooltip disparaît au clic
+                mouseover: () => setTooltipOpen(true), // 🔹 Tooltip réapparaît au survol
+              }}
+            >
+              <Popup
+                onClose={() => setTooltipOpen(true)} // 🔹 Tooltip réapparaît si popup fermé
+              >
+                <strong>{lieu.title}</strong>
+                <br />
+                {lieu.description ?? ''}
+              </Popup>
+              {tooltipOpen && (
+                <Tooltip direction="top" offset={[0, -10]} opacity={0.9} sticky>
+                  {lieu.title}
+                </Tooltip>
+              )}
+            </Marker>
+          );
+        })}
+
         <FitBounds lieux={lieux} />
       </MapContainer>
 
-      {/* 🔹 Overlay “Chargement…” */}
       {loading && (
         <div
           style={{
@@ -124,3 +142,4 @@ export default function LeafletMapSupabase() {
     </div>
   );
 }
+
