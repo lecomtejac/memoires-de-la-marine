@@ -1,6 +1,6 @@
 'use client';
 
-import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, Tooltip } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useEffect, useState } from 'react';
@@ -105,15 +105,14 @@ export default function LeafletMapSupabase() {
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           <LocateUserControl onLocate={(lat, lng) => setUserPosition([lat, lng])} />
+
           {lieux.map((lieu) => (
             <Marker
               key={lieu.id}
               position={[lieu.latitude, lieu.longitude]}
+              title={lieu.title} // <-- tooltip au survol simplifié
               eventHandlers={{ click: () => setSelectedLieu(lieu) }}
             >
-              <Tooltip direction="top" offset={[0, -10]} opacity={1} permanent={false}>
-                {lieu.title}
-              </Tooltip>
               <Popup>
                 <strong>{lieu.title}</strong>
                 <br />
@@ -121,9 +120,13 @@ export default function LeafletMapSupabase() {
               </Popup>
             </Marker>
           ))}
-          {userPosition && <Marker {...({ position: userPosition, icon: userIcon } as any)}>
-            <Popup>Vous êtes ici</Popup>
-          </Marker>}
+
+          {userPosition && (
+            <Marker {...({ position: userPosition, icon: userIcon } as any)}>
+              <Popup>Vous êtes ici</Popup>
+            </Marker>
+          )}
+
           <FitBounds lieux={lieux} />
         </MapContainer>
 
