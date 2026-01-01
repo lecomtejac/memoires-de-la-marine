@@ -33,8 +33,8 @@ export default function HomePage() {
         </p>
       </header>
 
-      {/* Boutons vers les pages */}
-      <div style={{ textAlign: 'center', marginTop: '3rem', display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+      {/* Bouton vers la page */}
+      <div style={{ textAlign: 'center', marginTop: '3rem' }}>
         {/* Bouton bleu : consulter les lieux (URL externe) */}
         <Link
           href="https://memoires-de-la-marine-i8gy.vercel.app/lieux/test-carte-leaflet"
@@ -50,23 +50,6 @@ export default function HomePage() {
           }}
         >
           Consulter les lieux de mémoire
-        </Link>
-
-        {/* Bouton orange : tester la carte Leaflet */}
-        <Link
-          href="/lieux/test-carte-leaflet"
-          style={{
-            display: 'inline-block',
-            padding: '1rem 2rem',
-            backgroundColor: '#ff6600',
-            color: '#fff',
-            borderRadius: '8px',
-            textDecoration: 'none',
-            fontWeight: 'bold',
-            fontSize: '1.2rem',
-          }}
-        >
-          Tester la carte Leaflet
         </Link>
       </div>
 
