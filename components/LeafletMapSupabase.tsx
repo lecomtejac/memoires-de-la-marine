@@ -24,7 +24,6 @@ const userIcon = new L.Icon({
     'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
-  className: 'user-position-marker',
 });
 
 type Lieu = {
@@ -97,9 +96,7 @@ function LocateUserControl({
     };
 
     control.addTo(map);
-    return () => {
-      control.remove();
-    };
+    return () => control.remove();
   }, [map, onLocate]);
 
   return null;
@@ -108,11 +105,8 @@ function LocateUserControl({
 export default function LeafletMapSupabase() {
   const [lieux, setLieux] = useState<Lieu[]>([]);
   const [loading, setLoading] = useState(true);
-  const [userPosition, setUserPosition] = useState<[number, number] | null>(
-    null
-  );
-
-  const mapStyle = { height: '500px', width: '100%' };
+  const [userPosition, setUserPosition] =
+    useState<[number, number] | null>(null);
 
   useEffect(() => {
     async function fetchLieux() {
@@ -135,19 +129,17 @@ export default function LeafletMapSupabase() {
     <div style={{ position: 'relative', height: '500px', width: '100%' }}>
       <MapContainer
         {...({
-          style: mapStyle,
+          style: { height: '500px', width: '100%' },
           zoom: 5,
           center: [48.8566, 2.3522],
         } as any)}
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-        {/* 🔹 Bouton géolocalisation */}
         <LocateUserControl
           onLocate={(lat, lng) => setUserPosition([lat, lng])}
         />
 
-        {/* 🔹 Lieux Supabase */}
         {lieux.map((lieu) => (
           <Marker
             key={lieu.id}
@@ -161,9 +153,11 @@ export default function LeafletMapSupabase() {
           </Marker>
         ))}
 
-        {/* 🔹 Position utilisateur */}
         {userPosition && (
-          <Marker position={userPosition} icon={userIcon}>
+          <Marker
+            position={userPosition}
+            icon={userIcon as unknown as L.Icon}
+          >
             <Popup>Vous êtes ici</Popup>
           </Marker>
         )}
@@ -171,15 +165,11 @@ export default function LeafletMapSupabase() {
         <FitBounds lieux={lieux} />
       </MapContainer>
 
-      {/* 🔹 Overlay chargement */}
       {loading && (
         <div
           style={{
             position: 'absolute',
-            top: 0,
-            left: 0,
-            height: '100%',
-            width: '100%',
+            inset: 0,
             backgroundColor: 'rgba(255,255,255,0.8)',
             display: 'flex',
             justifyContent: 'center',
@@ -193,15 +183,11 @@ export default function LeafletMapSupabase() {
         </div>
       )}
 
-      {/* 🔹 Aucun lieu */}
       {!loading && lieux.length === 0 && (
         <div
           style={{
             position: 'absolute',
-            top: 0,
-            left: 0,
-            height: '100%',
-            width: '100%',
+            inset: 0,
             backgroundColor: 'rgba(255,255,255,0.8)',
             display: 'flex',
             justifyContent: 'center',
