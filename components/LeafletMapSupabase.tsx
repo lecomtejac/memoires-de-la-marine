@@ -136,10 +136,12 @@ export default function LeafletMapSupabase() {
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
+        {/* 🔹 Bouton géolocalisation */}
         <LocateUserControl
           onLocate={(lat, lng) => setUserPosition([lat, lng])}
         />
 
+        {/* 🔹 Lieux Supabase */}
         {lieux.map((lieu) => (
           <Marker
             key={lieu.id}
@@ -153,10 +155,13 @@ export default function LeafletMapSupabase() {
           </Marker>
         ))}
 
+        {/* 🔹 Position utilisateur */}
         {userPosition && (
           <Marker
-            position={userPosition}
-            icon={userIcon as unknown as L.Icon}
+            {...({
+              position: userPosition,
+              icon: userIcon,
+            } as any)}
           >
             <Popup>Vous êtes ici</Popup>
           </Marker>
@@ -165,6 +170,7 @@ export default function LeafletMapSupabase() {
         <FitBounds lieux={lieux} />
       </MapContainer>
 
+      {/* 🔹 Overlay chargement */}
       {loading && (
         <div
           style={{
@@ -183,6 +189,7 @@ export default function LeafletMapSupabase() {
         </div>
       )}
 
+      {/* 🔹 Aucun lieu */}
       {!loading && lieux.length === 0 && (
         <div
           style={{
