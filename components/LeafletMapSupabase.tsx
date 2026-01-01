@@ -4,9 +4,8 @@ import { MapContainer, TileLayer, Marker, Popup, Tooltip } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabaseClient'; // chemin RELATIF, sûr pour Vercel
+import { supabase } from '../lib/supabaseClient';
 
-// Fix icônes Leaflet (Next.js)
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 
 L.Icon.Default.mergeOptions({
@@ -28,8 +27,7 @@ type Lieu = {
 
 export default function LeafletMapSupabase() {
   const [lieux, setLieux] = useState<Lieu[]>([]);
-
-  const defaultPosition: [number, number] = [48.8566, 2.3522]; // Paris
+  const defaultPosition: [number, number] = [48.8566, 2.3522];
   const mapStyle = { height: '500px', width: '100%' };
 
   useEffect(() => {
@@ -38,21 +36,25 @@ export default function LeafletMapSupabase() {
         .from('locations')
         .select('id, title, description, latitude, longitude');
 
-      if (error) {
-        console.error('Erreur Supabase Leaflet:', error);
-      } else {
-        setLieux(data as Lieu[]);
-      }
+      if (error) console.error('Erreur Supabase Leaflet:', error);
+      else setLieux(data as Lieu[]);
     }
-
     fetchLieux();
   }, []);
 
+  // Calcul des bounds pour centrer tous les markers
+  const bounds =
+    lieux.length > 0
+      ? L.latLngBounds(lieux.map((l) => [l.latitude, l.longitude] as [number, number]))
+      : undefined;
+
   return (
-    <MapContainer center={defaultPosition} zoom={5} style={mapStyle}>
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
+    <MapContainer
+      style={mapStyle}
+      bounds={bounds}      // 🔹 centre automatique
+      scrollWheelZoom={true}
+    >
+      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
       {lieux.map((lieu) => (
         <Marker key={lieu.id} position={[lieu.latitude, lieu.longitude]}>
