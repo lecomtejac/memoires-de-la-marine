@@ -24,12 +24,14 @@ type Lieu = {
   longitude: number;
 };
 
-// Hook pour centrer la carte sur les lieux
+// Hook pour centrer la carte sur les lieux après rendu
 function FitBounds({ lieux }: { lieux: Lieu[] }) {
   const map = useMap();
   useEffect(() => {
     if (lieux.length === 0) return;
-    const bounds = L.latLngBounds(lieux.map(l => [l.latitude, l.longitude] as [number, number]));
+    const bounds = L.latLngBounds(
+      lieux.map((l) => [l.latitude, l.longitude] as [number, number])
+    );
     map.fitBounds(bounds, { padding: [50, 50] });
   }, [lieux, map]);
   return null;
@@ -52,16 +54,11 @@ export default function LeafletMapSupabase() {
     fetchLieux();
   }, []);
 
-  const defaultCenter: [number, number] = [48.8566, 2.3522];
-  const defaultZoom = 5;
-
   return (
     <div style={{ width: '100%' }}>
       <div style={{ height: '500px', width: '100%' }}>
         <MapContainer
           style={{ width: '100%', height: '100%' }}
-          center={defaultCenter as L.LatLngExpression} // ⚡ cast pour TypeScript
-          zoom={defaultZoom}
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
