@@ -33,8 +33,8 @@ export default function HomePage() {
         </p>
       </header>
 
-      {/* Boutons vers les pages */}
-      <div style={{ textAlign: 'center', marginTop: '3rem', display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+      {/* Bouton vers la page lieux */}
+      <div style={{ textAlign: 'center', marginTop: '3rem' }}>
         <Link
           href="/lieux"
           style={{
@@ -49,22 +49,6 @@ export default function HomePage() {
           }}
         >
           Voir les lieux de mémoire
-        </Link>
-
-        <Link
-          href="/test-carte-leaflet"
-          style={{
-            display: 'inline-block',
-            padding: '1rem 2rem',
-            backgroundColor: '#00aa00',
-            color: '#fff',
-            borderRadius: '8px',
-            textDecoration: 'none',
-            fontWeight: 'bold',
-            fontSize: '1.2rem',
-          }}
-        >
-          Tester la carte Leaflet
         </Link>
       </div>
 
