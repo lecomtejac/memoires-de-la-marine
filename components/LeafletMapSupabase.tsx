@@ -27,7 +27,7 @@ type Lieu = {
 
 export default function LeafletMapSupabase() {
   const [lieux, setLieux] = useState<Lieu[]>([]);
-  const defaultPosition: [number, number] = [48.8566, 2.3522];
+  const defaultPosition: [number, number] = [48.8566, 2.3522]; // Paris
   const mapStyle = { height: '500px', width: '100%' };
 
   useEffect(() => {
@@ -42,17 +42,14 @@ export default function LeafletMapSupabase() {
     fetchLieux();
   }, []);
 
-  // Calcul des bounds pour centrer tous les markers
-  const bounds =
-    lieux.length > 0
-      ? L.latLngBounds(lieux.map((l) => [l.latitude, l.longitude] as [number, number]))
-      : undefined;
-
   return (
     <MapContainer
+      center={defaultPosition}
+      zoom={5}
       style={mapStyle}
-      bounds={bounds}      // 🔹 centre automatique
-      scrollWheelZoom={true}
+      // scrollWheelZoom doit être passé comme boolean dans les props correctes
+      // Ici on cast en MapContainerProps pour que TS ne râle pas
+      {...({ scrollWheelZoom: true } as any)}
     >
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
