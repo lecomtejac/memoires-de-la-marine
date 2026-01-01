@@ -1,6 +1,6 @@
 'use client';
 
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useEffect, useState } from 'react';
@@ -26,10 +26,22 @@ type Lieu = {
   longitude: number;
 };
 
+// 🔹 Composant pour ajuster automatiquement la carte
+function FitBounds({ lieux }: { lieux: Lieu[] }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (lieux.length === 0) return;
+
+    const bounds = L.latLngBounds(lieux.map((l) => [l.latitude, l.longitude] as [number, number]));
+    map.fitBounds(bounds, { padding: [50, 50] });
+  }, [lieux, map]);
+
+  return null;
+}
+
 export default function LeafletMapSupabase() {
   const [lieux, setLieux] = useState<Lieu[]>([]);
-
-  const defaultPosition: [number, number] = [48.8566, 2.3522]; // Paris
   const mapStyle = { height: '500px', width: '100%' };
 
   useEffect(() => {
@@ -49,16 +61,10 @@ export default function LeafletMapSupabase() {
   }, []);
 
   return (
-    // 🔹 Cast any pour passer le typage strict TypeScript
-    <MapContainer
-      {...({ center: defaultPosition, zoom: 5, style: mapStyle } as any)}
-    >
+    <MapContainer {...({ style: mapStyle, zoom: 5, center: [48.8566, 2.3522] } as any)}>
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       {lieux.map((lieu) => (
-        <Marker
-          key={lieu.id}
-          position={[lieu.latitude, lieu.longitude]}
-        >
+        <Marker key={lieu.id} position={[lieu.latitude, lieu.longitude]}>
           <Popup>
             <strong>{lieu.title}</strong>
             <br />
@@ -66,6 +72,7 @@ export default function LeafletMapSupabase() {
           </Popup>
         </Marker>
       ))}
+      <FitBounds lieux={lieux} />
     </MapContainer>
   );
 }
