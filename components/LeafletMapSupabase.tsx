@@ -4,9 +4,9 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabaseClient';
+import { supabase } from '../lib/supabaseClient'; // chemin RELATIF, sûr pour Vercel
 
-// 🔧 Fix icônes Leaflet (Next.js / Vercel)
+// 🔹 Fix icônes Leaflet pour Next.js
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 
 L.Icon.Default.mergeOptions({
@@ -18,26 +18,31 @@ L.Icon.Default.mergeOptions({
     'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
 });
 
+// 🔹 TypeScript type pour un lieu
 type Lieu = {
   id: string;
-  name: string | null;
-  latitude: number | null;
-  longitude: number | null;
+  title: string;
+  description: string | null;
+  latitude: number;
+  longitude: number;
 };
 
 export default function LeafletMapSupabase() {
   const [lieux, setLieux] = useState<Lieu[]>([]);
 
-  const defaultPosition: [number, number] = [48.8566, 2.3522];
+  const defaultPosition: [number, number] = [48.8566, 2.3522]; // Paris
   const mapStyle = { height: '500px', width: '100%' };
 
+  // 🔹 Fetch Supabase côté client
   useEffect(() => {
     async function fetchLieux() {
       const { data, error } = await supabase
         .from('locations')
-        .select('id, name, latitude, longitude');
+        .select('id, title, description, latitude, longitude');
 
-      if (!error && data) {
+      if (error) {
+        console.error('Erreur Supabase Leaflet:', error);
+      } else {
         setLieux(data as Lieu[]);
       }
     }
@@ -45,35 +50,23 @@ export default function LeafletMapSupabase() {
     fetchLieux();
   }, []);
 
-  const premierLieuValide = lieux.find(
-    (l) => typeof l.latitude === 'number' && typeof l.longitude === 'number'
-  );
-
   return (
-    <>
-      {/* ⛔ TS BUG react-leaflet → IGNORE ICI */}
-      {/* @ts-ignore */}
-      <MapContainer center={defaultPosition} zoom={5} style={mapStyle}>
-        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-
-        {premierLieuValide && (
-          <Marker
-            position={[
-              premierLieuValide.latitude!,
-              premierLieuValide.longitude!,
-            ]}
-          >
-            <Popup>
-              {premierLieuValide.name ?? 'Lieu sans nom'}
-            </Popup>
-          </Marker>
-        )}
-      </MapContainer>
-
-      {/* DEBUG visuel */}
-      <pre style={{ fontSize: 12, marginTop: 12 }}>
-        {JSON.stringify(lieux, null, 2)}
-      </pre>
-    </>
+    <MapContainer center={defaultPosition} zoom={5} style={mapStyle}>
+      <TileLayer
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+      {lieux.map((lieu) => (
+        <Marker
+          key={lieu.id}
+          position={[lieu.latitude, lieu.longitude]}
+        >
+          <Popup>
+            <strong>{lieu.title}</strong>
+            <br />
+            {lieu.description ?? ''}
+          </Popup>
+        </Marker>
+      ))}
+    </MapContainer>
   );
 }
