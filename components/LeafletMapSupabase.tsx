@@ -29,7 +29,6 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-// Typage du lieu de mémoire
 interface Lieu {
   id: string;
   title: string;
@@ -42,11 +41,9 @@ export default function LeafletMapSupabase() {
   const [lieux, setLieux] = useState<Lieu[]>([]);
   const [selectedLieu, setSelectedLieu] = useState<Lieu | null>(null);
 
-  // Coordonnées par défaut pour centrer la carte
   const defaultCenter: LatLngExpression = [48.8566, 2.3522];
   const defaultZoom = 5;
 
-  // Charger les lieux depuis Supabase
   useEffect(() => {
     const fetchLieux = async () => {
       const { data, error } = await supabase.from('locations').select('*');
@@ -66,20 +63,17 @@ export default function LeafletMapSupabase() {
       <div style={{ height: '500px', width: '100%' }}>
         <MapContainer
           style={{ width: '100%', height: '100%' }}
-          center={defaultCenter}
-          zoom={defaultZoom}
+          center={defaultCenter as any} // ⚡ Cast pour TypeScript
+          zoom={defaultZoom as any}     // ⚡ Cast pour TypeScript
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
           {lieux.map((lieu) => (
             <Marker
               key={lieu.id}
-              position={[lieu.latitude, lieu.longitude] as LatLngExpression}
+              position={[lieu.latitude, lieu.longitude]}
               eventHandlers={{
-                click: () => {
-                  console.log('Lieu sélectionné:', lieu.title);
-                  setSelectedLieu(lieu);
-                },
+                click: () => setSelectedLieu(lieu),
               }}
             >
               <Popup>
