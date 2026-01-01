@@ -1,6 +1,6 @@
 'use client';
 
-import { MapContainer, TileLayer, Marker, Popup, useMap, Tooltip } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useEffect, useState } from 'react';
@@ -37,7 +37,7 @@ type Lieu = {
 function FitBounds({ lieux }: { lieux: Lieu[] }) {
   const map = useMap();
   useEffect(() => {
-    if (lieux.length === 0) return;
+    if (!lieux || lieux.length === 0) return;
     const bounds = L.latLngBounds(lieux.map((l) => [l.latitude, l.longitude] as [number, number]));
     map.fitBounds(bounds, { padding: [50, 50] });
   }, [lieux, map]);
@@ -99,7 +99,11 @@ export default function LeafletMapSupabase() {
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       {/* Carte */}
       <div style={{ width: '100%', height: '500px', position: 'relative' }}>
-        <MapContainer style={{ width: '100%', height: '100%' }} {...({ center: [48.8566, 2.3522], zoom: 5 } as any)}>
+        <MapContainer
+          style={{ width: '100%', height: '100%' }}
+          center={[48.8566, 2.3522]}
+          zoom={5}
+        >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           <LocateUserControl onLocate={(lat, lng) => setUserPosition([lat, lng])} />
 
@@ -107,9 +111,11 @@ export default function LeafletMapSupabase() {
             <Marker
               key={lieu.id}
               position={[lieu.latitude, lieu.longitude]}
-              eventHandlers={{ click: () => setSelectedLieu(lieu) }}
+              eventHandlers={{
+                click: () => setSelectedLieu(lieu), // 🔹 sélection du lieu
+              }}
             >
-              <Tooltip>{lieu.title}</Tooltip> {/* <-- tooltip au survol */}
+              <Tooltip>{lieu.title}</Tooltip> {/* au survol */}
               <Popup>
                 <strong>{lieu.title}</strong>
                 <br />
@@ -119,7 +125,7 @@ export default function LeafletMapSupabase() {
           ))}
 
           {userPosition && (
-            <Marker {...({ position: userPosition, icon: userIcon } as any)}>
+            <Marker position={userPosition} icon={userIcon}>
               <Popup>Vous êtes ici</Popup>
             </Marker>
           )}
@@ -147,26 +153,29 @@ export default function LeafletMapSupabase() {
       </div>
 
       {/* 🔹 Détails sous la carte */}
-      {selectedLieu && (
-        <div
-          style={{
-            marginTop: '1rem',
-            padding: '1rem',
-            border: '1px solid #ccc',
-            borderRadius: '8px',
-            backgroundColor: '#f9f9f9',
-            maxWidth: '800px',
-            width: '100%',
-            fontFamily: 'sans-serif',
-          }}
-        >
-          <h2>{selectedLieu.title}</h2>
-          {selectedLieu.description && <p>{selectedLieu.description}</p>}
-          <p>
-            <strong>Coordonnées :</strong> {selectedLieu.latitude}, {selectedLieu.longitude}
-          </p>
-        </div>
-      )}
+      <div style={{ width: '100%', maxWidth: '800px', marginTop: '1rem' }}>
+        {selectedLieu ? (
+          <div
+            style={{
+              padding: '1rem',
+              border: '1px solid #ccc',
+              borderRadius: '8px',
+              backgroundColor: '#f9f9f9',
+              fontFamily: 'sans-serif',
+            }}
+          >
+            <h2>{selectedLieu.title}</h2>
+            {selectedLieu.description && <p>{selectedLieu.description}</p>}
+            <p>
+              <strong>Coordonnées :</strong> {selectedLieu.latitude}, {selectedLieu.longitude}
+            </p>
+          </div>
+        ) : (
+          <div style={{ padding: '1rem', fontFamily: 'sans-serif', color: '#555' }}>
+            Cliquez sur un marker pour voir les détails ici
+          </div>
+        )}
+      </div>
     </div>
   );
 }
