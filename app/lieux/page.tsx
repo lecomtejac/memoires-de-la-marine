@@ -78,9 +78,9 @@ export default function LieuxPage() {
         >
           Carte Leaflet
         </Link>
-        {/* Nouveau bouton vers la page test-carte-leaflet */}
+        {/* Nouveau bouton orange vers /lieux/test-carte-leaflet */}
         <Link
-          href="/test-carte-leaflet"
+          href="/lieux/test-carte-leaflet"
           style={{
             padding: '0.5rem 1rem',
             backgroundColor: '#ff6600',
@@ -91,28 +91,3 @@ export default function LieuxPage() {
         >
           Tester la carte Leaflet
         </Link>
-      </div>
-
-      {loading && <p>Chargement des lieux…</p>}
-      {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
-
-      {!loading && !errorMsg && lieux.length === 0 && <p>Aucun lieu trouvé.</p>}
-
-      {!loading && !errorMsg && lieux.length > 0 && (
-        <ul>
-          {lieux.map((lieu) => (
-            <li key={lieu.id} style={{ marginBottom: '1rem' }}>
-              <strong>{lieu.title}</strong>
-              {lieu.description && <p>{lieu.description}</p>}
-              {lieu.country && <p>Pays : {lieu.country}</p>}
-              {lieu.status && <p>Statut : {lieu.status}</p>}
-              <p>
-                Coordonnées : {lieu.latitude}, {lieu.longitude}
-              </p>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
