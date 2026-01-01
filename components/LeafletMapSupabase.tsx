@@ -1,86 +1,98 @@
 'use client';
 
-import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMap } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
-import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabaseClient';
+import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
+import { LatLngExpression } from 'leaflet';
+import { createClient } from '@supabase/supabase-js';
 
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-  iconUrl:
-    'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  shadowUrl:
-    'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-});
+// Import dynamique de React-Leaflet pour éviter SSR
+const MapContainer = dynamic(
+  () => import('react-leaflet').then((mod) => mod.MapContainer),
+  { ssr: false }
+);
+const TileLayer = dynamic(
+  () => import('react-leaflet').then((mod) => mod.TileLayer),
+  { ssr: false }
+);
+const Marker = dynamic(
+  () => import('react-leaflet').then((mod) => mod.Marker),
+  { ssr: false }
+);
+const Popup = dynamic(
+  () => import('react-leaflet').then((mod) => mod.Popup),
+  { ssr: false }
+);
 
-type Lieu = {
+// Supabase client
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
+// Typage du lieu de mémoire
+interface Lieu {
   id: string;
   title: string;
   description: string | null;
   latitude: number;
   longitude: number;
-};
-
-// Hook pour centrer la carte sur les lieux après rendu
-function FitBounds({ lieux }: { lieux: Lieu[] }) {
-  const map = useMap();
-  useEffect(() => {
-    if (lieux.length === 0) return;
-    const bounds = L.latLngBounds(
-      lieux.map((l) => [l.latitude, l.longitude] as [number, number])
-    );
-    map.fitBounds(bounds, { padding: [50, 50] });
-  }, [lieux, map]);
-  return null;
 }
 
 export default function LeafletMapSupabase() {
   const [lieux, setLieux] = useState<Lieu[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedLieu, setSelectedLieu] = useState<Lieu | null>(null);
 
+  // Coordonnées par défaut pour centrer la carte
+  const defaultCenter: LatLngExpression = [48.8566, 2.3522];
+  const defaultZoom = 5;
+
+  // Charger les lieux depuis Supabase
   useEffect(() => {
-    async function fetchLieux() {
-      const { data, error } = await supabase
-        .from('locations')
-        .select('id, title, description, latitude, longitude');
-      if (error) console.error(error);
-      else setLieux(data as Lieu[]);
-      setLoading(false);
-    }
+    const fetchLieux = async () => {
+      const { data, error } = await supabase.from('locations').select('*');
+      if (error) {
+        console.error('Erreur Supabase:', error.message);
+      } else {
+        setLieux(data as Lieu[]);
+      }
+    };
     fetchLieux();
   }, []);
 
   return (
-    <div style={{ width: '100%' }}>
-      {/* Carte */}
+    <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+      <h1 style={{ textAlign: 'center' }}>Carte des lieux de mémoire</h1>
+
       <div style={{ height: '500px', width: '100%' }}>
-        <MapContainer style={{ width: '100%', height: '100%' }}>
+        <MapContainer
+          style={{ width: '100%', height: '100%' }}
+          center={defaultCenter}
+          zoom={defaultZoom}
+        >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
           {lieux.map((lieu) => (
             <Marker
               key={lieu.id}
-              position={[lieu.latitude, lieu.longitude] as L.LatLngExpression}
-              eventHandlers={{ click: () => setSelectedLieu(lieu) }}
+              position={[lieu.latitude, lieu.longitude] as LatLngExpression}
+              eventHandlers={{
+                click: () => {
+                  console.log('Lieu sélectionné:', lieu.title);
+                  setSelectedLieu(lieu);
+                },
+              }}
             >
-              <Tooltip>{lieu.title}</Tooltip>
               <Popup>
                 <strong>{lieu.title}</strong>
                 <br />
-                {lieu.description ?? ''}
+                {lieu.description ?? 'Pas de description'}
               </Popup>
             </Marker>
           ))}
-
-          <FitBounds lieux={lieux} />
         </MapContainer>
       </div>
 
-      {/* Zone sous la carte */}
+      {/* Zone de détail sous la carte */}
       <div
         style={{
           marginTop: '20px',
