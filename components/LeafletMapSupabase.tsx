@@ -28,7 +28,7 @@ type Lieu = {
 export default function LeafletMapSupabase() {
   const [lieux, setLieux] = useState<Lieu[]>([]);
 
-  const defaultPosition: [number, number] = [48.8566, 2.3522]; // Paris
+  const defaultPosition: [number, number] = [48.8566, 2.3522];
   const mapStyle = { height: '500px', width: '100%' };
 
   useEffect(() => {
@@ -48,20 +48,13 @@ export default function LeafletMapSupabase() {
   }, []);
 
   return (
-    // @ts-ignore — React-Leaflet + Next.js (indispensable pour le build)
+    // @ts-ignore — bug de typage react-leaflet avec Next.js
     <MapContainer center={defaultPosition} zoom={5} style={mapStyle}>
-      {/* @ts-ignore — attribution mal typée côté react-leaflet */}
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution="&copy; OpenStreetMap"
-      />
+      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-      {/* 🔹 UN SEUL marker pour test Supabase */}
       {lieux[0] && (
         <Marker position={[lieux[0].latitude, lieux[0].longitude]}>
-          <Popup>
-            {lieux[0].name ?? 'Lieu sans nom'}
-          </Popup>
+          <Popup>{lieux[0].name ?? 'Lieu sans nom'}</Popup>
         </Marker>
       )}
     </MapContainer>
