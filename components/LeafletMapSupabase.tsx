@@ -128,29 +128,18 @@ export default function LeafletMapSupabase() {
   }, []);
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        width: '100%',
-      }}
-    >
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       {/* Carte */}
-      <div style={{ height: '500px', width: '100%' }}>
+      <div style={{ width: '100%', height: '500px', position: 'relative' }}>
         <MapContainer
-          {...({
-            style: { height: '500px', width: '100%' },
-            zoom: 5,
-            center: [48.8566, 2.3522],
-          } as any)}
+          style={{ width: '100%', height: '100%' }}
+          zoom={5}
+          center={[48.8566, 2.3522]}
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
           {/* Bouton géolocalisation */}
-          <LocateUserControl
-            onLocate={(lat, lng) => setUserPosition([lat, lng])}
-          />
+          <LocateUserControl onLocate={(lat, lng) => setUserPosition([lat, lng])} />
 
           {/* Lieux Supabase */}
           {lieux.map((lieu) => (
@@ -161,14 +150,7 @@ export default function LeafletMapSupabase() {
                 click: () => setSelectedLieu(lieu),
               }}
             >
-              <Tooltip
-                {...({
-                  direction: 'top',
-                  offset: [0, -10],
-                  opacity: 1,
-                  permanent: false,
-                } as any)}
-              >
+              <Tooltip {...({ permanent: false, opacity: 1 } as any)}>
                 {lieu.title}
               </Tooltip>
               <Popup>
@@ -181,12 +163,7 @@ export default function LeafletMapSupabase() {
 
           {/* Position utilisateur */}
           {userPosition && (
-            <Marker
-              {...({
-                position: userPosition,
-                icon: userIcon,
-              } as any)}
-            >
+            <Marker {...({ position: userPosition, icon: userIcon } as any)}>
               <Popup>Vous êtes ici</Popup>
             </Marker>
           )}
@@ -212,25 +189,6 @@ export default function LeafletMapSupabase() {
             Chargement des lieux…
           </div>
         )}
-
-        {/* Aucun lieu */}
-        {!loading && lieux.length === 0 && (
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              backgroundColor: 'rgba(255,255,255,0.8)',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              fontSize: '1.2rem',
-              fontWeight: 'bold',
-              zIndex: 1000,
-            }}
-          >
-            Aucun lieu trouvé.
-          </div>
-        )}
       </div>
 
       {/* Détail du lieu sélectionné sous la carte */}
@@ -243,8 +201,8 @@ export default function LeafletMapSupabase() {
             borderRadius: '8px',
             backgroundColor: '#f9f9f9',
             maxWidth: '800px',
-            fontFamily: 'sans-serif',
             width: '100%',
+            fontFamily: 'sans-serif',
           }}
         >
           <h2>{selectedLieu.title}</h2>
