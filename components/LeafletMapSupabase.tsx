@@ -56,10 +56,9 @@ export default function LeafletMapSupabase() {
 
   return (
     <div style={{ width: '100%' }}>
+      {/* Carte */}
       <div style={{ height: '500px', width: '100%' }}>
-        <MapContainer
-          style={{ width: '100%', height: '100%' }}
-        >
+        <MapContainer style={{ width: '100%', height: '100%' }}>
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
           {lieux.map((lieu) => (
@@ -81,27 +80,32 @@ export default function LeafletMapSupabase() {
         </MapContainer>
       </div>
 
-      {loading && <p>Chargement des lieux…</p>}
-      {!loading && lieux.length === 0 && <p>Aucun lieu trouvé.</p>}
-
-      {selectedLieu && (
-        <div
-          style={{
-            marginTop: '20px',
-            padding: '15px',
-            border: '1px solid #ccc',
-            borderRadius: '8px',
-            backgroundColor: '#f9f9f9',
-          }}
-        >
-          <h2>{selectedLieu.title}</h2>
-          <p>{selectedLieu.description ?? 'Pas de description.'}</p>
-          <p>
-            <strong>Latitude:</strong> {selectedLieu.latitude} |{' '}
-            <strong>Longitude:</strong> {selectedLieu.longitude}
+      {/* Zone sous la carte */}
+      <div
+        style={{
+          marginTop: '20px',
+          padding: '15px',
+          border: '1px solid #ccc',
+          borderRadius: '8px',
+          backgroundColor: '#f9f9f9',
+          minHeight: '100px',
+        }}
+      >
+        {selectedLieu ? (
+          <>
+            <h2>{selectedLieu.title}</h2>
+            <p>{selectedLieu.description ?? 'Pas de description.'}</p>
+            <p>
+              <strong>Latitude:</strong> {selectedLieu.latitude} |{' '}
+              <strong>Longitude:</strong> {selectedLieu.longitude}
+            </p>
+          </>
+        ) : (
+          <p style={{ fontStyle: 'italic', color: '#555' }}>
+            Détail du lieu de mémoire sélectionné
           </p>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
