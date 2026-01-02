@@ -56,30 +56,47 @@ export default function ProposerLieuPage() {
         </p>
       </div>
 
-      {/* Bouton connexion */}
-      <Link
-        href="/login"
-        style={{
-          display: 'inline-block',
-          padding: '0.75rem 1.5rem',
-          backgroundColor: '#ff6600',
-          color: '#fff',
-          borderRadius: '8px',
-          textDecoration: 'none',
-          fontWeight: 'bold',
-          marginBottom: '2rem',
-        }}
-      >
-        🔐 Se connecter pour proposer un lieu
-      </Link>
-
-      {/* Aperçu formulaire */}
+      {/* Boutons connexion / création de compte */}
       <div
         style={{
-          marginTop: '3rem',
-          opacity: 0.6,
+          display: 'flex',
+          gap: '1rem',
+          flexWrap: 'wrap',
+          marginBottom: '3rem',
         }}
       >
+        <Link
+          href="/login"
+          style={{
+            padding: '0.75rem 1.5rem',
+            backgroundColor: '#ff6600',
+            color: '#fff',
+            borderRadius: '8px',
+            textDecoration: 'none',
+            fontWeight: 'bold',
+          }}
+        >
+          🔐 Se connecter
+        </Link>
+
+        <Link
+          href="/login"
+          style={{
+            padding: '0.75rem 1.5rem',
+            backgroundColor: '#ffffff',
+            color: '#333',
+            borderRadius: '8px',
+            textDecoration: 'none',
+            fontWeight: 'bold',
+            border: '1px solid #ccc',
+          }}
+        >
+          ✍️ Créer un compte
+        </Link>
+      </div>
+
+      {/* Aperçu formulaire */}
+      <div style={{ opacity: 0.6 }}>
         <h2>Informations demandées</h2>
         <ul>
           <li>Nom du lieu de mémoire</li>
@@ -91,8 +108,7 @@ export default function ProposerLieuPage() {
         </ul>
 
         <p style={{ fontStyle: 'italic', color: '#666' }}>
-          Après connexion, vous pourrez soumettre un lieu qui sera examiné puis,
-          une fois validé, affiché publiquement sur la carte.
+          Le formulaire sera accessible après connexion ou création de compte.
         </p>
       </div>
     </div>
