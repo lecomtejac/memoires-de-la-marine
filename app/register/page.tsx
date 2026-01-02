@@ -1,68 +1,111 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { supabase } from '../../lib/supabaseClient'
+import Link from 'next/link';
 
 export default function RegisterPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [message, setMessage] = useState('')
-
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setMessage('Création du compte en cours...')
-
-    const { data, error } = await supabase.auth.signUp({ email, password })
-
-    if (error) {
-      setMessage('Erreur Auth : ' + error.message)
-      console.log('Erreur Auth :', error)
-      return
-    }
-
-    console.log('Utilisateur créé :', data.user)
-    setMessage('Compte créé avec succès !')
-    setEmail('')
-    setPassword('')
-  }
-
   return (
-    <div style={{ fontFamily: 'sans-serif', maxWidth: '400px', margin: '0 auto', padding: '2rem' }}>
-      <h1 style={{ textAlign: 'center' }}>Créer un compte (test Auth)</h1>
-      <form onSubmit={handleSignup} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '2rem' }}>
+    <div
+      style={{
+        maxWidth: '600px',
+        margin: '0 auto',
+        padding: '2rem',
+        fontFamily: 'sans-serif',
+      }}
+    >
+      {/* Retour */}
+      <Link
+        href="/lieux/proposer"
+        style={{
+          display: 'inline-block',
+          marginBottom: '1.5rem',
+          textDecoration: 'none',
+          color: '#0070f3',
+          fontWeight: 'bold',
+        }}
+      >
+        ⬅ Retour
+      </Link>
+
+      {/* Titre */}
+      <h1 style={{ marginBottom: '1rem' }}>
+        Créer un compte pour proposer un lieu de mémoire
+      </h1>
+
+      {/* Texte explicatif */}
+      <p style={{ marginBottom: '1.5rem', color: '#555' }}>
+        La création d’un compte vous permettra de proposer des lieux de mémoire et
+        de suivre leur validation par le modérateur du site. Vos informations
+        resteront confidentielles et ne seront utilisées que dans le cadre du
+        projet.
+      </p>
+
+      {/* Encadré information */}
+      <div
+        style={{
+          backgroundColor: '#f5f5f5',
+          padding: '1rem',
+          borderRadius: '8px',
+          marginBottom: '2rem',
+        }}
+      >
+        <p style={{ margin: 0 }}>
+          🛡️ Chaque lieu proposé apparaîtra d’abord comme « non validé », puis
+          sera examiné et validé par le modérateur avant publication sur la carte.
+        </p>
+      </div>
+
+      {/* Formulaire (placeholder) */}
+      <form style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <input
           type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          style={{ padding: '0.8rem', borderRadius: '5px', border: '1px solid #ccc' }}
+          placeholder="Adresse email"
+          disabled
+          style={{
+            padding: '0.75rem',
+            fontSize: '1rem',
+            borderRadius: '8px',
+            border: '1px solid #ccc',
+            opacity: 0.6,
+          }}
         />
+
         <input
           type="password"
           placeholder="Mot de passe"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          style={{ padding: '0.8rem', borderRadius: '5px', border: '1px solid #ccc' }}
+          disabled
+          style={{
+            padding: '0.75rem',
+            fontSize: '1rem',
+            borderRadius: '8px',
+            border: '1px solid #ccc',
+            opacity: 0.6,
+          }}
         />
+
         <button
           type="submit"
+          disabled
           style={{
-            padding: '0.8rem',
-            backgroundColor: '#28a745',
+            padding: '0.75rem',
+            fontSize: '1rem',
+            borderRadius: '8px',
+            border: 'none',
+            backgroundColor: '#ff6600',
             color: '#fff',
             fontWeight: 'bold',
-            borderRadius: '5px',
-            border: 'none',
-            cursor: 'pointer',
+            opacity: 0.6,
+            cursor: 'not-allowed',
           }}
         >
-          Créer un compte
+          ✍️ Créer le compte (à venir)
         </button>
       </form>
 
-      <p style={{ marginTop: '1rem', color: '#333', textAlign: 'center' }}>{message}</p>
+      {/* Note finale */}
+      <p style={{ marginTop: '1.5rem', fontStyle: 'italic', color: '#666' }}>
+        La création de compte sera bientôt fonctionnelle. Pour l’instant, les
+        champs sont désactivés.
+      </p>
     </div>
-  )
+  );
 }
