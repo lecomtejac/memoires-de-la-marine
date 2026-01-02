@@ -7,6 +7,7 @@ import Link from 'next/link'
 export default function RegisterPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [username, setUsername] = useState('') // nouveau champ pseudo
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -15,21 +16,53 @@ export default function RegisterPage() {
     setMessage('')
     setLoading(true)
 
-    // Création de l'utilisateur dans Supabase Auth
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    })
+    try {
+      // 1️⃣ Création de l'utilisateur dans Supabase Auth
+      const { data, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+      })
 
-    if (error) {
-      setMessage('Erreur Auth : ' + error.message)
-    } else if (data.user) {
-      setMessage('✅ Compte créé avec succès !')
+      if (authError) {
+        setMessage('Erreur Auth : ' + authError.message)
+        setLoading(false)
+        return
+      }
+
+      const user = data.user
+      if (!user) {
+        setMessage("Utilisateur non créé.")
+        setLoading(false)
+        return
+      }
+
+      // 2️⃣ Création du profil dans public.profiles
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: user.id,       // clé primaire liée à auth.users.id
+          email: user.email,
+          username: username || user.email.split('@')[0], // par défaut l'email avant @
+        })
+
+      if (profileError) {
+        console.error('Erreur création profil :', profileError)
+        setMessage("✅ Compte créé, mais erreur lors de la création du profil.")
+        setLoading(false)
+        return
+      }
+
+      // ✅ Succès complet
+      setMessage('✅ Compte et profil créés avec succès !')
       setEmail('')
       setPassword('')
+      setUsername('')
+    } catch (err) {
+      console.error(err)
+      setMessage('Erreur inattendue lors de la création du compte.')
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
   }
 
   return (
@@ -62,17 +95,21 @@ export default function RegisterPage() {
         style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
       >
         <input
+          type="text"
+          placeholder="Nom d’utilisateur"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          required
+          style={inputStyle}
+        />
+
+        <input
           type="email"
           placeholder="Adresse email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          style={{
-            padding: '0.75rem',
-            fontSize: '1rem',
-            borderRadius: '8px',
-            border: '1px solid #ccc',
-          }}
+          style={inputStyle}
         />
 
         <input
@@ -81,12 +118,8 @@ export default function RegisterPage() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          style={{
-            padding: '0.75rem',
-            fontSize: '1rem',
-            borderRadius: '8px',
-            border: '1px solid #ccc',
-          }}
+          minLength={6}
+          style={inputStyle}
         />
 
         <button
@@ -119,4 +152,11 @@ export default function RegisterPage() {
       )}
     </div>
   )
+}
+
+const inputStyle: React.CSSProperties = {
+  padding: '0.75rem',
+  fontSize: '1rem',
+  borderRadius: '8px',
+  border: '1px solid #ccc',
 }
