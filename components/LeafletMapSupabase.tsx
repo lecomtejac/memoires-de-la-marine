@@ -6,7 +6,7 @@ import L from 'leaflet';
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
-// 🔹 Fix icônes Leaflet par défaut pour Next.js
+// 🔹 Fix icônes Leaflet par défaut
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
@@ -46,26 +46,24 @@ type Lieu = {
   description: string | null;
   latitude: number;
   longitude: number;
-  status?: string | null; // pour gérer pending / validated
+  status?: string | null;
 };
 
-// 🔹 Ajuste automatiquement la carte aux lieux
+// 🔹 Ajuste la carte aux lieux
 function FitBounds({ lieux }: { lieux: Lieu[] }) {
   const map = useMap();
 
   useEffect(() => {
-    if (lieux.length === 0) return;
+    if (!lieux.length) return;
 
-    const bounds = L.latLngBounds(
-      lieux.map((l) => [l.latitude, l.longitude] as [number, number])
-    );
+    const bounds = L.latLngBounds(lieux.map((l) => [l.latitude, l.longitude] as [number, number]));
     map.fitBounds(bounds, { padding: [50, 50] });
   }, [lieux, map]);
 
   return null;
 }
 
-// 🔹 Bouton Leaflet : géolocalisation utilisateur
+// 🔹 Bouton géolocalisation
 function LocateUserControl({ onLocate }: { onLocate: (lat: number, lng: number) => void }) {
   const map = useMap();
 
@@ -75,13 +73,8 @@ function LocateUserControl({ onLocate }: { onLocate: (lat: number, lng: number) 
     control.onAdd = () => {
       const button = L.DomUtil.create('button');
       button.innerHTML = '📍 Ma position';
-
-      button.style.background = '#fff';
-      button.style.padding = '6px 10px';
-      button.style.borderRadius = '6px';
-      button.style.border = '1px solid #ccc';
-      button.style.cursor = 'pointer';
-      button.style.fontWeight = 'bold';
+      button.style.cssText =
+        'background:#fff;padding:6px 10px;border:1px solid #ccc;border-radius:6px;cursor:pointer;font-weight:bold;';
 
       L.DomEvent.disableClickPropagation(button);
 
@@ -92,14 +85,12 @@ function LocateUserControl({ onLocate }: { onLocate: (lat: number, lng: number) 
         }
 
         navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const { latitude, longitude } = position.coords;
+          (pos) => {
+            const { latitude, longitude } = pos.coords;
             onLocate(latitude, longitude);
             map.setView([latitude, longitude], 14);
           },
-          () => {
-            alert('Impossible de récupérer votre position.');
-          }
+          () => alert('Impossible de récupérer votre position.')
         );
       };
 
@@ -124,11 +115,8 @@ export default function LeafletMapSupabase() {
         .from('locations')
         .select('id, title, description, latitude, longitude, status');
 
-      if (error) {
-        console.error('Erreur Supabase Leaflet:', error);
-      } else {
-        setLieux(data as Lieu[]);
-      }
+      if (error) console.error('Erreur Supabase Leaflet:', error);
+      else setLieux(data as Lieu[]);
       setLoading(false);
     }
 
@@ -138,24 +126,18 @@ export default function LeafletMapSupabase() {
   return (
     <div style={{ position: 'relative', height: '500px', width: '100%' }}>
       <MapContainer
-        style={{ height: '500px', width: '100%' }}
-        zoom={5}
         center={[48.8566, 2.3522]}
+        zoom={5}
+        style={{ height: '100%', width: '100%' }}
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-        {/* 🔹 Bouton géolocalisation */}
         <LocateUserControl onLocate={(lat, lng) => setUserPosition([lat, lng])} />
 
-        {/* 🔹 Lieux Supabase avec couleur selon status */}
         {lieux.map((lieu) => {
           const icon = lieu.status === 'validated' ? redIcon : blueIcon;
           return (
-            <Marker
-              key={lieu.id}
-              position={[lieu.latitude, lieu.longitude]}
-              icon={icon as any} // cast pour TypeScript
-            >
+            <Marker key={lieu.id} position={[lieu.latitude, lieu.longitude]} icon={icon as any}>
               <Tooltip>{lieu.title}</Tooltip>
               <Popup>
                 <strong>{lieu.title}</strong>
@@ -168,7 +150,6 @@ export default function LeafletMapSupabase() {
           );
         })}
 
-        {/* 🔹 Position utilisateur */}
         {userPosition && (
           <Marker position={userPosition} icon={userIcon as any}>
             <Popup>Vous êtes ici</Popup>
@@ -178,7 +159,6 @@ export default function LeafletMapSupabase() {
         <FitBounds lieux={lieux} />
       </MapContainer>
 
-      {/* 🔹 Overlay chargement */}
       {loading && (
         <div
           style={{
@@ -197,7 +177,6 @@ export default function LeafletMapSupabase() {
         </div>
       )}
 
-      {/* 🔹 Aucun lieu */}
       {!loading && lieux.length === 0 && (
         <div
           style={{
