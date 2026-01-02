@@ -31,14 +31,6 @@ export default function ProposerLieuPage() {
         Proposer un nouveau lieu de mémoire
       </h1>
 
-      {/* Introduction */}
-      <p style={{ marginBottom: '1.5rem', color: '#555' }}>
-        Vous pouvez proposer un lieu de mémoire maritime (tombe, monument,
-        plaque, épave, site symbolique…).  
-        Les lieux proposés ont vocation à <strong>apparaître sur la carte du site</strong>,
-        après <strong>vérification et validation par le modérateur</strong>.
-      </p>
-
       {/* Encadré information */}
       <div
         style={{
