@@ -31,10 +31,12 @@ export default function ProposerLieuPage() {
         Proposer un nouveau lieu de mémoire
       </h1>
 
+      {/* Introduction */}
       <p style={{ marginBottom: '1.5rem', color: '#555' }}>
         Vous pouvez proposer un lieu de mémoire maritime (tombe, monument,
         plaque, épave, site symbolique…).  
-        Chaque proposition est <strong>vérifiée avant publication</strong>.
+        Les lieux proposés ont vocation à <strong>apparaître sur la carte du site</strong>,
+        après <strong>vérification et validation par le modérateur</strong>.
       </p>
 
       {/* Encadré information */}
@@ -47,12 +49,13 @@ export default function ProposerLieuPage() {
         }}
       >
         <p style={{ margin: 0 }}>
-          🔒 La contribution nécessite un compte utilisateur afin de garantir
-          la fiabilité des informations et permettre la modération.
+          🛡️ Afin de garantir la fiabilité historique et la qualité des informations,
+          chaque proposition est examinée par le modérateur du site avant sa mise
+          en ligne publique.
         </p>
       </div>
 
-      {/* Bouton connexion (placeholder) */}
+      {/* Bouton connexion */}
       <Link
         href="/login"
         style={{
@@ -69,7 +72,7 @@ export default function ProposerLieuPage() {
         🔐 Se connecter pour proposer un lieu
       </Link>
 
-      {/* Aperçu formulaire (non actif) */}
+      {/* Aperçu formulaire */}
       <div
         style={{
           marginTop: '3rem',
@@ -87,7 +90,8 @@ export default function ProposerLieuPage() {
         </ul>
 
         <p style={{ fontStyle: 'italic', color: '#666' }}>
-          Le formulaire sera accessible après connexion.
+          Après connexion, vous pourrez soumettre un lieu qui sera examiné puis,
+          une fois validé, affiché publiquement sur la carte.
         </p>
       </div>
     </div>
