@@ -2,9 +2,11 @@
 
 import { useState } from 'react'
 import { supabase } from '../../lib/supabaseClient'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 export default function RegisterPage() {
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [login, setLogin] = useState('')
@@ -30,17 +32,24 @@ export default function RegisterPage() {
 
     if (data.user) {
       // 2️⃣ Ajouter login et rôle dans profiles
-      const { error: profileError } = await supabase.from('profiles').insert([
-        { id: data.user.id, login, role: 'user' },
-      ])
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert([{ id: data.user.id, login, role: 'user' }])
 
       if (profileError) {
-        setMessage('Compte créé dans Auth mais erreur profiles : ' + profileError.message)
+        setMessage(
+          'Compte créé dans Auth mais erreur profiles : ' + profileError.message
+        )
       } else {
-        setMessage('✅ Compte créé avec succès ! Vous pouvez maintenant vous connecter.')
+        setMessage('✅ Compte créé avec succès !')
         setEmail('')
         setPassword('')
         setLogin('')
+
+        // 3️⃣ Rediriger vers la carte après 2 secondes
+        setTimeout(() => {
+          router.push('/lieux/test-carte-leaflet')
+        }, 2000)
       }
     }
 
@@ -83,7 +92,7 @@ export default function RegisterPage() {
         projet.
       </p>
 
-      {/* Encadré information */}
+      {/* Encadré info */}
       <div
         style={{
           backgroundColor: '#f5f5f5',
@@ -98,7 +107,7 @@ export default function RegisterPage() {
         </p>
       </div>
 
-      {/* Formulaire fonctionnel */}
+      {/* Formulaire */}
       <form
         onSubmit={handleSignup}
         style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
@@ -165,7 +174,12 @@ export default function RegisterPage() {
 
       {/* Message */}
       {message && (
-        <p style={{ marginTop: '1.5rem', color: message.startsWith('✅') ? 'green' : 'red' }}>
+        <p
+          style={{
+            marginTop: '1.5rem',
+            color: message.startsWith('✅') ? 'green' : 'red',
+          }}
+        >
           {message}
         </p>
       )}
