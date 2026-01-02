@@ -6,8 +6,9 @@ import L from 'leaflet';
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
-// Fix icônes Leaflet pour Next.js
+// 🔹 Fix icônes Leaflet pour Next.js
 delete (L.Icon.Default.prototype as any)._getIconUrl;
+
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
     'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
@@ -17,6 +18,7 @@ L.Icon.Default.mergeOptions({
     'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
 });
 
+// 🔹 Icône position utilisateur
 const userIcon = new L.Icon({
   iconUrl:
     'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
@@ -32,75 +34,127 @@ type Lieu = {
   longitude: number;
 };
 
+// 🔹 Ajuste automatiquement la carte aux lieux
 function FitBounds({ lieux }: { lieux: Lieu[] }) {
   const map = useMap();
+
   useEffect(() => {
     if (lieux.length === 0) return;
-    const bounds = L.latLngBounds(lieux.map((l) => [l.latitude, l.longitude] as [number, number]));
+
+    const bounds = L.latLngBounds(
+      lieux.map((l) => [l.latitude, l.longitude] as [number, number])
+    );
     map.fitBounds(bounds, { padding: [50, 50] });
   }, [lieux, map]);
+
   return null;
 }
 
-function LocateUserControl({ onLocate }: { onLocate: (lat: number, lng: number) => void }) {
+// 🔹 Bouton Leaflet : géolocalisation utilisateur
+function LocateUserControl({
+  onLocate,
+}: {
+  onLocate: (lat: number, lng: number) => void;
+}) {
   const map = useMap();
+
   useEffect(() => {
     const control = L.control({ position: 'topleft' });
+
     control.onAdd = () => {
       const button = L.DomUtil.create('button');
       button.innerHTML = '📍 Ma position';
-      button.style.cssText =
-        'background:#fff;padding:6px 10px;border:1px solid #ccc;border-radius:6px;cursor:pointer;font-weight:bold;';
+
+      button.style.background = '#fff';
+      button.style.padding = '6px 10px';
+      button.style.borderRadius = '6px';
+      button.style.border = '1px solid #ccc';
+      button.style.cursor = 'pointer';
+      button.style.fontWeight = 'bold';
+
       L.DomEvent.disableClickPropagation(button);
+
       button.onclick = () => {
-        if (!navigator.geolocation) return alert('La géolocalisation n’est pas supportée.');
+        if (!navigator.geolocation) {
+          alert('La géolocalisation n’est pas supportée.');
+          return;
+        }
+
         navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            const { latitude, longitude } = pos.coords;
+          (position) => {
+            const { latitude, longitude } = position.coords;
             onLocate(latitude, longitude);
             map.setView([latitude, longitude], 14);
           },
-          () => alert('Impossible de récupérer votre position.')
+          () => {
+            alert('Impossible de récupérer votre position.');
+          }
         );
       };
+
       return button;
     };
+
     control.addTo(map);
     return () => control.remove();
   }, [map, onLocate]);
+
   return null;
 }
 
 export default function LeafletMapSupabase() {
   const [lieux, setLieux] = useState<Lieu[]>([]);
   const [loading, setLoading] = useState(true);
-  const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
+  const [userPosition, setUserPosition] =
+    useState<[number, number] | null>(null);
 
   useEffect(() => {
     async function fetchLieux() {
       const { data, error } = await supabase
         .from('locations')
         .select('id, title, description, latitude, longitude');
-      if (error) console.error('Erreur Supabase Leaflet:', error);
-      else setLieux(data as Lieu[]);
+
+      if (error) {
+        console.error('Erreur Supabase Leaflet:', error);
+      } else {
+        setLieux(data as Lieu[]);
+      }
       setLoading(false);
     }
+
     fetchLieux();
   }, []);
 
   return (
     <div style={{ position: 'relative', height: '500px', width: '100%' }}>
       <MapContainer
-        center={[48.8566, 2.3522]}
-        zoom={5}
-        style={{ height: '500px', width: '100%' }}
+        {...({
+          style: { height: '500px', width: '100%' },
+          zoom: 5,
+          center: [48.8566, 2.3522],
+        } as any)}
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-        <LocateUserControl onLocate={(lat, lng) => setUserPosition([lat, lng])} />
 
+        {/* 🔹 Bouton géolocalisation */}
+        <LocateUserControl
+          onLocate={(lat, lng) => setUserPosition([lat, lng])}
+        />
+
+        {/* 🔹 Lieux Supabase avec tooltip au survol */}
         {lieux.map((lieu) => (
-          <Marker key={lieu.id} position={[lieu.latitude, lieu.longitude]}>
-            <Tooltip direction="top" offset={[0, -10]} opacity={1} permanent={false}>
+          <Marker
+            key={lieu.id}
+            position={[lieu.latitude, lieu.longitude]}
+          >
+            <Tooltip
+              {...({
+                direction: 'top',
+                offset: [0, -10],
+                opacity: 1,
+                permanent: false,
+              } as any)}
+            >
               {lieu.title}
             </Tooltip>
             <Popup>
@@ -111,8 +165,14 @@ export default function LeafletMapSupabase() {
           </Marker>
         ))}
 
+        {/* 🔹 Position utilisateur */}
         {userPosition && (
-          <Marker position={userPosition} icon={userIcon}>
+          <Marker
+            {...({
+              position: userPosition,
+              icon: userIcon,
+            } as any)}
+          >
             <Popup>Vous êtes ici</Popup>
           </Marker>
         )}
@@ -120,6 +180,7 @@ export default function LeafletMapSupabase() {
         <FitBounds lieux={lieux} />
       </MapContainer>
 
+      {/* 🔹 Overlay chargement */}
       {loading && (
         <div
           style={{
@@ -138,6 +199,7 @@ export default function LeafletMapSupabase() {
         </div>
       )}
 
+      {/* 🔹 Aucun lieu */}
       {!loading && lieux.length === 0 && (
         <div
           style={{
