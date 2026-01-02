@@ -155,15 +155,12 @@ export default function LeafletMapSupabase() {
           const icon = lieu.status === 'validated' ? validatedIcon : pendingIcon;
 
           return (
-            <Marker key={lieu.id} position={[lieu.latitude, lieu.longitude]} icon={icon}>
-              <Tooltip
-                {...({
-                  direction: 'top',
-                  offset: [0, -10],
-                  opacity: 1,
-                  permanent: false,
-                } as any)}
-              >
+            <Marker
+              key={lieu.id}
+              position={[lieu.latitude, lieu.longitude]}
+              icon={icon as L.Icon} // <-- cast TypeScript pour éviter l'erreur
+            >
+              <Tooltip direction="top" offset={[0, -10]} opacity={1} permanent={false}>
                 {lieu.title}
               </Tooltip>
               <Popup>
