@@ -13,24 +13,28 @@ export default function RegisterPage() {
     e.preventDefault()
     setMessage('Création du compte en cours...')
 
-    // Création de l'utilisateur dans Supabase Auth
+    // 1️⃣ Créer l’utilisateur dans Supabase Auth
     const { data, error } = await supabase.auth.signUp({ email, password })
 
     if (error) {
-      setMessage('Erreur : ' + error.message)
+      setMessage('Erreur Auth : ' + error.message)
       return
     }
 
     if (data.user) {
-      // Optionnel : créer un profil dans la table "profiles"
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert([{ id: data.user.id, login }])
+      // 2️⃣ Ajouter login et rôle dans admin_users
+      const { error: dbError } = await supabase
+        .from('admin_users')
+        .update({ login: login, role: 'user' })
+        .eq('id', data.user.id)
 
-      if (profileError) {
-        setMessage('Compte créé mais erreur profil : ' + profileError.message)
+      if (dbError) {
+        setMessage('Compte créé dans Auth mais erreur admin_users : ' + dbError.message)
       } else {
-        setMessage('Compte créé avec succès ! Vérifie la base Supabase.')
+        setMessage('Compte créé avec succès !')
+        setEmail('')
+        setPassword('')
+        setLogin('')
       }
     }
   }
