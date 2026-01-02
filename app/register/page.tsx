@@ -1,8 +1,52 @@
-'use client';
+'use client'
 
-import Link from 'next/link';
+import { useState } from 'react'
+import { supabase } from '../../lib/supabaseClient'
+import Link from 'next/link'
 
 export default function RegisterPage() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [login, setLogin] = useState('')
+  const [message, setMessage] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setMessage('')
+    setLoading(true)
+
+    // 1️⃣ Créer l’utilisateur dans Supabase Auth
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    })
+
+    if (error) {
+      setMessage('Erreur Auth : ' + error.message)
+      setLoading(false)
+      return
+    }
+
+    if (data.user) {
+      // 2️⃣ Ajouter login et rôle dans profiles
+      const { error: profileError } = await supabase.from('profiles').insert([
+        { id: data.user.id, login, role: 'user' },
+      ])
+
+      if (profileError) {
+        setMessage('Compte créé dans Auth mais erreur profiles : ' + profileError.message)
+      } else {
+        setMessage('✅ Compte créé avec succès ! Vous pouvez maintenant vous connecter.')
+        setEmail('')
+        setPassword('')
+        setLogin('')
+      }
+    }
+
+    setLoading(false)
+  }
+
   return (
     <div
       style={{
@@ -54,58 +98,77 @@ export default function RegisterPage() {
         </p>
       </div>
 
-      {/* Formulaire (placeholder) */}
-      <form style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      {/* Formulaire fonctionnel */}
+      <form
+        onSubmit={handleSignup}
+        style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
+      >
         <input
-          type="email"
-          placeholder="Adresse email"
-          disabled
+          type="text"
+          placeholder="Login"
+          value={login}
+          onChange={(e) => setLogin(e.target.value)}
+          required
           style={{
             padding: '0.75rem',
             fontSize: '1rem',
             borderRadius: '8px',
             border: '1px solid #ccc',
-            opacity: 0.6,
+          }}
+        />
+
+        <input
+          type="email"
+          placeholder="Adresse email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          style={{
+            padding: '0.75rem',
+            fontSize: '1rem',
+            borderRadius: '8px',
+            border: '1px solid #ccc',
           }}
         />
 
         <input
           type="password"
           placeholder="Mot de passe"
-          disabled
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
           style={{
             padding: '0.75rem',
             fontSize: '1rem',
             borderRadius: '8px',
             border: '1px solid #ccc',
-            opacity: 0.6,
           }}
         />
 
         <button
           type="submit"
-          disabled
+          disabled={loading}
           style={{
             padding: '0.75rem',
             fontSize: '1rem',
             borderRadius: '8px',
             border: 'none',
-            backgroundColor: '#ff6600',
+            backgroundColor: '#28a745',
             color: '#fff',
             fontWeight: 'bold',
-            opacity: 0.6,
-            cursor: 'not-allowed',
+            cursor: loading ? 'not-allowed' : 'pointer',
           }}
         >
-          ✍️ Créer le compte (à venir)
+          {loading ? 'Création en cours...' : '✍️ Créer le compte'}
         </button>
       </form>
 
-      {/* Note finale */}
-      <p style={{ marginTop: '1.5rem', fontStyle: 'italic', color: '#666' }}>
-        La création de compte sera bientôt fonctionnelle. Pour l’instant, les
-        champs sont désactivés.
-      </p>
+      {/* Message */}
+      {message && (
+        <p style={{ marginTop: '1.5rem', color: message.startsWith('✅') ? 'green' : 'red' }}>
+          {message}
+        </p>
+      )}
     </div>
-  );
+  )
 }
