@@ -4,105 +4,81 @@ import Link from 'next/link';
 
 export default function ProposerLieuPage() {
   return (
-    <div
-      style={{
-        maxWidth: '800px',
-        margin: '0 auto',
-        padding: '2rem',
-        fontFamily: 'sans-serif',
-      }}
-    >
-      {/* Retour */}
-      <Link
-        href="/lieux/test-carte-leaflet"
-        style={{
-          display: 'inline-block',
-          marginBottom: '1.5rem',
-          textDecoration: 'none',
-          color: '#0070f3',
-          fontWeight: 'bold',
-        }}
-      >
-        ⬅ Retour à la carte
-      </Link>
-
-      {/* Titre */}
-      <h1 style={{ marginBottom: '0.5rem' }}>
-        Proposer un nouveau lieu de mémoire
-      </h1>
-
-      {/* Encadré information */}
+    <div style={{ fontFamily: 'sans-serif', maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
+      
+      {/* Bannière "en construction" */}
       <div
         style={{
-          backgroundColor: '#f5f5f5',
+          backgroundColor: '#ffcc00',
+          color: '#000',
           padding: '1rem',
-          borderRadius: '8px',
+          textAlign: 'center',
+          fontWeight: 'bold',
+          borderRadius: '5px',
           marginBottom: '2rem',
         }}
       >
-        <p style={{ margin: 0 }}>
-          🛡️ Afin de garantir la fiabilité historique et la qualité des informations,
-          chaque proposition apparaîtra dans un premier temps comme « non validée »,
-          puis sera examinée par le modérateur du site, qui validera formellement
-          le lieu de mémoire.
-        </p>
+        ⚠️ Ce site est en construction ⚠️
       </div>
 
-      {/* Boutons connexion / création de compte */}
-      <div
-        style={{
-          display: 'flex',
-          gap: '1rem',
-          flexWrap: 'wrap',
-          marginBottom: '3rem',
-        }}
-      >
+      {/* Entête */}
+      <header style={{ marginBottom: '2rem', textAlign: 'center' }}>
+        <h1>Proposer un lieu de mémoire</h1>
+        <p style={{ fontSize: '1.2rem', marginTop: '0.5rem' }}>
+          Vous pouvez contribuer à enrichir la mémoire maritime en ajoutant des lieux de mémoire.
+        </p>
+      </header>
+
+      {/* Boutons */}
+      <div style={{ textAlign: 'center', marginTop: '3rem', display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+        {/* Bouton bleu : consulter les lieux */}
         <Link
-          href="/login"
+          href="https://memoires-de-la-marine-i8gy.vercel.app/lieux/test-carte-leaflet"
           style={{
-            padding: '0.75rem 1.5rem',
-            backgroundColor: '#ff6600',
+            display: 'inline-block',
+            padding: '1rem 2rem',
+            backgroundColor: '#0070f3',
             color: '#fff',
             borderRadius: '8px',
             textDecoration: 'none',
             fontWeight: 'bold',
+            fontSize: '1.2rem',
           }}
         >
-          🔐 Se connecter
+          Consulter les lieux de mémoire
         </Link>
 
+        {/* Bouton vert : créer un compte */}
         <Link
-          href="/login"
+          href="/register"
           style={{
-            padding: '0.75rem 1.5rem',
-            backgroundColor: '#ffffff',
-            color: '#333',
+            display: 'inline-block',
+            padding: '1rem 2rem',
+            backgroundColor: '#28a745',
+            color: '#fff',
             borderRadius: '8px',
             textDecoration: 'none',
             fontWeight: 'bold',
-            border: '1px solid #ccc',
+            fontSize: '1.2rem',
           }}
         >
-          ✍️ Créer un compte
+          Créer un compte
         </Link>
       </div>
 
-      {/* Aperçu formulaire */}
-      <div style={{ opacity: 0.6 }}>
-        <h2>Informations demandées</h2>
-        <ul>
-          <li>Nom du lieu de mémoire</li>
-          <li>Type de lieu (tombe, monument, épave…)</li>
-          <li>Description historique</li>
-          <li>Localisation (commune / coordonnées)</li>
-          <li>Sources ou références</li>
-          <li>Photographies (facultatif)</li>
-        </ul>
-
-        <p style={{ fontStyle: 'italic', color: '#666' }}>
-          Le formulaire sera accessible après connexion ou création de compte.
+      {/* Section explicative */}
+      <section style={{ marginTop: '4rem', lineHeight: '1.6', color: '#333' }}>
+        <h2>À propos du projet</h2>
+        <p>
+          L’objectif est de créer une carte collaborative des lieux de mémoire maritime, avec fiches détaillées, photos,
+          informations historiques et contribution des utilisateurs. Chaque lieu peut être validé par un administrateur
+          pour garantir la qualité et la fiabilité des données.
         </p>
-      </div>
+        <p>
+          Les types de lieux recensés incluent : tombes, monuments, plaques, épaves, sites de bataille, lieux de débarquement
+          et musées. La base de données est construite sur Supabase et le site est développé avec Next.js.
+        </p>
+      </section>
     </div>
   );
 }
