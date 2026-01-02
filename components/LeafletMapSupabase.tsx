@@ -1,12 +1,12 @@
 'use client';
 
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
-// 🔹 Fix icônes Leaflet
+// 🔹 Fix icônes Leaflet par défaut pour Next.js
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
@@ -17,20 +17,23 @@ L.Icon.Default.mergeOptions({
     'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
 });
 
-// 🔹 Icônes personnalisées
+// 🔹 Icône position utilisateur
 const userIcon = new L.Icon({
   iconUrl:
     'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
 });
-const pendingIcon = new L.Icon({
+
+// 🔹 Icônes custom pour statut lieux
+const blueIcon = new L.Icon({
   iconUrl:
     'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
 });
-const validatedIcon = new L.Icon({
+
+const redIcon = new L.Icon({
   iconUrl:
     'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-red.png',
   iconSize: [25, 41],
@@ -43,50 +46,70 @@ type Lieu = {
   description: string | null;
   latitude: number;
   longitude: number;
-  status: string;
+  status?: string | null; // pour gérer pending / validated
 };
 
-// 🔹 Ajuste automatique des bounds
+// 🔹 Ajuste automatiquement la carte aux lieux
 function FitBounds({ lieux }: { lieux: Lieu[] }) {
   const map = useMap();
+
   useEffect(() => {
-    if (!lieux.length) return;
-    const bounds = L.latLngBounds(lieux.map(l => [l.latitude, l.longitude] as [number, number]));
+    if (lieux.length === 0) return;
+
+    const bounds = L.latLngBounds(
+      lieux.map((l) => [l.latitude, l.longitude] as [number, number])
+    );
     map.fitBounds(bounds, { padding: [50, 50] });
   }, [lieux, map]);
+
   return null;
 }
 
-// 🔹 Bouton géolocalisation
+// 🔹 Bouton Leaflet : géolocalisation utilisateur
 function LocateUserControl({ onLocate }: { onLocate: (lat: number, lng: number) => void }) {
   const map = useMap();
+
   useEffect(() => {
     const control = L.control({ position: 'topleft' });
+
     control.onAdd = () => {
       const button = L.DomUtil.create('button');
       button.innerHTML = '📍 Ma position';
+
       button.style.background = '#fff';
       button.style.padding = '6px 10px';
       button.style.borderRadius = '6px';
       button.style.border = '1px solid #ccc';
       button.style.cursor = 'pointer';
       button.style.fontWeight = 'bold';
+
       L.DomEvent.disableClickPropagation(button);
+
       button.onclick = () => {
-        if (!navigator.geolocation) return alert('La géolocalisation n’est pas supportée.');
+        if (!navigator.geolocation) {
+          alert('La géolocalisation n’est pas supportée.');
+          return;
+        }
+
         navigator.geolocation.getCurrentPosition(
-          ({ coords }) => {
-            onLocate(coords.latitude, coords.longitude);
-            map.setView([coords.latitude, coords.longitude], 14);
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            onLocate(latitude, longitude);
+            map.setView([latitude, longitude], 14);
           },
-          () => alert('Impossible de récupérer votre position.')
+          () => {
+            alert('Impossible de récupérer votre position.');
+          }
         );
       };
+
       return button;
     };
+
     control.addTo(map);
     return () => control.remove();
   }, [map, onLocate]);
+
   return null;
 }
 
@@ -100,44 +123,54 @@ export default function LeafletMapSupabase() {
       const { data, error } = await supabase
         .from('locations')
         .select('id, title, description, latitude, longitude, status');
-      if (error) console.error('Erreur Supabase Leaflet:', error);
-      else setLieux(data as Lieu[]);
+
+      if (error) {
+        console.error('Erreur Supabase Leaflet:', error);
+      } else {
+        setLieux(data as Lieu[]);
+      }
       setLoading(false);
     }
+
     fetchLieux();
   }, []);
 
   return (
     <div style={{ position: 'relative', height: '500px', width: '100%' }}>
       <MapContainer
-        {...({ style: { height: '500px', width: '100%' }, zoom: 5, center: [48.8566, 2.3522] } as any)}
+        style={{ height: '500px', width: '100%' }}
+        zoom={5}
+        center={[48.8566, 2.3522]}
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+
+        {/* 🔹 Bouton géolocalisation */}
         <LocateUserControl onLocate={(lat, lng) => setUserPosition([lat, lng])} />
 
-        {/* 🔹 Markers */}
+        {/* 🔹 Lieux Supabase avec couleur selon status */}
         {lieux.map((lieu) => {
-          const icon = lieu.status === 'validated' ? validatedIcon : pendingIcon;
+          const icon = lieu.status === 'validated' ? redIcon : blueIcon;
           return (
             <Marker
               key={lieu.id}
-              {...({ position: [lieu.latitude, lieu.longitude], icon } as any)} // TS fix
+              position={[lieu.latitude, lieu.longitude]}
+              icon={icon as any} // cast pour TypeScript
             >
-              {/* cast Tooltip en any pour TS */}
-              <Tooltip {...({ direction: 'top', offset: [0, -10], opacity: 1, permanent: false } as any)}>
-                {lieu.title}
-              </Tooltip>
+              <Tooltip>{lieu.title}</Tooltip>
               <Popup>
                 <strong>{lieu.title}</strong>
                 <br />
                 {lieu.description ?? ''}
+                <br />
+                <em>Status: {lieu.status}</em>
               </Popup>
             </Marker>
           );
         })}
 
+        {/* 🔹 Position utilisateur */}
         {userPosition && (
-          <Marker {...({ position: userPosition, icon: userIcon } as any)}>
+          <Marker position={userPosition} icon={userIcon as any}>
             <Popup>Vous êtes ici</Popup>
           </Marker>
         )}
@@ -145,6 +178,7 @@ export default function LeafletMapSupabase() {
         <FitBounds lieux={lieux} />
       </MapContainer>
 
+      {/* 🔹 Overlay chargement */}
       {loading && (
         <div
           style={{
@@ -163,6 +197,7 @@ export default function LeafletMapSupabase() {
         </div>
       )}
 
+      {/* 🔹 Aucun lieu */}
       {!loading && lieux.length === 0 && (
         <div
           style={{
