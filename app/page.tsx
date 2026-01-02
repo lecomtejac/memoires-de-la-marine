@@ -1,71 +1,73 @@
-'use client';
+'use client'
 
-import Link from 'next/link';
+import { useState } from 'react'
+import { supabase } from '../lib/supabaseClient'
 
-export default function HomePage() {
+export default function RegisterPage() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [login, setLogin] = useState('')
+  const [message, setMessage] = useState('')
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setMessage('Création du compte en cours...')
+
+    // Création de l'utilisateur dans Supabase Auth
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    })
+
+    if (error) {
+      setMessage('Erreur : ' + error.message)
+      return
+    }
+
+    if (data.user) {
+      // Optionnel : créer un profil dans la table "profiles" avec login
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert([{ id: data.user.id, login }])
+
+      if (profileError) {
+        setMessage('Compte créé mais erreur profil : ' + profileError.message)
+      } else {
+        setMessage('Compte créé avec succès ! Vérifie la base Supabase.')
+      }
+    }
+  }
+
   return (
-    <div style={{ fontFamily: 'sans-serif', maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
-      
-      {/* Bannière "en construction" */}
-      <div
-        style={{
-          backgroundColor: '#ffcc00',
-          color: '#000',
-          padding: '1rem',
-          textAlign: 'center',
-          fontWeight: 'bold',
-          borderRadius: '5px',
-          marginBottom: '2rem',
-        }}
-      >
-        ⚠️ Ce site est en construction ⚠️
-      </div>
-
-      {/* Entête */}
-      <header style={{ marginBottom: '2rem', textAlign: 'center' }}>
-        <h1>Mémoire de la Marine</h1>
-        <p style={{ fontSize: '1.2rem', marginTop: '0.5rem' }}>
-          Ce projet vise à recenser tous les lieux de mémoire maritime : tombes de marins, monuments,
-          plaques commémoratives, épaves, musées et sites symboliques.
-        </p>
-        <p style={{ fontSize: '1rem', marginTop: '1rem', color: '#555' }}>
-          Contribuez à enrichir cette mémoire collective en découvrant ou ajoutant des lieux de mémoire.
-        </p>
-      </header>
-
-      {/* Bouton vers la page */}
-      <div style={{ textAlign: 'center', marginTop: '3rem' }}>
-        {/* Bouton bleu : consulter les lieux (URL externe) */}
-        <Link
-          href="https://memoires-de-la-marine-i8gy.vercel.app/lieux/test-carte-leaflet"
-          style={{
-            display: 'inline-block',
-            padding: '1rem 2rem',
-            backgroundColor: '#0070f3',
-            color: '#fff',
-            borderRadius: '8px',
-            textDecoration: 'none',
-            fontWeight: 'bold',
-            fontSize: '1.2rem',
-          }}
-        >
-          Consulter les lieux de mémoire
-        </Link>
-      </div>
-
-      {/* Section explicative */}
-      <section style={{ marginTop: '4rem', lineHeight: '1.6', color: '#333' }}>
-        <h2>À propos du projet</h2>
-        <p>
-          L’objectif est de créer une carte collaborative des lieux de mémoire maritime, avec fiches détaillées, photos,
-          informations historiques et contribution des utilisateurs. Chaque lieu peut être validé par un administrateur
-          pour garantir la qualité et la fiabilité des données.
-        </p>
-        <p>
-          Les types de lieux recensés incluent : tombes, monuments, plaques, épaves, sites de bataille, lieux de débarquement
-          et musées. La base de données est construite sur Supabase et le site est développé avec Next.js.
-        </p>
-      </section>
+    <div style={{ fontFamily: 'sans-serif', maxWidth: '400px', margin: '0 auto', padding: '2rem' }}>
+      <h1>Créer un compte</h1>
+      <form onSubmit={handleSignup} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <input
+          type="text"
+          placeholder="Login"
+          value={login}
+          onChange={(e) => setLogin(e.target.value)}
+          required
+        />
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <input
+          type="password"
+          placeholder="Mot de passe"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        <button type="submit" style={{ padding: '0.8rem', backgroundColor: '#28a745', color: '#fff', fontWeight: 'bold', borderRadius: '5px', border: 'none' }}>
+          Créer un compte
+        </button>
+      </form>
+      <p style={{ marginTop: '1rem', color: '#333' }}>{message}</p>
     </div>
-  );
+  )
 }
