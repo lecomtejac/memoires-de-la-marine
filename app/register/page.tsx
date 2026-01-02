@@ -6,50 +6,30 @@ import { supabase } from '../../lib/supabaseClient'
 export default function RegisterPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [login, setLogin] = useState('')
   const [message, setMessage] = useState('')
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
     setMessage('Création du compte en cours...')
 
-    // 1️⃣ Créer le compte dans Supabase Auth
     const { data, error } = await supabase.auth.signUp({ email, password })
 
     if (error) {
       setMessage('Erreur Auth : ' + error.message)
+      console.log('Erreur Auth :', error)
       return
     }
 
-    if (data.user) {
-      // 2️⃣ Ajouter login dans profiles
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert([{ id: data.user.id, login, role: 'user' }])
-
-      if (profileError) {
-        setMessage('Compte créé dans Auth mais erreur profiles : ' + profileError.message)
-      } else {
-        setMessage('Compte créé avec succès !')
-        setEmail('')
-        setPassword('')
-        setLogin('')
-      }
-    }
+    console.log('Utilisateur créé :', data.user)
+    setMessage('Compte créé avec succès !')
+    setEmail('')
+    setPassword('')
   }
 
   return (
     <div style={{ fontFamily: 'sans-serif', maxWidth: '400px', margin: '0 auto', padding: '2rem' }}>
-      <h1 style={{ textAlign: 'center' }}>Créer un compte</h1>
+      <h1 style={{ textAlign: 'center' }}>Créer un compte (test Auth)</h1>
       <form onSubmit={handleSignup} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '2rem' }}>
-        <input
-          type="text"
-          placeholder="Login"
-          value={login}
-          onChange={(e) => setLogin(e.target.value)}
-          required
-          style={{ padding: '0.8rem', borderRadius: '5px', border: '1px solid #ccc' }}
-        />
         <input
           type="email"
           placeholder="Email"
