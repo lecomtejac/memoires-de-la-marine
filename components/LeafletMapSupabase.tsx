@@ -17,15 +17,7 @@ L.Icon.Default.mergeOptions({
     'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
 });
 
-// 🔹 Icône position utilisateur
-const userIcon = new L.Icon({
-  iconUrl:
-    'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-});
-
-// 🔹 Icônes custom pour statut lieux
+// 🔹 Icônes custom
 const blueIcon = new L.Icon({
   iconUrl:
     'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
@@ -40,6 +32,13 @@ const redIcon = new L.Icon({
   iconAnchor: [12, 41],
 });
 
+const userIcon = new L.Icon({
+  iconUrl:
+    'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+
 type Lieu = {
   id: string;
   title: string;
@@ -49,41 +48,28 @@ type Lieu = {
   status?: string | null;
 };
 
-// 🔹 Ajuste la carte aux lieux
 function FitBounds({ lieux }: { lieux: Lieu[] }) {
   const map = useMap();
-
   useEffect(() => {
     if (!lieux.length) return;
-
     const bounds = L.latLngBounds(lieux.map((l) => [l.latitude, l.longitude] as [number, number]));
     map.fitBounds(bounds, { padding: [50, 50] });
   }, [lieux, map]);
-
   return null;
 }
 
-// 🔹 Bouton géolocalisation
 function LocateUserControl({ onLocate }: { onLocate: (lat: number, lng: number) => void }) {
   const map = useMap();
-
   useEffect(() => {
     const control = L.control({ position: 'topleft' });
-
     control.onAdd = () => {
       const button = L.DomUtil.create('button');
       button.innerHTML = '📍 Ma position';
       button.style.cssText =
         'background:#fff;padding:6px 10px;border:1px solid #ccc;border-radius:6px;cursor:pointer;font-weight:bold;';
-
       L.DomEvent.disableClickPropagation(button);
-
       button.onclick = () => {
-        if (!navigator.geolocation) {
-          alert('La géolocalisation n’est pas supportée.');
-          return;
-        }
-
+        if (!navigator.geolocation) return alert('La géolocalisation n’est pas supportée.');
         navigator.geolocation.getCurrentPosition(
           (pos) => {
             const { latitude, longitude } = pos.coords;
@@ -93,14 +79,11 @@ function LocateUserControl({ onLocate }: { onLocate: (lat: number, lng: number) 
           () => alert('Impossible de récupérer votre position.')
         );
       };
-
       return button;
     };
-
     control.addTo(map);
     return () => control.remove();
   }, [map, onLocate]);
-
   return null;
 }
 
@@ -114,24 +97,20 @@ export default function LeafletMapSupabase() {
       const { data, error } = await supabase
         .from('locations')
         .select('id, title, description, latitude, longitude, status');
-
-      if (error) console.error('Erreur Supabase Leaflet:', error);
+      if (error) console.error(error);
       else setLieux(data as Lieu[]);
       setLoading(false);
     }
-
     fetchLieux();
   }, []);
 
   return (
     <div style={{ position: 'relative', height: '500px', width: '100%' }}>
+      {/* 🔹 Cast MapContainer en any pour éviter TS */}
       <MapContainer
-        center={[48.8566, 2.3522]}
-        zoom={5}
-        style={{ height: '100%', width: '100%' }}
+        {...({ center: [48.8566, 2.3522], zoom: 5, style: { height: '100%', width: '100%' } } as any)}
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-
         <LocateUserControl onLocate={(lat, lng) => setUserPosition([lat, lng])} />
 
         {lieux.map((lieu) => {
