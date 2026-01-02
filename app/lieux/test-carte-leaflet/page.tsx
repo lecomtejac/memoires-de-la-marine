@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 const LeafletMapSupabase = dynamic(
   () => import('../../../components/LeafletMapSupabase'),
-  { ssr: false } // Important pour que Leaflet et useEffect fonctionnent côté client
+  { ssr: false }
 );
 
 export default function Page() {
@@ -55,7 +55,7 @@ export default function Page() {
               whiteSpace: 'nowrap',
             }}
           >
-            ➕ Proposer un nouveau lieu de mémoire
+            ➕ Proposer un nouveau lieu de mémoire en me connectant
           </Link>
         </div>
       </div>
