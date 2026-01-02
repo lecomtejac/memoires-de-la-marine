@@ -30,10 +30,10 @@ export default function ProposerLieuPage() {
       </header>
 
       {/* Boutons */}
-      <div style={{ textAlign: 'center', marginTop: '3rem', display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-        {/* Bouton bleu : consulter les lieux */}
+      <div style={{ textAlign: 'center', marginTop: '3rem', display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+        {/* Bouton S’identifier */}
         <Link
-          href="https://memoires-de-la-marine-i8gy.vercel.app/lieux/test-carte-leaflet"
+          href="/login"
           style={{
             display: 'inline-block',
             padding: '1rem 2rem',
@@ -45,10 +45,10 @@ export default function ProposerLieuPage() {
             fontSize: '1.2rem',
           }}
         >
-          Consulter les lieux de mémoire
+          S'identifier
         </Link>
 
-        {/* Bouton vert : créer un compte */}
+        {/* Bouton Créer un compte */}
         <Link
           href="/register"
           style={{
@@ -63,6 +63,23 @@ export default function ProposerLieuPage() {
           }}
         >
           Créer un compte
+        </Link>
+
+        {/* Bouton Retour Carte */}
+        <Link
+          href="/lieux/test-carte-leaflet"
+          style={{
+            display: 'inline-block',
+            padding: '1rem 2rem',
+            backgroundColor: '#6c757d',
+            color: '#fff',
+            borderRadius: '8px',
+            textDecoration: 'none',
+            fontWeight: 'bold',
+            fontSize: '1.2rem',
+          }}
+        >
+          Retour carte
         </Link>
       </div>
 
