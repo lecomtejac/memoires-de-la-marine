@@ -50,8 +50,9 @@ export default function ProposerLieuPage() {
       >
         <p style={{ margin: 0 }}>
           🛡️ Afin de garantir la fiabilité historique et la qualité des informations,
-          chaque proposition est examinée par le modérateur du site avant sa mise
-          en ligne publique.
+          chaque proposition apparaîtra dans un premier temps comme « non validée »,
+          puis sera examinée par le modérateur du site, qui validera formellement
+          le lieu de mémoire.
         </p>
       </div>
 
