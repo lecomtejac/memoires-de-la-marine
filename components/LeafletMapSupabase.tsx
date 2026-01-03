@@ -111,7 +111,7 @@ export default function LeafletMapSupabase() {
   const [userPosition, setUserPosition] =
     useState<[number, number] | null>(null);
 
-  // 🔹 Étape 2 : récupération des lieux avec type
+  // 🔹 Étape 2 corrigée : récupération des lieux avec jointure externe pour le type
   useEffect(() => {
     async function fetchLieux() {
       const { data, error } = await supabase
@@ -123,7 +123,7 @@ export default function LeafletMapSupabase() {
           latitude,
           longitude,
           type_id,
-          location_types!inner(label)
+          location_types(label)
         `);
 
       if (error) {
