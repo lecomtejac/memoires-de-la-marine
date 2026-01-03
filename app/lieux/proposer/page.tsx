@@ -30,6 +30,12 @@ export default function ProposerLieuPage() {
     return () => listener.subscription.unsubscribe();
   }, []);
 
+  // 🔹 Déconnexion
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
@@ -114,9 +120,25 @@ export default function ProposerLieuPage() {
         </div>
       ) : (
         <>
-          {/* 🔹 Indicateur utilisateur connecté */}
-          <div style={{ marginBottom: '1rem', fontWeight: 'bold', color: '#0070f3' }}>
-            Connecté en tant que : {user.email || user.user_metadata?.full_name || 'Utilisateur'}
+          {/* 🔹 Indicateur utilisateur connecté + bouton déconnexion */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <span style={{ fontWeight: 'bold', color: '#0070f3' }}>
+              Connecté en tant que : {user.email || user.user_metadata?.full_name || 'Utilisateur'}
+            </span>
+            <button
+              onClick={handleLogout}
+              style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: '#dc3545',
+                color: '#fff',
+                borderRadius: '6px',
+                border: 'none',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+              }}
+            >
+              Se déconnecter
+            </button>
           </div>
 
           {/* 🔹 Formulaire */}
