@@ -98,28 +98,72 @@ export default function ProposerLieuPage() {
         ⚠️ Ce site est en construction ⚠️
       </div>
 
-      <h1>Proposer un lieu de mémoire</h1>
+      <header style={{ marginBottom: '2rem', textAlign: 'center' }}>
+        <h1>Proposer un lieu de mémoire</h1>
+        <p style={{ fontSize: '1.2rem', marginTop: '0.5rem' }}>
+          Vous pouvez contribuer à enrichir la mémoire maritime en ajoutant des lieux de mémoire.
+        </p>
+      </header>
 
       {!user ? (
-        <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-          <p>Vous devez être connecté pour proposer un lieu.</p>
-          <Link href="/login">S’identifier</Link>
+        // 🔹 Message si non connecté
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <p>Vous devez vous identifier pour proposer un lieu de mémoire.</p>
+          <Link
+            href="/login"
+            style={{
+              display: 'inline-block',
+              padding: '1rem 2rem',
+              backgroundColor: '#0070f3',
+              color: '#fff',
+              borderRadius: '8px',
+              textDecoration: 'none',
+              fontWeight: 'bold',
+              fontSize: '1.2rem',
+            }}
+          >
+            S’identifier
+          </Link>
         </div>
       ) : (
         <>
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {/* 🔹 Indicateur utilisateur connecté + bouton déconnexion */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <span style={{ fontWeight: 'bold', color: '#0070f3' }}>
+              Connecté en tant que : {user.email || user.user_metadata?.full_name || 'Utilisateur'}
+            </span>
+            <button
+              onClick={handleLogout}
+              style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: '#dc3545',
+                color: '#fff',
+                borderRadius: '6px',
+                border: 'none',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+              }}
+            >
+              Se déconnecter
+            </button>
+          </div>
+
+          {/* 🔹 Formulaire */}
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
             <input
               type="text"
               placeholder="Titre"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
+              style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }}
             />
 
             <textarea
               placeholder="Description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc', minHeight: '100px' }}
             />
 
             <input
@@ -128,6 +172,7 @@ export default function ProposerLieuPage() {
               value={latitude}
               onChange={(e) => setLatitude(e.target.value)}
               required
+              style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }}
             />
 
             <input
@@ -136,6 +181,7 @@ export default function ProposerLieuPage() {
               value={longitude}
               onChange={(e) => setLongitude(e.target.value)}
               required
+              style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }}
             />
 
             <input
@@ -143,6 +189,7 @@ export default function ProposerLieuPage() {
               placeholder="Adresse (optionnel)"
               value={addressText}
               onChange={(e) => setAddressText(e.target.value)}
+              style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }}
             />
 
             <input
@@ -150,37 +197,75 @@ export default function ProposerLieuPage() {
               placeholder="Pays (optionnel)"
               value={country}
               onChange={(e) => setCountry(e.target.value)}
+              style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }}
             />
 
-            <select value={typeId ?? ''} onChange={(e) => setTypeId(Number(e.target.value))} required>
-              <option value="" disabled>Choisir un type</option>
+            <select
+              value={typeId ?? ''}
+              onChange={(e) => setTypeId(parseInt(e.target.value))}
+              required
+              style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }}
+            >
+              <option value="" disabled>Choisir un type de lieu</option>
               <option value={1}>Tombe</option>
               <option value={2}>Monument</option>
-              <option value={3}>Plaque</option>
+              <option value={3}>Plaque commémorative</option>
               <option value={4}>Mémorial</option>
               <option value={5}>Lieu de bataille</option>
-              <option value={6}>Débarquement</option>
+              <option value={6}>Lieu de débarquement</option>
               <option value={7}>Naufrage</option>
               <option value={8}>Épave</option>
               <option value={9}>Musée</option>
               <option value={10}>Trace de passage</option>
               <option value={11}>Base</option>
               <option value={12}>Port</option>
-              <option value={13}>Autre</option>
+              <option value={13}>Autre lieu remarquable</option>
             </select>
 
-            <button type="submit" disabled={loading}>
-              {loading ? 'Envoi…' : 'Proposer le lieu'}
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                padding: '1rem 2rem',
+                backgroundColor: '#0070f3',
+                color: '#fff',
+                fontWeight: 'bold',
+                fontSize: '1rem',
+                borderRadius: '8px',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              {loading ? 'Proposition en cours…' : 'Proposer le lieu'}
             </button>
 
-            {message && <p>{message}</p>}
+            {message && <p style={{ marginTop: '1rem', color: '#d63333', fontWeight: 'bold' }}>{message}</p>}
           </form>
         </>
       )}
 
-      <div style={{ marginTop: '2rem' }}>
-        <Link href="/lieux/test-carte-leaflet">← Retour à la carte</Link>
+      <div style={{ textAlign: 'center', display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+        <Link href="/register" style={{ display: 'inline-block', padding: '1rem 2rem', backgroundColor: '#28a745', color: '#fff', borderRadius: '8px', textDecoration: 'none', fontWeight: 'bold', fontSize: '1.2rem' }}>
+          Créer un compte
+        </Link>
+
+        <Link href="/lieux/test-carte-leaflet" style={{ display: 'inline-block', padding: '1rem 2rem', backgroundColor: '#6c757d', color: '#fff', borderRadius: '8px', textDecoration: 'none', fontWeight: 'bold', fontSize: '1.2rem' }}>
+          Retour carte
+        </Link>
       </div>
+
+      <section style={{ marginTop: '4rem', lineHeight: '1.6', color: '#333' }}>
+        <h2>À propos du projet</h2>
+        <p>
+          L’objectif est de créer une carte collaborative des lieux de mémoire maritime, avec fiches détaillées, photos,
+          informations historiques et contribution des utilisateurs. Chaque lieu peut être validé par un administrateur
+          pour garantir la qualité et la fiabilité des données.
+        </p>
+        <p>
+          Les types de lieux recensés incluent : tombes, monuments, plaques, épaves, sites de bataille, lieux de débarquement
+          et musées. La base de données est construite sur Supabase et le site est développé avec Next.js.
+        </p>
+      </section>
     </div>
   );
 }
