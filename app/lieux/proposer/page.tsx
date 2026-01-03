@@ -113,83 +113,90 @@ export default function ProposerLieuPage() {
           </Link>
         </div>
       ) : (
-        // 🔹 Formulaire si connecté
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
-          <input
-            type="text"
-            placeholder="Titre"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-            style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }}
-          />
+        <>
+          {/* 🔹 Indicateur utilisateur connecté */}
+          <div style={{ marginBottom: '1rem', fontWeight: 'bold', color: '#0070f3' }}>
+            Connecté en tant que : {user.email || user.user_metadata?.full_name || 'Utilisateur'}
+          </div>
 
-          <textarea
-            placeholder="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc', minHeight: '100px' }}
-          />
+          {/* 🔹 Formulaire */}
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
+            <input
+              type="text"
+              placeholder="Titre"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+              style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }}
+            />
 
-          <input
-            type="number"
-            placeholder="Latitude"
-            value={latitude}
-            onChange={(e) => setLatitude(e.target.value)}
-            required
-            style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }}
-          />
+            <textarea
+              placeholder="Description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc', minHeight: '100px' }}
+            />
 
-          <input
-            type="number"
-            placeholder="Longitude"
-            value={longitude}
-            onChange={(e) => setLongitude(e.target.value)}
-            required
-            style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }}
-          />
+            <input
+              type="number"
+              placeholder="Latitude"
+              value={latitude}
+              onChange={(e) => setLatitude(e.target.value)}
+              required
+              style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }}
+            />
 
-          <select
-            value={typeId ?? ''}
-            onChange={(e) => setTypeId(parseInt(e.target.value))}
-            required
-            style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }}
-          >
-            <option value="" disabled>Choisir un type de lieu</option>
-            <option value={1}>Tombe</option>
-            <option value={2}>Monument</option>
-            <option value={3}>Plaque commémorative</option>
-            <option value={4}>Mémorial</option>
-            <option value={5}>Lieu de bataille</option>
-            <option value={6}>Lieu de débarquement</option>
-            <option value={7}>Naufrage</option>
-            <option value={8}>Épave</option>
-            <option value={9}>Musée</option>
-            <option value={10}>Trace de passage</option>
-            <option value={11}>Base</option>
-            <option value={12}>Port</option>
-            <option value={13}>Autre lieu remarquable</option>
-          </select>
+            <input
+              type="number"
+              placeholder="Longitude"
+              value={longitude}
+              onChange={(e) => setLongitude(e.target.value)}
+              required
+              style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }}
+            />
 
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              padding: '1rem 2rem',
-              backgroundColor: '#0070f3',
-              color: '#fff',
-              fontWeight: 'bold',
-              fontSize: '1rem',
-              borderRadius: '8px',
-              border: 'none',
-              cursor: 'pointer',
-            }}
-          >
-            {loading ? 'Proposition en cours…' : 'Proposer le lieu'}
-          </button>
+            <select
+              value={typeId ?? ''}
+              onChange={(e) => setTypeId(parseInt(e.target.value))}
+              required
+              style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }}
+            >
+              <option value="" disabled>Choisir un type de lieu</option>
+              <option value={1}>Tombe</option>
+              <option value={2}>Monument</option>
+              <option value={3}>Plaque commémorative</option>
+              <option value={4}>Mémorial</option>
+              <option value={5}>Lieu de bataille</option>
+              <option value={6}>Lieu de débarquement</option>
+              <option value={7}>Naufrage</option>
+              <option value={8}>Épave</option>
+              <option value={9}>Musée</option>
+              <option value={10}>Trace de passage</option>
+              <option value={11}>Base</option>
+              <option value={12}>Port</option>
+              <option value={13}>Autre lieu remarquable</option>
+            </select>
 
-          {message && <p style={{ marginTop: '1rem', color: '#d63333', fontWeight: 'bold' }}>{message}</p>}
-        </form>
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                padding: '1rem 2rem',
+                backgroundColor: '#0070f3',
+                color: '#fff',
+                fontWeight: 'bold',
+                fontSize: '1rem',
+                borderRadius: '8px',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              {loading ? 'Proposition en cours…' : 'Proposer le lieu'}
+            </button>
+
+            {message && <p style={{ marginTop: '1rem', color: '#d63333', fontWeight: 'bold' }}>{message}</p>}
+          </form>
+        </>
       )}
 
       {/* Boutons */}
