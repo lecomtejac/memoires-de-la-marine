@@ -2,7 +2,7 @@
 
 import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import L, { Icon } from 'leaflet';
+import L from 'leaflet';
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
@@ -32,35 +32,7 @@ type Lieu = {
   description: string | null;
   latitude: number;
   longitude: number;
-  type_id: number | null;
 };
-
-// 🔹 Couleurs des types (exemple, tu peux adapter)
-const iconColors: Record<number, string> = {
-  1: 'blue',       // tombe
-  2: 'green',      // monument
-  3: 'orange',     // plaque commémorative
-  4: 'red',        // mémorial
-  5: 'purple',     // lieu de bataille
-  6: 'brown',      // lieu de débarquement
-  7: 'black',      // naufrage
-  8: 'darkblue',   // épave
-  9: 'pink',       // musée
-  10: 'yellow',    // trace de passage
-  11: 'lightblue', // base
-  12: 'lightgreen',// port
-  13: 'gray',      // autre lieu remarquable
-};
-
-// 🔹 Fonction pour créer une icône colorée
-function getMarkerIcon(color: string) {
-  return new L.Icon({
-    iconUrl: `https://chart.googleapis.com/chart?chst=d_map_pin_icon&chld=info|${color}`,
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [0, -41],
-  });
-}
 
 // 🔹 Ajuste automatiquement la carte aux lieux
 function FitBounds({ lieux }: { lieux: Lieu[] }) {
@@ -140,7 +112,7 @@ export default function LeafletMapSupabase() {
     async function fetchLieux() {
       const { data, error } = await supabase
         .from('locations')
-        .select('id, title, description, latitude, longitude, type_id');
+        .select('id, title, description, latitude, longitude');
 
       if (error) {
         console.error('Erreur Supabase Leaflet:', error);
@@ -174,7 +146,6 @@ export default function LeafletMapSupabase() {
           <Marker
             key={lieu.id}
             position={[lieu.latitude, lieu.longitude]}
-            icon={getMarkerIcon(iconColors[lieu.type_id ?? 0] || 'gray') as Icon} // ✅ cast Icon
           >
             <Tooltip
               {...({
@@ -197,8 +168,10 @@ export default function LeafletMapSupabase() {
         {/* 🔹 Position utilisateur */}
         {userPosition && (
           <Marker
-            position={userPosition}
-            icon={userIcon as Icon}
+            {...({
+              position: userPosition,
+              icon: userIcon,
+            } as any)}
           >
             <Popup>Vous êtes ici</Popup>
           </Marker>
