@@ -18,7 +18,7 @@ export default function ProposerLieuPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  // 🔹 Session utilisateur
+  // 🔹 Vérification session utilisateur
   useEffect(() => {
     async function fetchUser() {
       const { data } = await supabase.auth.getSession();
@@ -40,7 +40,7 @@ export default function ProposerLieuPage() {
     setUser(null);
   };
 
-  // 🔹 Soumission formulaire
+  // 🔹 Soumission du formulaire
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
@@ -106,7 +106,6 @@ export default function ProposerLieuPage() {
       </header>
 
       {!user ? (
-        // 🔹 Message si non connecté
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <p>Vous devez vous identifier pour proposer un lieu de mémoire.</p>
           <Link
@@ -127,7 +126,7 @@ export default function ProposerLieuPage() {
         </div>
       ) : (
         <>
-          {/* 🔹 Indicateur utilisateur connecté + bouton déconnexion */}
+          {/* 🔹 Utilisateur connecté */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
             <span style={{ fontWeight: 'bold', color: '#0070f3' }}>
               Connecté en tant que : {user.email || user.user_metadata?.full_name || 'Utilisateur'}
@@ -244,12 +243,37 @@ export default function ProposerLieuPage() {
         </>
       )}
 
+      {/* Boutons bas de page */}
       <div style={{ textAlign: 'center', display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-        <Link href="/register" style={{ display: 'inline-block', padding: '1rem 2rem', backgroundColor: '#28a745', color: '#fff', borderRadius: '8px', textDecoration: 'none', fontWeight: 'bold', fontSize: '1.2rem' }}>
+        <Link
+          href="/register"
+          style={{
+            display: 'inline-block',
+            padding: '1rem 2rem',
+            backgroundColor: '#28a745',
+            color: '#fff',
+            borderRadius: '8px',
+            textDecoration: 'none',
+            fontWeight: 'bold',
+            fontSize: '1.2rem',
+          }}
+        >
           Créer un compte
         </Link>
 
-        <Link href="/lieux/test-carte-leaflet" style={{ display: 'inline-block', padding: '1rem 2rem', backgroundColor: '#6c757d', color: '#fff', borderRadius: '8px', textDecoration: 'none', fontWeight: 'bold', fontSize: '1.2rem' }}>
+        <Link
+          href="/lieux/test-carte-leaflet"
+          style={{
+            display: 'inline-block',
+            padding: '1rem 2rem',
+            backgroundColor: '#6c757d',
+            color: '#fff',
+            borderRadius: '8px',
+            textDecoration: 'none',
+            fontWeight: 'bold',
+            fontSize: '1.2rem',
+          }}
+        >
           Retour carte
         </Link>
       </div>
