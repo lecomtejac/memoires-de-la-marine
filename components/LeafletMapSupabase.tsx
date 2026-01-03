@@ -26,15 +26,12 @@ const userIcon = new L.Icon({
   iconAnchor: [12, 41],
 });
 
-// 🔹 Type mis à jour pour inclure le type du lieu
 type Lieu = {
   id: string;
   title: string;
   description: string | null;
   latitude: number;
   longitude: number;
-  type_id: number | null;
-  type_label: string | null;
 };
 
 // 🔹 Ajuste automatiquement la carte aux lieux
@@ -111,38 +108,17 @@ export default function LeafletMapSupabase() {
   const [userPosition, setUserPosition] =
     useState<[number, number] | null>(null);
 
-  // 🔹 Récupération des lieux avec le type (si existant)
   useEffect(() => {
     async function fetchLieux() {
       const { data, error } = await supabase
         .from('locations')
-        .select(`
-          id,
-          title,
-          description,
-          latitude,
-          longitude,
-          type_id,
-          location_types(name)
-        `);
+        .select('id, title, description, latitude, longitude');
 
       if (error) {
         console.error('Erreur Supabase Leaflet:', error);
-        setLoading(false);
-        return;
+      } else {
+        setLieux(data as Lieu[]);
       }
-
-      const lieuxAvecLabel = (data as any[]).map((l) => ({
-        id: l.id,
-        title: l.title,
-        description: l.description,
-        latitude: l.latitude,
-        longitude: l.longitude,
-        type_id: l.type_id,
-        type_label: l.location_types?.name ?? null,
-      })) as Lieu[];
-
-      setLieux(lieuxAvecLabel);
       setLoading(false);
     }
 
@@ -165,7 +141,7 @@ export default function LeafletMapSupabase() {
           onLocate={(lat, lng) => setUserPosition([lat, lng])}
         />
 
-        {/* 🔹 Lieux Supabase avec tooltip et type */}
+        {/* 🔹 Lieux Supabase avec tooltip au survol */}
         {lieux.map((lieu) => (
           <Marker
             key={lieu.id}
@@ -185,12 +161,6 @@ export default function LeafletMapSupabase() {
               <strong>{lieu.title}</strong>
               <br />
               {lieu.description ?? ''}
-              {lieu.type_label && (
-                <>
-                  <br />
-                  <em>Type : {lieu.type_label}</em>
-                </>
-              )}
             </Popup>
           </Marker>
         ))}
