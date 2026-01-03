@@ -1,22 +1,22 @@
 'use client';
 
 import { useState } from 'react';
-import { supabase } from '../../lib/supabaseClient';
 import { useRouter } from 'next/navigation';
+import { supabase } from '../../lib/supabaseClient';
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  async function handleLogin(e: React.FormEvent) {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage(null);
     setLoading(true);
-    setErrorMsg(null);
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -24,42 +24,25 @@ export default function LoginPage() {
     setLoading(false);
 
     if (error) {
-      setErrorMsg(error.message);
-    } else {
-      // redirection après connexion réussie
-      router.push('/lieux/proposer/form');
+      setErrorMessage(error.message);
+    } else if (data.session) {
+      // 🔹 Redirection vers la page proposer lieu
+      router.push('/lieux/proposer');
     }
-  }
+  };
 
   return (
-    <div
-      style={{
-        maxWidth: '400px',
-        margin: '3rem auto',
-        padding: '2rem',
-        border: '1px solid #ccc',
-        borderRadius: '10px',
-        fontFamily: 'sans-serif',
-      }}
-    >
-      <h1 style={{ textAlign: 'center' }}>Se connecter</h1>
+    <div style={{ fontFamily: 'sans-serif', maxWidth: '500px', margin: '0 auto', padding: '2rem' }}>
+      <h1 style={{ textAlign: 'center', marginBottom: '2rem' }}>Se connecter</h1>
 
-      <form
-        onSubmit={handleLogin}
-        style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
-      >
+      <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <input
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          style={{
-            padding: '0.75rem',
-            fontSize: '1rem',
-            borderRadius: '6px',
-            border: '1px solid #ccc',
-          }}
+          style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }}
         />
 
         <input
@@ -68,37 +51,28 @@ export default function LoginPage() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          style={{
-            padding: '0.75rem',
-            fontSize: '1rem',
-            borderRadius: '6px',
-            border: '1px solid #ccc',
-          }}
+          style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }}
         />
 
         <button
           type="submit"
           disabled={loading}
           style={{
-            padding: '0.75rem',
-            fontSize: '1rem',
-            fontWeight: 'bold',
+            padding: '1rem',
             backgroundColor: '#0070f3',
             color: '#fff',
+            fontWeight: 'bold',
+            fontSize: '1rem',
             borderRadius: '8px',
             border: 'none',
             cursor: 'pointer',
           }}
         >
-          {loading ? 'Connexion…' : 'Se connecter'}
+          {loading ? 'Connexion en cours…' : 'Se connecter'}
         </button>
-
-        {errorMsg && (
-          <div style={{ color: 'red', fontWeight: 'bold', textAlign: 'center' }}>
-            {errorMsg}
-          </div>
-        )}
       </form>
+
+      {errorMessage && <p style={{ color: '#d63333', marginTop: '1rem', fontWeight: 'bold' }}>{errorMessage}</p>}
     </div>
   );
 }
