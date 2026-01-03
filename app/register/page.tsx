@@ -3,13 +3,16 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabaseClient'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [username, setUsername] = useState('') // nouveau champ pseudo
+  const [username, setUsername] = useState('') // conservé pour plus tard
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
+
+  const router = useRouter()
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -17,46 +20,30 @@ export default function RegisterPage() {
     setLoading(true)
 
     try {
-      // 1️⃣ Création de l'utilisateur dans Supabase Auth
-      const { data, error: authError } = await supabase.auth.signUp({
+      // 1️⃣ Création de l'utilisateur Supabase Auth
+      const { error } = await supabase.auth.signUp({
         email,
         password,
       })
 
-      if (authError) {
-        setMessage('Erreur Auth : ' + authError.message)
-        setLoading(false)
+      if (error) {
+        setMessage('Erreur lors de la création du compte : ' + error.message)
         return
       }
 
-      const user = data.user
-      if (!user) {
-        setMessage("Utilisateur non créé.")
-        setLoading(false)
-        return
-      }
+      // ✅ SUCCÈS
+      // Le profil est créé AUTOMATIQUEMENT par le trigger SQL
+      setMessage('✅ Compte créé avec succès. Vous pouvez maintenant vous connecter.')
 
-      // 2️⃣ Création du profil dans public.profiles
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: user.id,       // clé primaire liée à auth.users.id
-          email: user.email,
-          username: username || user.email.split('@')[0], // par défaut l'email avant @
-        })
-
-      if (profileError) {
-        console.error('Erreur création profil :', profileError)
-        setMessage("✅ Compte créé, mais erreur lors de la création du profil.")
-        setLoading(false)
-        return
-      }
-
-      // ✅ Succès complet
-      setMessage('✅ Compte et profil créés avec succès !')
       setEmail('')
       setPassword('')
       setUsername('')
+
+      // Redirection optionnelle après quelques secondes
+      setTimeout(() => {
+        router.push('/login')
+      }, 1500)
+
     } catch (err) {
       console.error(err)
       setMessage('Erreur inattendue lors de la création du compte.')
@@ -74,7 +61,6 @@ export default function RegisterPage() {
         fontFamily: 'sans-serif',
       }}
     >
-      {/* Retour */}
       <Link
         href="/lieux/proposer"
         style={{
@@ -96,10 +82,9 @@ export default function RegisterPage() {
       >
         <input
           type="text"
-          placeholder="Nom d’utilisateur"
+          placeholder="Nom d’utilisateur (modifiable plus tard)"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          required
           style={inputStyle}
         />
 
