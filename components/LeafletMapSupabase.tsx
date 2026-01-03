@@ -26,15 +26,12 @@ const userIcon = new L.Icon({
   iconAnchor: [12, 41],
 });
 
-// 🔹 Type mis à jour pour inclure le type du lieu
 type Lieu = {
   id: string;
   title: string;
   description: string | null;
   latitude: number;
   longitude: number;
-  type_id: number | null;
-  type_label: string | null;
 };
 
 // 🔹 Ajuste automatiquement la carte aux lieux
@@ -111,38 +108,17 @@ export default function LeafletMapSupabase() {
   const [userPosition, setUserPosition] =
     useState<[number, number] | null>(null);
 
-  // 🔹 Étape 2 corrigée : récupération des lieux avec jointure externe pour le type
   useEffect(() => {
     async function fetchLieux() {
       const { data, error } = await supabase
         .from('locations')
-        .select(`
-          id,
-          title,
-          description,
-          latitude,
-          longitude,
-          type_id,
-          location_types(label)
-        `);
+        .select('id, title, description, latitude, longitude');
 
       if (error) {
         console.error('Erreur Supabase Leaflet:', error);
-        setLoading(false); // arrêter le loader même en cas d'erreur
-        return;
+      } else {
+        setLieux(data as Lieu[]);
       }
-
-      const lieuxAvecLabel = (data as any[]).map((l) => ({
-        id: l.id,
-        title: l.title,
-        description: l.description,
-        latitude: l.latitude,
-        longitude: l.longitude,
-        type_id: l.type_id,
-        type_label: l.location_types?.label ?? null,
-      })) as Lieu[];
-
-      setLieux(lieuxAvecLabel);
       setLoading(false);
     }
 
