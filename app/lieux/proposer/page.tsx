@@ -62,6 +62,7 @@ export default function ProposerLieuPage() {
         country: country || null,
         type_id: typeId,
         status: 'pending',
+        created_by: user.id, // 🔹 Liaison avec l'utilisateur connecté
       },
     ]);
 
