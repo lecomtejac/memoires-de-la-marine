@@ -10,6 +10,8 @@ export default function ProposerLieuPage() {
   const [description, setDescription] = useState('');
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
+  const [adressText, setAdressText] = useState('');
+  const [country, setCountry] = useState('');
   const [typeId, setTypeId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -53,8 +55,10 @@ export default function ProposerLieuPage() {
         description,
         latitude: parseFloat(latitude),
         longitude: parseFloat(longitude),
+        adress_text: adressText || null,
+        country: country || null,
         type_id: typeId,
-        status: 'pending', // statut par défaut "pending"
+        status: 'pending',
       },
     ]);
 
@@ -67,6 +71,8 @@ export default function ProposerLieuPage() {
       setDescription('');
       setLatitude('');
       setLongitude('');
+      setAdressText('');
+      setCountry('');
       setTypeId(null);
     }
 
@@ -99,7 +105,6 @@ export default function ProposerLieuPage() {
       </header>
 
       {!user ? (
-        // 🔹 Message si non connecté
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <p>Vous devez vous identifier pour proposer un lieu de mémoire.</p>
           <Link
@@ -120,7 +125,6 @@ export default function ProposerLieuPage() {
         </div>
       ) : (
         <>
-          {/* 🔹 Indicateur utilisateur connecté + bouton déconnexion */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
             <span style={{ fontWeight: 'bold', color: '#0070f3' }}>
               Connecté en tant que : {user.email || user.user_metadata?.full_name || 'Utilisateur'}
@@ -149,14 +153,26 @@ export default function ProposerLieuPage() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
-              style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }}
             />
 
             <textarea
               placeholder="Description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc', minHeight: '100px' }}
+            />
+
+            <input
+              type="text"
+              placeholder="Adresse (optionnelle)"
+              value={adressText}
+              onChange={(e) => setAdressText(e.target.value)}
+            />
+
+            <input
+              type="text"
+              placeholder="Pays (optionnel)"
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
             />
 
             <input
@@ -165,7 +181,6 @@ export default function ProposerLieuPage() {
               value={latitude}
               onChange={(e) => setLatitude(e.target.value)}
               required
-              style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }}
             />
 
             <input
@@ -174,77 +189,14 @@ export default function ProposerLieuPage() {
               value={longitude}
               onChange={(e) => setLongitude(e.target.value)}
               required
-              style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }}
             />
 
             <select
               value={typeId ?? ''}
               onChange={(e) => setTypeId(parseInt(e.target.value))}
               required
-              style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }}
             >
               <option value="" disabled>Choisir un type de lieu</option>
               <option value={1}>Tombe</option>
               <option value={2}>Monument</option>
-              <option value={3}>Plaque commémorative</option>
-              <option value={4}>Mémorial</option>
-              <option value={5}>Lieu de bataille</option>
-              <option value={6}>Lieu de débarquement</option>
-              <option value={7}>Naufrage</option>
-              <option value={8}>Épave</option>
-              <option value={9}>Musée</option>
-              <option value={10}>Trace de passage</option>
-              <option value={11}>Base</option>
-              <option value={12}>Port</option>
-              <option value={13}>Autre lieu remarquable</option>
-            </select>
-
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                padding: '1rem 2rem',
-                backgroundColor: '#0070f3',
-                color: '#fff',
-                fontWeight: 'bold',
-                fontSize: '1rem',
-                borderRadius: '8px',
-                border: 'none',
-                cursor: 'pointer',
-              }}
-            >
-              {loading ? 'Proposition en cours…' : 'Proposer le lieu'}
-            </button>
-
-            {message && <p style={{ marginTop: '1rem', color: '#d63333', fontWeight: 'bold' }}>{message}</p>}
-          </form>
-        </>
-      )}
-
-      {/* Boutons */}
-      <div style={{ textAlign: 'center', display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-        <Link href="/register" style={{ display: 'inline-block', padding: '1rem 2rem', backgroundColor: '#28a745', color: '#fff', borderRadius: '8px', textDecoration: 'none', fontWeight: 'bold', fontSize: '1.2rem' }}>
-          Créer un compte
-        </Link>
-
-        <Link href="/lieux/test-carte-leaflet" style={{ display: 'inline-block', padding: '1rem 2rem', backgroundColor: '#6c757d', color: '#fff', borderRadius: '8px', textDecoration: 'none', fontWeight: 'bold', fontSize: '1.2rem' }}>
-          Retour carte
-        </Link>
-      </div>
-
-      {/* Section explicative */}
-      <section style={{ marginTop: '4rem', lineHeight: '1.6', color: '#333' }}>
-        <h2>À propos du projet</h2>
-        <p>
-          L’objectif est de créer une carte collaborative des lieux de mémoire maritime, avec fiches détaillées, photos,
-          informations historiques et contribution des utilisateurs. Chaque lieu peut être validé par un administrateur
-          pour garantir la qualité et la fiabilité des données.
-        </p>
-        <p>
-          Les types de lieux recensés incluent : tombes, monuments, plaques, épaves, sites de bataille, lieux de débarquement
-          et musées. La base de données est construite sur Supabase et le site est développé avec Next.js.
-        </p>
-      </section>
-    </div>
-  );
-}
+              <option
