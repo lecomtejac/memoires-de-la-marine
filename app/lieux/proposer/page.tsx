@@ -33,20 +33,20 @@ export default function ProposerLieuPage() {
       <div style={{ textAlign: 'center', marginTop: '3rem', display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
         {/* Bouton S’identifier */}
         <Link
-          href="/login"
-          style={{
-            display: 'inline-block',
-            padding: '1rem 2rem',
-            backgroundColor: '#0070f3',
-            color: '#fff',
-            borderRadius: '8px',
-            textDecoration: 'none',
-            fontWeight: 'bold',
-            fontSize: '1.2rem',
-          }}
-        >
-          S'identifier
-        </Link>
+  href="/login"
+  style={{
+    display: 'inline-block',
+    padding: '1rem 2rem',
+    backgroundColor: '#0070f3',
+    color: '#fff',
+    borderRadius: '8px',
+    textDecoration: 'none',
+    fontWeight: 'bold',
+    fontSize: '1.2rem',
+  }}
+>
+  S'identifier
+</Link>
 
         {/* Bouton Créer un compte */}
         <Link
