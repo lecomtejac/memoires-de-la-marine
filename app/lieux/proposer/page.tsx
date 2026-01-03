@@ -40,6 +40,25 @@ export default function ProposerLieuPage() {
     setUser(null);
   };
 
+  // 🔹 Remplir latitude/longitude avec la position actuelle
+  const handleGeolocate = () => {
+    if (!navigator.geolocation) {
+      alert('La géolocalisation n’est pas supportée par votre navigateur.');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLatitude(position.coords.latitude.toString());
+        setLongitude(position.coords.longitude.toString());
+      },
+      (error) => {
+        console.error(error);
+        alert('Impossible de récupérer votre position. Vérifiez vos permissions.');
+      }
+    );
+  };
+
   // 🔹 Soumission du formulaire
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -166,23 +185,40 @@ export default function ProposerLieuPage() {
               style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc', minHeight: '100px' }}
             />
 
-            <input
-              type="number"
-              placeholder="Latitude"
-              value={latitude}
-              onChange={(e) => setLatitude(e.target.value)}
-              required
-              style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }}
-            />
-
-            <input
-              type="number"
-              placeholder="Longitude"
-              value={longitude}
-              onChange={(e) => setLongitude(e.target.value)}
-              required
-              style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }}
-            />
+            {/* Latitude / Longitude avec bouton "Ma position" */}
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <input
+                type="number"
+                placeholder="Latitude"
+                value={latitude}
+                onChange={(e) => setLatitude(e.target.value)}
+                required
+                style={{ flex: 1, padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }}
+              />
+              <input
+                type="number"
+                placeholder="Longitude"
+                value={longitude}
+                onChange={(e) => setLongitude(e.target.value)}
+                required
+                style={{ flex: 1, padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }}
+              />
+              <button
+                type="button"
+                onClick={handleGeolocate}
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: '#17a2b8',
+                  color: '#fff',
+                  borderRadius: '6px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                }}
+              >
+                Ma position
+              </button>
+            </div>
 
             <input
               type="text"
