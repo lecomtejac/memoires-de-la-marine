@@ -6,17 +6,19 @@ import { supabase } from '../../../lib/supabaseClient';
 
 export default function ProposerLieuPage() {
   const [user, setUser] = useState<any>(null);
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
-  const [adressText, setAdressText] = useState('');
+  const [addressText, setAddressText] = useState('');
   const [country, setCountry] = useState('');
   const [typeId, setTypeId] = useState<number | null>(null);
+
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  // 🔹 Vérification de la session utilisateur
+  // 🔹 Session utilisateur
   useEffect(() => {
     async function fetchUser() {
       const { data } = await supabase.auth.getSession();
@@ -38,6 +40,7 @@ export default function ProposerLieuPage() {
     setUser(null);
   };
 
+  // 🔹 Soumission formulaire
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
@@ -55,7 +58,7 @@ export default function ProposerLieuPage() {
         description,
         latitude: parseFloat(latitude),
         longitude: parseFloat(longitude),
-        adress_text: adressText || null,
+        address_text: addressText || null,
         country: country || null,
         type_id: typeId,
         status: 'pending',
@@ -71,7 +74,7 @@ export default function ProposerLieuPage() {
       setDescription('');
       setLatitude('');
       setLongitude('');
-      setAdressText('');
+      setAddressText('');
       setCountry('');
       setTypeId(null);
     }
@@ -81,11 +84,10 @@ export default function ProposerLieuPage() {
 
   return (
     <div style={{ fontFamily: 'sans-serif', maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
-      {/* Bannière "en construction" */}
+      {/* Bannière */}
       <div
         style={{
           backgroundColor: '#ffcc00',
-          color: '#000',
           padding: '1rem',
           textAlign: 'center',
           fontWeight: 'bold',
@@ -96,57 +98,16 @@ export default function ProposerLieuPage() {
         ⚠️ Ce site est en construction ⚠️
       </div>
 
-      {/* Entête */}
-      <header style={{ marginBottom: '2rem', textAlign: 'center' }}>
-        <h1>Proposer un lieu de mémoire</h1>
-        <p style={{ fontSize: '1.2rem', marginTop: '0.5rem' }}>
-          Vous pouvez contribuer à enrichir la mémoire maritime en ajoutant des lieux de mémoire.
-        </p>
-      </header>
+      <h1>Proposer un lieu de mémoire</h1>
 
       {!user ? (
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <p>Vous devez vous identifier pour proposer un lieu de mémoire.</p>
-          <Link
-            href="/login"
-            style={{
-              display: 'inline-block',
-              padding: '1rem 2rem',
-              backgroundColor: '#0070f3',
-              color: '#fff',
-              borderRadius: '8px',
-              textDecoration: 'none',
-              fontWeight: 'bold',
-              fontSize: '1.2rem',
-            }}
-          >
-            S'identifier
-          </Link>
+        <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+          <p>Vous devez être connecté pour proposer un lieu.</p>
+          <Link href="/login">S’identifier</Link>
         </div>
       ) : (
         <>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <span style={{ fontWeight: 'bold', color: '#0070f3' }}>
-              Connecté en tant que : {user.email || user.user_metadata?.full_name || 'Utilisateur'}
-            </span>
-            <button
-              onClick={handleLogout}
-              style={{
-                padding: '0.5rem 1rem',
-                backgroundColor: '#dc3545',
-                color: '#fff',
-                borderRadius: '6px',
-                border: 'none',
-                cursor: 'pointer',
-                fontWeight: 'bold',
-              }}
-            >
-              Se déconnecter
-            </button>
-          </div>
-
-          {/* 🔹 Formulaire */}
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <input
               type="text"
               placeholder="Titre"
@@ -159,20 +120,6 @@ export default function ProposerLieuPage() {
               placeholder="Description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-            />
-
-            <input
-              type="text"
-              placeholder="Adresse (optionnelle)"
-              value={adressText}
-              onChange={(e) => setAdressText(e.target.value)}
-            />
-
-            <input
-              type="text"
-              placeholder="Pays (optionnel)"
-              value={country}
-              onChange={(e) => setCountry(e.target.value)}
             />
 
             <input
@@ -191,12 +138,49 @@ export default function ProposerLieuPage() {
               required
             />
 
-            <select
-              value={typeId ?? ''}
-              onChange={(e) => setTypeId(parseInt(e.target.value))}
-              required
-            >
-              <option value="" disabled>Choisir un type de lieu</option>
+            <input
+              type="text"
+              placeholder="Adresse (optionnel)"
+              value={addressText}
+              onChange={(e) => setAddressText(e.target.value)}
+            />
+
+            <input
+              type="text"
+              placeholder="Pays (optionnel)"
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+            />
+
+            <select value={typeId ?? ''} onChange={(e) => setTypeId(Number(e.target.value))} required>
+              <option value="" disabled>Choisir un type</option>
               <option value={1}>Tombe</option>
               <option value={2}>Monument</option>
-              <option
+              <option value={3}>Plaque</option>
+              <option value={4}>Mémorial</option>
+              <option value={5}>Lieu de bataille</option>
+              <option value={6}>Débarquement</option>
+              <option value={7}>Naufrage</option>
+              <option value={8}>Épave</option>
+              <option value={9}>Musée</option>
+              <option value={10}>Trace de passage</option>
+              <option value={11}>Base</option>
+              <option value={12}>Port</option>
+              <option value={13}>Autre</option>
+            </select>
+
+            <button type="submit" disabled={loading}>
+              {loading ? 'Envoi…' : 'Proposer le lieu'}
+            </button>
+
+            {message && <p>{message}</p>}
+          </form>
+        </>
+      )}
+
+      <div style={{ marginTop: '2rem' }}>
+        <Link href="/lieux/test-carte-leaflet">← Retour à la carte</Link>
+      </div>
+    </div>
+  );
+}
