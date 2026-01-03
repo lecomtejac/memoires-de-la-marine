@@ -33,8 +33,8 @@ type Lieu = {
   description: string | null;
   latitude: number;
   longitude: number;
-  type_id: number | null;       // nouvel attribut
-  type_label: string | null;    // nouvel attribut
+  type_id: number | null;
+  type_label: string | null;
 };
 
 // 🔹 Ajuste automatiquement la carte aux lieux
@@ -111,6 +111,44 @@ export default function LeafletMapSupabase() {
   const [userPosition, setUserPosition] =
     useState<[number, number] | null>(null);
 
+  // 🔹 Étape 2 : récupération des lieux avec type
+  useEffect(() => {
+    async function fetchLieux() {
+      const { data, error } = await supabase
+        .from('locations')
+        .select(`
+          id,
+          title,
+          description,
+          latitude,
+          longitude,
+          type_id,
+          location_types!inner(label)
+        `);
+
+      if (error) {
+        console.error('Erreur Supabase Leaflet:', error);
+        setLoading(false); // arrêter le loader même en cas d'erreur
+        return;
+      }
+
+      const lieuxAvecLabel = (data as any[]).map((l) => ({
+        id: l.id,
+        title: l.title,
+        description: l.description,
+        latitude: l.latitude,
+        longitude: l.longitude,
+        type_id: l.type_id,
+        type_label: l.location_types?.label ?? null,
+      })) as Lieu[];
+
+      setLieux(lieuxAvecLabel);
+      setLoading(false);
+    }
+
+    fetchLieux();
+  }, []);
+
   return (
     <div style={{ position: 'relative', height: '500px', width: '100%' }}>
       <MapContainer
@@ -126,6 +164,42 @@ export default function LeafletMapSupabase() {
         <LocateUserControl
           onLocate={(lat, lng) => setUserPosition([lat, lng])}
         />
+
+        {/* 🔹 Lieux Supabase avec tooltip au survol */}
+        {lieux.map((lieu) => (
+          <Marker
+            key={lieu.id}
+            position={[lieu.latitude, lieu.longitude]}
+          >
+            <Tooltip
+              {...({
+                direction: 'top',
+                offset: [0, -10],
+                opacity: 1,
+                permanent: false,
+              } as any)}
+            >
+              {lieu.title}
+            </Tooltip>
+            <Popup>
+              <strong>{lieu.title}</strong>
+              <br />
+              {lieu.description ?? ''}
+            </Popup>
+          </Marker>
+        ))}
+
+        {/* 🔹 Position utilisateur */}
+        {userPosition && (
+          <Marker
+            {...({
+              position: userPosition,
+              icon: userIcon,
+            } as any)}
+          >
+            <Popup>Vous êtes ici</Popup>
+          </Marker>
+        )}
 
         <FitBounds lieux={lieux} />
       </MapContainer>
