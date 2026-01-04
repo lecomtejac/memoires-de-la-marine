@@ -15,7 +15,7 @@ export default function ProposerLieuPage() {
   const [country, setCountry] = useState('');
   const [typeId, setTypeId] = useState<number | null>(null);
 
-  // 🔹 PHOTOS (ÉTAPE 1)
+  // 🔹 PHOTOS (étape 1)
   const [photos, setPhotos] = useState<File[]>([]);
 
   const [loading, setLoading] = useState(false);
@@ -43,10 +43,10 @@ export default function ProposerLieuPage() {
     setUser(null);
   };
 
-  // 🔹 Géolocalisation
+  // 🔹 Remplir latitude/longitude avec la position actuelle
   const handleGeolocate = () => {
     if (!navigator.geolocation) {
-      alert('La géolocalisation n’est pas supportée.');
+      alert('La géolocalisation n’est pas supportée par votre navigateur.');
       return;
     }
 
@@ -55,11 +55,14 @@ export default function ProposerLieuPage() {
         setLatitude(position.coords.latitude.toString());
         setLongitude(position.coords.longitude.toString());
       },
-      () => alert('Impossible de récupérer la position.')
+      (error) => {
+        console.error(error);
+        alert('Impossible de récupérer votre position. Vérifiez vos permissions.');
+      }
     );
   };
 
-  // 🔹 Soumission formulaire
+  // 🔹 Soumission du formulaire
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
@@ -71,7 +74,7 @@ export default function ProposerLieuPage() {
 
     setLoading(true);
 
-    console.log('Photos sélectionnées :', photos); // 🔍 debug étape 1
+    console.log('Photos sélectionnées :', photos); // debug étape 1
 
     const { error } = await supabase.from('locations').insert([
       {
@@ -91,7 +94,7 @@ export default function ProposerLieuPage() {
       console.error(error);
       setMessage('Erreur lors de la proposition du lieu.');
     } else {
-      setMessage('Lieu proposé avec succès !');
+      setMessage('Lieu proposé avec succès ! Il sera vérifié par un modérateur.');
       setTitle('');
       setDescription('');
       setLatitude('');
@@ -107,76 +110,165 @@ export default function ProposerLieuPage() {
 
   return (
     <div style={{ fontFamily: 'sans-serif', maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
-      <h1>Proposer un lieu de mémoire</h1>
+      {/* Bannière */}
+      <div
+        style={{
+          backgroundColor: '#ffcc00',
+          padding: '1rem',
+          textAlign: 'center',
+          fontWeight: 'bold',
+          borderRadius: '5px',
+          marginBottom: '2rem',
+        }}
+      >
+        ⚠️ Ce site est en construction ⚠️
+      </div>
+
+      <header style={{ marginBottom: '2rem', textAlign: 'center' }}>
+        <h1>Proposer un lieu de mémoire</h1>
+        <p style={{ fontSize: '1.2rem', marginTop: '0.5rem' }}>
+          Vous pouvez contribuer à enrichir la mémoire maritime en ajoutant des lieux de mémoire.
+        </p>
+      </header>
 
       {!user ? (
-        <p>Vous devez être connecté.</p>
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <p>Vous devez vous identifier pour proposer un lieu de mémoire.</p>
+          <Link
+            href="/login"
+            style={{
+              display: 'inline-block',
+              padding: '1rem 2rem',
+              backgroundColor: '#0070f3',
+              color: '#fff',
+              borderRadius: '8px',
+              textDecoration: 'none',
+              fontWeight: 'bold',
+              fontSize: '1.2rem',
+            }}
+          >
+            S’identifier
+          </Link>
+        </div>
       ) : (
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <input
-            type="text"
-            placeholder="Titre"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-          />
-
-          <textarea
-            placeholder="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <input
-              type="number"
-              placeholder="Latitude"
-              value={latitude}
-              onChange={(e) => setLatitude(e.target.value)}
-              required
-            />
-            <input
-              type="number"
-              placeholder="Longitude"
-              value={longitude}
-              onChange={(e) => setLongitude(e.target.value)}
-              required
-            />
-            <button type="button" onClick={handleGeolocate}>
-              Ma position
+        <>
+          {/* 🔹 Utilisateur connecté */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <span style={{ fontWeight: 'bold', color: '#0070f3' }}>
+              Connecté en tant que : {user.email || user.user_metadata?.full_name || 'Utilisateur'}
+            </span>
+            <button
+              onClick={handleLogout}
+              style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: '#dc3545',
+                color: '#fff',
+                borderRadius: '6px',
+                border: 'none',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+              }}
+            >
+              Se déconnecter
             </button>
           </div>
 
-          <input
-            type="text"
-            placeholder="Adresse"
-            value={addressText}
-            onChange={(e) => setAddressText(e.target.value)}
-          />
+          {/* 🔹 Formulaire */}
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
+            <input
+              type="text"
+              placeholder="Titre"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+              style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }}
+            />
 
-          <input
-            type="text"
-            placeholder="Pays"
-            value={country}
-            onChange={(e) => setCountry(e.target.value)}
-          />
+            <textarea
+              placeholder="Description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc', minHeight: '100px' }}
+            />
 
-          <select
-            value={typeId ?? ''}
-            onChange={(e) => setTypeId(parseInt(e.target.value))}
-            required
-          >
-            <option value="" disabled>Choisir un type</option>
-            <option value={1}>Tombe</option>
-            <option value={2}>Monument</option>
-            <option value={3}>Plaque</option>
-            <option value={4}>Mémorial</option>
-          </select>
+            {/* Latitude / Longitude */}
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <input
+                type="number"
+                placeholder="Latitude"
+                value={latitude}
+                onChange={(e) => setLatitude(e.target.value)}
+                required
+                style={{ flex: 1, padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }}
+              />
+              <input
+                type="number"
+                placeholder="Longitude"
+                value={longitude}
+                onChange={(e) => setLongitude(e.target.value)}
+                required
+                style={{ flex: 1, padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }}
+              />
+              <button
+                type="button"
+                onClick={handleGeolocate}
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: '#17a2b8',
+                  color: '#fff',
+                  borderRadius: '6px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                }}
+              >
+                Ma position
+              </button>
+            </div>
 
-          {/* 🔹 CHAMP PHOTOS (ÉTAPE 1) */}
-          <div>
-            <label>
-              Photos du lieu (facultatif) :
+            <input
+              type="text"
+              placeholder="Adresse (optionnel)"
+              value={addressText}
+              onChange={(e) => setAddressText(e.target.value)}
+              style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }}
+            />
+
+            <input
+              type="text"
+              placeholder="Pays (optionnel)"
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+              style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }}
+            />
+
+            <select
+              value={typeId ?? ''}
+              onChange={(e) => setTypeId(parseInt(e.target.value))}
+              required
+              style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }}
+            >
+              <option value="" disabled>Choisir un type de lieu</option>
+              <option value={1}>Tombe</option>
+              <option value={2}>Monument</option>
+              <option value={3}>Plaque commémorative</option>
+              <option value={4}>Mémorial</option>
+              <option value={5}>Lieu de bataille</option>
+              <option value={6}>Lieu de débarquement</option>
+              <option value={7}>Naufrage</option>
+              <option value={8}>Épave</option>
+              <option value={9}>Musée</option>
+              <option value={10}>Trace de passage</option>
+              <option value={11}>Base</option>
+              <option value={12}>Port</option>
+              <option value={13}>Autre lieu remarquable</option>
+            </select>
+
+            {/* 🔹 PHOTOS (ajout discret, même style) */}
+            <div>
+              <label style={{ fontWeight: 'bold' }}>
+                Photos du lieu (optionnel)
+              </label>
               <input
                 type="file"
                 accept="image/*"
@@ -186,29 +278,41 @@ export default function ProposerLieuPage() {
                     setPhotos(Array.from(e.target.files));
                   }
                 }}
+                style={{ marginTop: '0.5rem' }}
               />
-            </label>
 
-            {photos.length > 0 && (
-              <ul>
-                {photos.map((file, index) => (
-                  <li key={index}>
-                    {file.name} – {(file.size / 1024).toFixed(1)} Ko
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+              {photos.length > 0 && (
+                <ul style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}>
+                  {photos.map((file, index) => (
+                    <li key={index}>{file.name}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
 
-          <button type="submit" disabled={loading}>
-            {loading ? 'Envoi…' : 'Proposer le lieu'}
-          </button>
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                padding: '1rem 2rem',
+                backgroundColor: '#0070f3',
+                color: '#fff',
+                fontWeight: 'bold',
+                fontSize: '1rem',
+                borderRadius: '8px',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              {loading ? 'Proposition en cours…' : 'Proposer le lieu'}
+            </button>
 
-          {message && <p>{message}</p>}
-        </form>
+            {message && <p style={{ marginTop: '1rem', color: '#d63333', fontWeight: 'bold' }}>{message}</p>}
+          </form>
+        </>
       )}
 
-      <Link href="/lieux/test-carte-leaflet">Retour à la carte</Link>
+      {/* bas de page inchangé */}
     </div>
   );
 }
