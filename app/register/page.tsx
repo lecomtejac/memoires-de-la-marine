@@ -1,14 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { supabase } from '../../lib/supabaseClient' // <-- chemin corrigé
+import { supabase } from '../../lib/supabaseClient'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [username, setUsername] = useState('') // conservé pour plus tard
+  const [username, setUsername] = useState('') // pseudo
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -20,22 +20,29 @@ export default function RegisterPage() {
     setLoading(true)
 
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-      })
+      // 🔹 Création de l'utilisateur avec redirection après confirmation
+      const { error } = await supabase.auth.signUp(
+        {
+          email,
+          password,
+        },
+        {
+          redirectTo: 'https://memoires-de-la-marine-i8gy.vercel.app/login' // page de ton site après clic sur le lien
+        }
+      )
 
       if (error) {
         setMessage('Erreur lors de la création du compte : ' + error.message)
         return
       }
 
-      setMessage('✅ Compte créé avec succès. Vous pouvez maintenant vous connecter.')
+      setMessage('✅ Compte créé avec succès. Vérifiez votre email pour confirmer votre compte.')
 
       setEmail('')
       setPassword('')
       setUsername('')
 
+      // Redirection facultative vers login (avant confirmation)
       setTimeout(() => {
         router.push('/login')
       }, 1500)
@@ -76,7 +83,6 @@ export default function RegisterPage() {
         onSubmit={handleSignup}
         style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
       >
-        {/* Champ Pseudo */}
         <input
           type="text"
           placeholder="Pseudo"
@@ -85,7 +91,6 @@ export default function RegisterPage() {
           style={inputStyle}
         />
 
-        {/* Champ Login : email */}
         <input
           type="email"
           placeholder="Login : email"
@@ -95,7 +100,6 @@ export default function RegisterPage() {
           style={inputStyle}
         />
 
-        {/* Mot de passe */}
         <input
           type="password"
           placeholder="Mot de passe 6 caractères"
