@@ -62,8 +62,8 @@ export default function ProposerLieuPage() {
     );
   };
 
-  // 🔹 Fonction de compression
-  async function compressImage(file: File, maxWidth = 1600, quality = 0.85): Promise<File> {
+  // 🔹 Fonction de compression des images
+  async function compressImage(file: File, maxWidth = 1920, quality = 0.85): Promise<File> {
     return new Promise((resolve, reject) => {
       const img = new Image();
       const reader = new FileReader();
@@ -74,8 +74,8 @@ export default function ProposerLieuPage() {
       };
 
       img.onload = () => {
-        const canvas = document.createElement('canvas');
         const scale = Math.min(1, maxWidth / img.width);
+        const canvas = document.createElement('canvas');
         canvas.width = img.width * scale;
         canvas.height = img.height * scale;
 
@@ -135,7 +135,7 @@ export default function ProposerLieuPage() {
         throw insertError ?? new Error('Erreur lors de la création du lieu.');
       }
 
-      // 🔹 2️⃣ Upload des photos avec compression
+      // 🔹 2️⃣ Upload des photos avec compression et enregistrement du poids
       for (const file of photos) {
         const compressedFile = await compressImage(file);
 
@@ -156,11 +156,12 @@ export default function ProposerLieuPage() {
           .from('location-photos')
           .getPublicUrl(filePath).data.publicUrl;
 
-        // 🔹 3️⃣ Insertion dans la table photos
+        // 🔹 3️⃣ Insertion dans la table photos avec taille
         await supabase.from('photos').insert([{
           location_id: locationData.id,
           url: publicUrl,
           description: null,
+          size: compressedFile.size, // poids en octets
         }]);
       }
 
