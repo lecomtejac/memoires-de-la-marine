@@ -6,7 +6,6 @@ import { supabase } from '../../../lib/supabaseClient';
 
 export default function ProposerLieuPage() {
   const [user, setUser] = useState<any>(null);
-
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [latitude, setLatitude] = useState('');
@@ -14,29 +13,22 @@ export default function ProposerLieuPage() {
   const [addressText, setAddressText] = useState('');
   const [country, setCountry] = useState('');
   const [typeId, setTypeId] = useState<number | null>(null);
-
   const [photos, setPhotos] = useState<File[]>([]);
-
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  // 🔹 Session utilisateur
   useEffect(() => {
     async function fetchUser() {
       const { data } = await supabase.auth.getSession();
       setUser(data.session?.user ?? null);
     }
-
     fetchUser();
-
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
-
     return () => listener.subscription.unsubscribe();
   }, []);
 
-  // 🔹 Déconnexion
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setUser(null);
@@ -44,27 +36,29 @@ export default function ProposerLieuPage() {
 
   const handleGeolocate = () => {
     if (!navigator.geolocation) {
-      alert('La géolocalisation n’est pas supportée.');
+      alert('La géolocalisation n’est pas supportée par votre navigateur.');
       return;
     }
-
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setLatitude(position.coords.latitude.toString());
         setLongitude(position.coords.longitude.toString());
       },
-      () => alert('Impossible de récupérer la position.')
+      (error) => {
+        console.error(error);
+        alert('Impossible de récupérer votre position. Vérifiez vos permissions.');
+      }
     );
   };
 
-  // 🔹 Compression image
-  async function compressImage(file: File, maxWidth = 1600, quality = 0.85): Promise<File> {
+  async function compressImage(file: File, maxWidth = 1920, quality = 0.85): Promise<File> {
     return new Promise((resolve, reject) => {
       const img = new Image();
       const reader = new FileReader();
 
-      reader.onload = () => {
-        img.src = reader.result as string;
+      reader.onload = (e) => {
+        if (!e.target?.result) return reject('Erreur lecture image');
+        img.src = e.target.result as string;
       };
 
       img.onload = () => {
@@ -74,19 +68,21 @@ export default function ProposerLieuPage() {
         canvas.height = img.height * scale;
 
         const ctx = canvas.getContext('2d');
-        if (!ctx) return reject();
-
+        if (!ctx) return reject('Impossible de créer le canvas');
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
         canvas.toBlob(
           (blob) => {
-            if (!blob) return reject();
+            if (!blob) return reject('Erreur conversion blob');
             resolve(new File([blob], file.name, { type: 'image/jpeg' }));
           },
           'image/jpeg',
           quality
         );
       };
+
+      img.onerror = (err) => reject(err);
+      reader.onerror = (err) => reject(err);
 
       reader.readAsDataURL(file);
     });
@@ -104,7 +100,8 @@ export default function ProposerLieuPage() {
     setLoading(true);
 
     try {
-      const { data: location, error } = await supabase
+      // 🔹 Créer le lieu
+      const { data: locationData, error: insertError } = await supabase
         .from('locations')
         .insert([{
           title,
@@ -120,32 +117,50 @@ export default function ProposerLieuPage() {
         .select('id')
         .single();
 
-      if (error || !location) throw error;
+      if (insertError || !locationData) throw insertError ?? new Error('Erreur lors de la création du lieu.');
 
+      // 🔹 Upload photos et insertion dans la table photos
       for (const file of photos) {
-        const compressed = await compressImage(file);
+        try {
+          const compressedFile = await compressImage(file);
 
-        const ext = compressed.name.split('.').pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+          const fileExt = compressedFile.name.split('.').pop();
+          const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+          const filePath = `${fileName}`;
 
-        const { error: uploadError } = await supabase.storage
-          .from('location-photos')
-          .upload(fileName, compressed);
+          // Upload
+          const { error: uploadError } = await supabase.storage
+            .from('location-photos')
+            .upload(filePath, compressedFile, { upsert: false });
+          if (uploadError) {
+            console.error('Erreur upload:', uploadError);
+            continue;
+          }
 
-        if (uploadError) continue;
+          // URL publique
+          const { data: { publicUrl } } = supabase.storage
+            .from('location-photos')
+            .getPublicUrl(filePath);
+          if (!publicUrl) {
+            console.error('Impossible de récupérer l’URL publique');
+            continue;
+          }
 
-        const publicUrl = supabase.storage
-          .from('location-photos')
-          .getPublicUrl(fileName).data.publicUrl;
+          // Insertion dans la table photos
+          const { error: insertPhotoError } = await supabase.from('photos').insert([{
+            location_id: locationData.id,
+            url: publicUrl,
+            description: null,
+            size: compressedFile.size,
+          }]);
+          if (insertPhotoError) console.error('Erreur insertion photo:', insertPhotoError);
 
-        await supabase.from('photos').insert([{
-          location_id: location.id,
-          url: publicUrl,
-          size: compressed.size,
-          description: null,
-        }]);
+        } catch (err) {
+          console.error('Erreur traitement photo:', err);
+        }
       }
 
+      // Reset formulaire
       setTitle('');
       setDescription('');
       setLatitude('');
@@ -154,11 +169,10 @@ export default function ProposerLieuPage() {
       setCountry('');
       setTypeId(null);
       setPhotos([]);
-      setMessage('Lieu proposé avec succès. Il sera vérifié par un modérateur.');
-
-    } catch (err) {
-      console.error(err);
-      setMessage('Une erreur est survenue.');
+      setMessage('Lieu proposé avec succès ! Il sera vérifié par un modérateur.');
+    } catch (error) {
+      console.error(error);
+      setMessage('Une erreur est survenue lors de la proposition du lieu.');
     }
 
     setLoading(false);
@@ -166,89 +180,79 @@ export default function ProposerLieuPage() {
 
   return (
     <div style={{ fontFamily: 'sans-serif', maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
+      <div style={{ backgroundColor: '#ffcc00', padding: '1rem', textAlign: 'center', fontWeight: 'bold', borderRadius: '5px', marginBottom: '2rem' }}>
+        ⚠️ Ce site est en construction ⚠️
+      </div>
 
-      {/* 🔹 BANDEAU UTILISATEUR CONNECTÉ */}
-      {user && (
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '1.5rem',
-            padding: '0.75rem 1rem',
-            backgroundColor: '#f0f6ff',
-            borderRadius: '6px',
-          }}
-        >
-          <span style={{ fontWeight: 'bold', color: '#0070f3' }}>
-            Connecté avec le compte : {user.email}
-          </span>
-          <button
-            onClick={handleLogout}
-            style={{
-              padding: '0.4rem 0.8rem',
-              backgroundColor: '#dc3545',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              fontWeight: 'bold',
-            }}
-          >
-            Se déconnecter
-          </button>
-        </div>
-      )}
-
-      <h1>Proposer un lieu de mémoire</h1>
+      <header style={{ marginBottom: '2rem', textAlign: 'center' }}>
+        <h1>Proposer un lieu de mémoire</h1>
+        <p style={{ fontSize: '1.2rem', marginTop: '0.5rem' }}>
+          Vous pouvez contribuer à enrichir la mémoire maritime en ajoutant des lieux de mémoire.
+        </p>
+      </header>
 
       {!user ? (
-        <Link href="/login">S’identifier</Link>
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <p>Vous devez vous identifier pour proposer un lieu de mémoire.</p>
+          <Link href="/login" style={{ display: 'inline-block', padding: '1rem 2rem', backgroundColor: '#0070f3', color: '#fff', borderRadius: '8px', textDecoration: 'none', fontWeight: 'bold', fontSize: '1.2rem' }}>
+            S’identifier
+          </Link>
+        </div>
       ) : (
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Titre" required />
-          <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Description" />
-
-          <div>
-            <input value={latitude} onChange={e => setLatitude(e.target.value)} placeholder="Latitude" required />
-            <input value={longitude} onChange={e => setLongitude(e.target.value)} placeholder="Longitude" required />
-            <button type="button" onClick={handleGeolocate}>Ma position</button>
+        <>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <span style={{ fontWeight: 'bold', color: '#0070f3' }}>
+              Connecté en tant que : {user.email || user.user_metadata?.full_name || 'Utilisateur'}
+            </span>
+            <button onClick={handleLogout} style={{ padding: '0.5rem 1rem', backgroundColor: '#dc3545', color: '#fff', borderRadius: '6px', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>
+              Se déconnecter
+            </button>
           </div>
 
-          <input value={addressText} onChange={e => setAddressText(e.target.value)} placeholder="Adresse" />
-          <input value={country} onChange={e => setCountry(e.target.value)} placeholder="Pays" />
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
+            <input type="text" placeholder="Titre" value={title} onChange={(e) => setTitle(e.target.value)} required style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }} />
+            <textarea placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc', minHeight: '100px' }} />
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <input type="number" placeholder="Latitude" value={latitude} onChange={(e) => setLatitude(e.target.value)} required style={{ flex: 1, padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }} />
+              <input type="number" placeholder="Longitude" value={longitude} onChange={(e) => setLongitude(e.target.value)} required style={{ flex: 1, padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }} />
+              <button type="button" onClick={handleGeolocate} style={{ padding: '0.5rem 1rem', backgroundColor: '#17a2b8', color: '#fff', borderRadius: '6px', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>Ma position</button>
+            </div>
+            <input type="text" placeholder="Adresse (optionnel)" value={addressText} onChange={(e) => setAddressText(e.target.value)} style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }} />
+            <input type="text" placeholder="Pays (optionnel)" value={country} onChange={(e) => setCountry(e.target.value)} style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }} />
+            <select value={typeId ?? ''} onChange={(e) => setTypeId(parseInt(e.target.value))} required style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }}>
+              <option value="" disabled>Choisir un type de lieu</option>
+              <option value={1}>Tombe</option>
+              <option value={2}>Monument</option>
+              <option value={3}>Plaque commémorative</option>
+              <option value={4}>Mémorial</option>
+              <option value={5}>Lieu de bataille</option>
+              <option value={6}>Lieu de débarquement</option>
+              <option value={7}>Naufrage</option>
+              <option value={8}>Épave</option>
+              <option value={9}>Musée</option>
+              <option value={10}>Trace de passage</option>
+              <option value={11}>Base</option>
+              <option value={12}>Port</option>
+              <option value={13}>Autre lieu remarquable</option>
+            </select>
 
-          <select value={typeId ?? ''} onChange={e => setTypeId(Number(e.target.value))} required>
-            <option value="" disabled>Choisir un type</option>
-            <option value={1}>Tombe</option>
-            <option value={2}>Monument</option>
-            <option value={3}>Plaque commémorative</option>
-            <option value={4}>Mémorial</option>
-            <option value={5}>Épave</option>
-            <option value={6}>Lieu de bataille</option>
-            <option value={7}>Musée</option>
-            <option value={8}>Autre lieu de mémoire</option>
-          </select>
+            <div>
+              <label style={{ fontWeight: 'bold' }}>Photos du lieu (optionnel)</label>
+              <input type="file" accept="image/*" multiple onChange={(e) => { if (e.target.files) setPhotos(Array.from(e.target.files)); }} style={{ marginTop: '0.5rem' }} />
+              {photos.length > 0 && (
+                <ul style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}>
+                  {photos.map((file, index) => <li key={index}>{file.name}</li>)}
+                </ul>
+              )}
+            </div>
 
-          <div>
-            <label>Photos</label>
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={(e) => {
-                if (!e.target.files) return;
-                setPhotos((prev) => [...prev, ...Array.from(e.target.files)]);
-              }}
-            />
-          </div>
+            <button type="submit" disabled={loading} style={{ padding: '1rem 2rem', backgroundColor: '#0070f3', color: '#fff', fontWeight: 'bold', fontSize: '1rem', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>
+              {loading ? 'Proposition en cours…' : 'Proposer le lieu'}
+            </button>
 
-          <button type="submit" disabled={loading}>
-            {loading ? 'Envoi…' : 'Proposer le lieu'}
-          </button>
-
-          {message && <p>{message}</p>}
-        </form>
+            {message && <p style={{ marginTop: '1rem', color: '#d63333', fontWeight: 'bold' }}>{message}</p>}
+          </form>
+        </>
       )}
     </div>
   );
