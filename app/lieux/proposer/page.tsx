@@ -36,6 +36,7 @@ export default function ProposerLieuPage() {
     return () => listener.subscription.unsubscribe();
   }, []);
 
+  // 🔹 Déconnexion
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setUser(null);
@@ -56,7 +57,7 @@ export default function ProposerLieuPage() {
     );
   };
 
-  // 🔹 Compression image (qualité élevée)
+  // 🔹 Compression image
   async function compressImage(file: File, maxWidth = 1600, quality = 0.85): Promise<File> {
     return new Promise((resolve, reject) => {
       const img = new Image();
@@ -103,7 +104,6 @@ export default function ProposerLieuPage() {
     setLoading(true);
 
     try {
-      // 1️⃣ Création du lieu
       const { data: location, error } = await supabase
         .from('locations')
         .insert([{
@@ -122,7 +122,6 @@ export default function ProposerLieuPage() {
 
       if (error || !location) throw error;
 
-      // 2️⃣ Upload des photos
       for (const file of photos) {
         const compressed = await compressImage(file);
 
@@ -147,7 +146,6 @@ export default function ProposerLieuPage() {
         }]);
       }
 
-      // 3️⃣ Reset
       setTitle('');
       setDescription('');
       setLatitude('');
@@ -168,61 +166,59 @@ export default function ProposerLieuPage() {
 
   return (
     <div style={{ fontFamily: 'sans-serif', maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
+
+      {/* 🔹 BANDEAU UTILISATEUR CONNECTÉ */}
+      {user && (
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '1.5rem',
+            padding: '0.75rem 1rem',
+            backgroundColor: '#f0f6ff',
+            borderRadius: '6px',
+          }}
+        >
+          <span style={{ fontWeight: 'bold', color: '#0070f3' }}>
+            Connecté avec le compte : {user.email}
+          </span>
+          <button
+            onClick={handleLogout}
+            style={{
+              padding: '0.4rem 0.8rem',
+              backgroundColor: '#dc3545',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+            }}
+          >
+            Se déconnecter
+          </button>
+        </div>
+      )}
+
       <h1>Proposer un lieu de mémoire</h1>
 
       {!user ? (
         <Link href="/login">S’identifier</Link>
       ) : (
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-
-          <input
-            value={title}
-            onChange={e => setTitle(e.target.value)}
-            placeholder="Titre"
-            required
-          />
-
-          <textarea
-            value={description}
-            onChange={e => setDescription(e.target.value)}
-            placeholder="Description"
-          />
+          <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Titre" required />
+          <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Description" />
 
           <div>
-            <input
-              value={latitude}
-              onChange={e => setLatitude(e.target.value)}
-              placeholder="Latitude"
-              required
-            />
-            <input
-              value={longitude}
-              onChange={e => setLongitude(e.target.value)}
-              placeholder="Longitude"
-              required
-            />
-            <button type="button" onClick={handleGeolocate}>
-              Ma position
-            </button>
+            <input value={latitude} onChange={e => setLatitude(e.target.value)} placeholder="Latitude" required />
+            <input value={longitude} onChange={e => setLongitude(e.target.value)} placeholder="Longitude" required />
+            <button type="button" onClick={handleGeolocate}>Ma position</button>
           </div>
 
-          <input
-            value={addressText}
-            onChange={e => setAddressText(e.target.value)}
-            placeholder="Adresse / lieu-dit"
-          />
+          <input value={addressText} onChange={e => setAddressText(e.target.value)} placeholder="Adresse" />
+          <input value={country} onChange={e => setCountry(e.target.value)} placeholder="Pays" />
 
-          <input
-            value={country}
-            onChange={e => setCountry(e.target.value)}
-            placeholder="Pays"
-          />
-
-          <select
-            value={typeId ?? ''}
-            onChange={e => setTypeId(Number(e.target.value))}
-            required
-          >
+          <select value={typeId ?? ''} onChange={e => setTypeId(Number(e.target.value))} required>
             <option value="" disabled>Choisir un type</option>
             <option value={1}>Tombe</option>
             <option value={2}>Monument</option>
@@ -234,9 +230,8 @@ export default function ProposerLieuPage() {
             <option value={8}>Autre lieu de mémoire</option>
           </select>
 
-          {/* 📸 PHOTOS */}
           <div>
-            <label>Photos (plusieurs possibles)</label>
+            <label>Photos</label>
             <input
               type="file"
               accept="image/*"
@@ -246,13 +241,6 @@ export default function ProposerLieuPage() {
                 setPhotos((prev) => [...prev, ...Array.from(e.target.files)]);
               }}
             />
-            {photos.length > 0 && (
-              <ul>
-                {photos.map((file, i) => (
-                  <li key={i}>{file.name}</li>
-                ))}
-              </ul>
-            )}
           </div>
 
           <button type="submit" disabled={loading}>
