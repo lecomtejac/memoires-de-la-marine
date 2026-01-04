@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation'
 export default function RegisterPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [username, setUsername] = useState('') // pseudo
+  const [username, setUsername] = useState('')
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -21,15 +21,13 @@ export default function RegisterPage() {
 
     try {
       // 🔹 Création de l'utilisateur avec redirection après confirmation
-      const { error } = await supabase.auth.signUp(
-        {
-          email,
-          password,
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: 'https://memoires-de-la-marine-i8gy.vercel.app/login',
         },
-        {
-          redirectTo: 'https://memoires-de-la-marine-i8gy.vercel.app/login' // page de ton site après clic sur le lien
-        }
-      )
+      })
 
       if (error) {
         setMessage('Erreur lors de la création du compte : ' + error.message)
@@ -42,11 +40,9 @@ export default function RegisterPage() {
       setPassword('')
       setUsername('')
 
-      // Redirection facultative vers login (avant confirmation)
       setTimeout(() => {
         router.push('/login')
       }, 1500)
-
     } catch (err) {
       console.error(err)
       setMessage('Erreur inattendue lors de la création du compte.')
