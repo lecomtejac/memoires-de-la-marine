@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { supabase } from '../lib/supabaseClient' // <-- chemin corrigé
+import { supabase } from '../../lib/supabaseClient' // <-- chemin corrigé
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
@@ -20,7 +20,6 @@ export default function RegisterPage() {
     setLoading(true)
 
     try {
-      // Création de l'utilisateur Supabase Auth
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -31,14 +30,12 @@ export default function RegisterPage() {
         return
       }
 
-      // ✅ Succès
       setMessage('✅ Compte créé avec succès. Vous pouvez maintenant vous connecter.')
 
       setEmail('')
       setPassword('')
       setUsername('')
 
-      // Redirection vers login après 1,5s
       setTimeout(() => {
         router.push('/login')
       }, 1500)
