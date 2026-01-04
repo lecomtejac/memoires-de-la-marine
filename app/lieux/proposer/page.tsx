@@ -15,7 +15,7 @@ export default function ProposerLieuPage() {
   const [country, setCountry] = useState('');
   const [typeId, setTypeId] = useState<number | null>(null);
 
-  // 🔹 PHOTOS (étape 1)
+  // 🔹 PHOTOS
   const [photos, setPhotos] = useState<File[]>([]);
 
   const [loading, setLoading] = useState(false);
@@ -74,27 +74,56 @@ export default function ProposerLieuPage() {
 
     setLoading(true);
 
-    console.log('Photos sélectionnées :', photos); // debug étape 1
+    try {
+      // 🔹 1️⃣ Créer le lieu
+      const { data: locationData, error: insertError } = await supabase
+        .from('locations')
+        .insert([{
+          title,
+          description,
+          latitude: parseFloat(latitude),
+          longitude: parseFloat(longitude),
+          address_text: addressText || null,
+          country: country || null,
+          type_id: typeId,
+          status: 'pending',
+          created_by: user.id,
+        }])
+        .select('id')
+        .single();
 
-    const { error } = await supabase.from('locations').insert([
-      {
-        title,
-        description,
-        latitude: parseFloat(latitude),
-        longitude: parseFloat(longitude),
-        address_text: addressText || null,
-        country: country || null,
-        type_id: typeId,
-        status: 'pending',
-        created_by: user.id,
-      },
-    ]);
+      if (insertError || !locationData) {
+        throw insertError ?? new Error('Erreur lors de la création du lieu.');
+      }
 
-    if (error) {
-      console.error(error);
-      setMessage('Erreur lors de la proposition du lieu.');
-    } else {
-      setMessage('Lieu proposé avec succès ! Il sera vérifié par un modérateur.');
+      // 🔹 2️⃣ Upload des photos
+      for (const file of photos) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('location-photos')
+          .upload(filePath, file);
+
+        if (uploadError) {
+          console.error('Erreur upload:', uploadError);
+          continue;
+        }
+
+        const publicUrl = supabase.storage
+          .from('location-photos')
+          .getPublicUrl(filePath).data.publicUrl;
+
+        // 🔹 3️⃣ Insertion dans la table photos
+        await supabase.from('photos').insert([{
+          location_id: locationData.id,
+          url: publicUrl,
+          description: null,
+        }]);
+      }
+
+      // 🔹 4️⃣ Reset formulaire
       setTitle('');
       setDescription('');
       setLatitude('');
@@ -103,6 +132,10 @@ export default function ProposerLieuPage() {
       setCountry('');
       setTypeId(null);
       setPhotos([]);
+      setMessage('Lieu proposé avec succès ! Il sera vérifié par un modérateur.');
+    } catch (error) {
+      console.error(error);
+      setMessage('Une erreur est survenue lors de la proposition du lieu.');
     }
 
     setLoading(false);
@@ -264,7 +297,7 @@ export default function ProposerLieuPage() {
               <option value={13}>Autre lieu remarquable</option>
             </select>
 
-            {/* 🔹 PHOTOS (ajout discret, même style) */}
+            {/* 🔹 PHOTOS */}
             <div>
               <label style={{ fontWeight: 'bold' }}>
                 Photos du lieu (optionnel)
@@ -311,8 +344,6 @@ export default function ProposerLieuPage() {
           </form>
         </>
       )}
-
-      {/* bas de page inchangé */}
     </div>
   );
 }
