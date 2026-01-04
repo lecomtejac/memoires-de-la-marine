@@ -98,7 +98,7 @@ export default function RegisterPage() {
         {/* Mot de passe */}
         <input
           type="password"
-          placeholder="Mot de passe"
+          placeholder="Mot de passe 6 caractères"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
