@@ -60,7 +60,7 @@ export default function Page() {
 
           {/* Nouveau bouton "Créer un compte" */}
           <Link
-            href="/inscription"
+            href="/register"
             style={{
               padding: '0.75rem 1.5rem',
               backgroundColor: '#28a745',
