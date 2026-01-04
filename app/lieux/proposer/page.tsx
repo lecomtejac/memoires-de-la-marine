@@ -62,6 +62,45 @@ export default function ProposerLieuPage() {
     );
   };
 
+  // 🔹 Fonction de compression
+  async function compressImage(file: File, maxWidth = 1600, quality = 0.85): Promise<File> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        if (!e.target?.result) return reject('Erreur lecture image');
+        img.src = e.target.result as string;
+      };
+
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const scale = Math.min(1, maxWidth / img.width);
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return reject('Impossible de créer le canvas');
+
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) return reject('Erreur conversion blob');
+            resolve(new File([blob], file.name, { type: 'image/jpeg' }));
+          },
+          'image/jpeg',
+          quality
+        );
+      };
+
+      img.onerror = (err) => reject(err);
+      reader.onerror = (err) => reject(err);
+
+      reader.readAsDataURL(file);
+    });
+  }
+
   // 🔹 Soumission du formulaire
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,15 +135,17 @@ export default function ProposerLieuPage() {
         throw insertError ?? new Error('Erreur lors de la création du lieu.');
       }
 
-      // 🔹 2️⃣ Upload des photos
+      // 🔹 2️⃣ Upload des photos avec compression
       for (const file of photos) {
-        const fileExt = file.name.split('.').pop();
+        const compressedFile = await compressImage(file);
+
+        const fileExt = compressedFile.name.split('.').pop();
         const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
         const filePath = `${fileName}`;
 
         const { error: uploadError } = await supabase.storage
           .from('location-photos')
-          .upload(filePath, file);
+          .upload(filePath, compressedFile);
 
         if (uploadError) {
           console.error('Erreur upload:', uploadError);
