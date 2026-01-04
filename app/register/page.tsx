@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { supabase } from '../../lib/supabaseClient'
+import { supabase } from '../lib/supabaseClient' // <-- chemin corrigé
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
@@ -20,7 +20,7 @@ export default function RegisterPage() {
     setLoading(true)
 
     try {
-      // 1️⃣ Création de l'utilisateur Supabase Auth
+      // Création de l'utilisateur Supabase Auth
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -31,15 +31,14 @@ export default function RegisterPage() {
         return
       }
 
-      // ✅ SUCCÈS
-      // Le profil est créé AUTOMATIQUEMENT par le trigger SQL
+      // ✅ Succès
       setMessage('✅ Compte créé avec succès. Vous pouvez maintenant vous connecter.')
 
       setEmail('')
       setPassword('')
       setUsername('')
 
-      // Redirection optionnelle après quelques secondes
+      // Redirection vers login après 1,5s
       setTimeout(() => {
         router.push('/login')
       }, 1500)
@@ -80,23 +79,26 @@ export default function RegisterPage() {
         onSubmit={handleSignup}
         style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
       >
+        {/* Champ Pseudo */}
         <input
           type="text"
-          placeholder="Nom d’utilisateur (modifiable plus tard)"
+          placeholder="Pseudo (modifiable plus tard)"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           style={inputStyle}
         />
 
+        {/* Champ Login : email */}
         <input
           type="email"
-          placeholder="Adresse email"
+          placeholder="Login : email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
           style={inputStyle}
         />
 
+        {/* Mot de passe */}
         <input
           type="password"
           placeholder="Mot de passe"
