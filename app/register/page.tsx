@@ -21,11 +21,11 @@ export default function RegisterPage() {
 
     try {
       // 🔹 Création de l'utilisateur avec redirection après confirmation
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: 'https://memoires-de-la-marine-i8gy.vercel.app/login',
+ const { error } = await supabase.auth.signUp({
+  email,
+  password,
+  options: {
+    redirectTo: 'https://memoires-de-la-marine-i8gy.vercel.app/login',
         },
       })
 
