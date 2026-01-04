@@ -20,13 +20,11 @@ export default function RegisterPage() {
     setLoading(true)
 
     try {
-      // 🔹 Création de l'utilisateur avec redirection après confirmation
- const { error } = await supabase.auth.signUp({
-  email,
-  password,
-  options: {
-    redirectTo: 'https://memoires-de-la-marine-i8gy.vercel.app/login',
-        },
+      // 🔹 Supabase v2 : emailRedirectTo
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        emailRedirectTo: 'https://memoires-de-la-marine-i8gy.vercel.app/login', // lien de confirmation
       })
 
       if (error) {
@@ -40,6 +38,7 @@ export default function RegisterPage() {
       setPassword('')
       setUsername('')
 
+      // redirection facultative vers login avant confirmation
       setTimeout(() => {
         router.push('/login')
       }, 1500)
