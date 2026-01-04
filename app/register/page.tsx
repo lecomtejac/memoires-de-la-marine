@@ -79,7 +79,7 @@ export default function RegisterPage() {
         {/* Champ Pseudo */}
         <input
           type="text"
-          placeholder="Pseudo (modifiable plus tard)"
+          placeholder="Pseudo"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           style={inputStyle}
