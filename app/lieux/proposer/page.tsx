@@ -96,7 +96,6 @@ export default function ProposerLieuPage() {
     setLoading(true);
 
     try {
-      // Création du lieu
       const { data: locationData, error } = await supabase
         .from('locations')
         .insert([{
@@ -115,7 +114,6 @@ export default function ProposerLieuPage() {
 
       if (error || !locationData) throw error;
 
-      // Upload de toutes les photos
       for (const file of photos) {
         const compressed = await compressImage(file);
 
@@ -140,7 +138,6 @@ export default function ProposerLieuPage() {
         }]);
       }
 
-      // Reset
       setTitle('');
       setDescription('');
       setLatitude('');
@@ -160,56 +157,82 @@ export default function ProposerLieuPage() {
   };
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
-      <h1>Proposer un lieu de mémoire</h1>
+    <div style={{ fontFamily: 'sans-serif', maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
+      <div style={{ backgroundColor: '#ffcc00', padding: '1rem', textAlign: 'center', fontWeight: 'bold', borderRadius: '5px', marginBottom: '2rem' }}>
+        ⚠️ Ce site est en construction ⚠️
+      </div>
+
+      <header style={{ marginBottom: '2rem', textAlign: 'center' }}>
+        <h1>Proposer un lieu de mémoire</h1>
+        <p style={{ fontSize: '1.2rem', marginTop: '0.5rem' }}>
+          Vous pouvez contribuer à enrichir la mémoire maritime en ajoutant des lieux de mémoire.
+        </p>
+      </header>
 
       {!user ? (
-        <Link href="/login">S’identifier</Link>
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <p>Vous devez vous identifier pour proposer un lieu de mémoire.</p>
+          <Link href="/login" style={{ display: 'inline-block', padding: '1rem 2rem', backgroundColor: '#0070f3', color: '#fff', borderRadius: '8px', textDecoration: 'none', fontWeight: 'bold', fontSize: '1.2rem' }}>
+            S’identifier
+          </Link>
+        </div>
       ) : (
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Titre" required />
-          <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Description" />
-
-          <div>
-            <input value={latitude} onChange={e => setLatitude(e.target.value)} placeholder="Latitude" required />
-            <input value={longitude} onChange={e => setLongitude(e.target.value)} placeholder="Longitude" required />
-            <button type="button" onClick={handleGeolocate}>Ma position</button>
+        <>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <span style={{ fontWeight: 'bold', color: '#0070f3' }}>
+              Connecté en tant que : {user.email || user.user_metadata?.full_name || 'Utilisateur'}
+            </span>
+            <button onClick={handleLogout} style={{ padding: '0.5rem 1rem', backgroundColor: '#dc3545', color: '#fff', borderRadius: '6px', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>
+              Se déconnecter
+            </button>
           </div>
 
-          <select value={typeId ?? ''} onChange={e => setTypeId(Number(e.target.value))} required>
-            <option value="" disabled>Choisir un type</option>
-            <option value={1}>Tombe</option>
-            <option value={2}>Monument</option>
-            <option value={3}>Plaque</option>
-            <option value={4}>Mémorial</option>
-          </select>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
+            <input type="text" placeholder="Titre" value={title} onChange={(e) => setTitle(e.target.value)} required />
+            <textarea placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
 
-          <div>
-            <label>Photos (plusieurs possibles)</label>
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={(e) => {
-                if (!e.target.files) return;
-                setPhotos((prev) => [...prev, ...Array.from(e.target.files)]);
-              }}
-            />
-            {photos.length > 0 && (
-              <ul>
-                {photos.map((file, i) => (
-                  <li key={i}>{file.name}</li>
-                ))}
-              </ul>
-            )}
-          </div>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <input type="number" placeholder="Latitude" value={latitude} onChange={(e) => setLatitude(e.target.value)} required />
+              <input type="number" placeholder="Longitude" value={longitude} onChange={(e) => setLongitude(e.target.value)} required />
+              <button type="button" onClick={handleGeolocate}>Ma position</button>
+            </div>
 
-          <button type="submit" disabled={loading}>
-            {loading ? 'Envoi…' : 'Proposer le lieu'}
-          </button>
+            <select value={typeId ?? ''} onChange={(e) => setTypeId(parseInt(e.target.value))} required>
+              <option value="" disabled>Choisir un type de lieu</option>
+              <option value={1}>Tombe</option>
+              <option value={2}>Monument</option>
+              <option value={3}>Plaque commémorative</option>
+              <option value={4}>Mémorial</option>
+            </select>
 
-          {message && <p>{message}</p>}
-        </form>
+            <div>
+              <label style={{ fontWeight: 'bold' }}>Photos du lieu (optionnel)</label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => {
+                  if (!e.target.files) return;
+                  setPhotos((prev) => [...prev, ...Array.from(e.target.files)]);
+                }}
+                style={{ marginTop: '0.5rem' }}
+              />
+              {photos.length > 0 && (
+                <ul style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}>
+                  {photos.map((file, index) => (
+                    <li key={index}>{file.name}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <button type="submit" disabled={loading}>
+              {loading ? 'Proposition en cours…' : 'Proposer le lieu'}
+            </button>
+
+            {message && <p style={{ marginTop: '1rem', color: '#d63333', fontWeight: 'bold' }}>{message}</p>}
+          </form>
+        </>
       )}
     </div>
   );
