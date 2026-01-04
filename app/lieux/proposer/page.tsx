@@ -15,13 +15,12 @@ export default function ProposerLieuPage() {
   const [country, setCountry] = useState('');
   const [typeId, setTypeId] = useState<number | null>(null);
 
-  // 🔹 PHOTOS
   const [photos, setPhotos] = useState<File[]>([]);
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  // 🔹 Vérification session utilisateur
+  // 🔹 Session utilisateur
   useEffect(() => {
     async function fetchUser() {
       const { data } = await supabase.auth.getSession();
@@ -37,16 +36,14 @@ export default function ProposerLieuPage() {
     return () => listener.subscription.unsubscribe();
   }, []);
 
-  // 🔹 Déconnexion
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setUser(null);
   };
 
-  // 🔹 Remplir latitude/longitude avec la position actuelle
   const handleGeolocate = () => {
     if (!navigator.geolocation) {
-      alert('La géolocalisation n’est pas supportée par votre navigateur.');
+      alert('La géolocalisation n’est pas supportée.');
       return;
     }
 
@@ -55,38 +52,34 @@ export default function ProposerLieuPage() {
         setLatitude(position.coords.latitude.toString());
         setLongitude(position.coords.longitude.toString());
       },
-      (error) => {
-        console.error(error);
-        alert('Impossible de récupérer votre position. Vérifiez vos permissions.');
-      }
+      () => alert('Impossible de récupérer la position.')
     );
   };
 
-  // 🔹 Fonction de compression
+  // 🔹 Compression image (qualité élevée)
   async function compressImage(file: File, maxWidth = 1600, quality = 0.85): Promise<File> {
     return new Promise((resolve, reject) => {
       const img = new Image();
       const reader = new FileReader();
 
-      reader.onload = (e) => {
-        if (!e.target?.result) return reject('Erreur lecture image');
-        img.src = e.target.result as string;
+      reader.onload = () => {
+        img.src = reader.result as string;
       };
 
       img.onload = () => {
-        const canvas = document.createElement('canvas');
         const scale = Math.min(1, maxWidth / img.width);
+        const canvas = document.createElement('canvas');
         canvas.width = img.width * scale;
         canvas.height = img.height * scale;
 
         const ctx = canvas.getContext('2d');
-        if (!ctx) return reject('Impossible de créer le canvas');
+        if (!ctx) return reject();
 
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
         canvas.toBlob(
           (blob) => {
-            if (!blob) return reject('Erreur conversion blob');
+            if (!blob) return reject();
             resolve(new File([blob], file.name, { type: 'image/jpeg' }));
           },
           'image/jpeg',
@@ -94,14 +87,10 @@ export default function ProposerLieuPage() {
         );
       };
 
-      img.onerror = (err) => reject(err);
-      reader.onerror = (err) => reject(err);
-
       reader.readAsDataURL(file);
     });
   }
 
-  // 🔹 Soumission du formulaire
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
@@ -114,8 +103,8 @@ export default function ProposerLieuPage() {
     setLoading(true);
 
     try {
-      // 🔹 1️⃣ Créer le lieu
-      const { data: locationData, error: insertError } = await supabase
+      // 1️⃣ Création du lieu
+      const { data: location, error } = await supabase
         .from('locations')
         .insert([{
           title,
@@ -131,40 +120,34 @@ export default function ProposerLieuPage() {
         .select('id')
         .single();
 
-      if (insertError || !locationData) {
-        throw insertError ?? new Error('Erreur lors de la création du lieu.');
-      }
+      if (error || !location) throw error;
 
-      // 🔹 2️⃣ Upload des photos avec compression
+      // 2️⃣ Upload des photos
       for (const file of photos) {
-        const compressedFile = await compressImage(file);
+        const compressed = await compressImage(file);
 
-        const fileExt = compressedFile.name.split('.').pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+        const ext = compressed.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
         const { error: uploadError } = await supabase.storage
           .from('location-photos')
-          .upload(fileName, compressedFile);
+          .upload(fileName, compressed);
 
-        if (uploadError) {
-          console.error('Erreur upload:', uploadError);
-          continue;
-        }
+        if (uploadError) continue;
 
         const publicUrl = supabase.storage
           .from('location-photos')
           .getPublicUrl(fileName).data.publicUrl;
 
-        // 🔹 3️⃣ Insertion dans la table photos
         await supabase.from('photos').insert([{
-          location_id: locationData.id,
+          location_id: location.id,
           url: publicUrl,
+          size: compressed.size,
           description: null,
-          size: compressedFile.size,
         }]);
       }
 
-      // 🔹 4️⃣ Reset formulaire
+      // 3️⃣ Reset
       setTitle('');
       setDescription('');
       setLatitude('');
@@ -173,10 +156,11 @@ export default function ProposerLieuPage() {
       setCountry('');
       setTypeId(null);
       setPhotos([]);
-      setMessage('Lieu proposé avec succès ! Il sera vérifié par un modérateur.');
-    } catch (error) {
-      console.error(error);
-      setMessage('Une erreur est survenue lors de la proposition du lieu.');
+      setMessage('Lieu proposé avec succès. Il sera vérifié par un modérateur.');
+
+    } catch (err) {
+      console.error(err);
+      setMessage('Une erreur est survenue.');
     }
 
     setLoading(false);
@@ -184,119 +168,99 @@ export default function ProposerLieuPage() {
 
   return (
     <div style={{ fontFamily: 'sans-serif', maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
-      {/* Bannière */}
-      <div
-        style={{
-          backgroundColor: '#ffcc00',
-          padding: '1rem',
-          textAlign: 'center',
-          fontWeight: 'bold',
-          borderRadius: '5px',
-          marginBottom: '2rem',
-        }}
-      >
-        ⚠️ Ce site est en construction ⚠️
-      </div>
-
-      <header style={{ marginBottom: '2rem', textAlign: 'center' }}>
-        <h1>Proposer un lieu de mémoire</h1>
-        <p style={{ fontSize: '1.2rem', marginTop: '0.5rem' }}>
-          Vous pouvez contribuer à enrichir la mémoire maritime en ajoutant des lieux de mémoire.
-        </p>
-      </header>
+      <h1>Proposer un lieu de mémoire</h1>
 
       {!user ? (
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <p>Vous devez vous identifier pour proposer un lieu de mémoire.</p>
-          <Link
-            href="/login"
-            style={{
-              display: 'inline-block',
-              padding: '1rem 2rem',
-              backgroundColor: '#0070f3',
-              color: '#fff',
-              borderRadius: '8px',
-              textDecoration: 'none',
-              fontWeight: 'bold',
-              fontSize: '1.2rem',
-            }}
-          >
-            S’identifier
-          </Link>
-        </div>
+        <Link href="/login">S’identifier</Link>
       ) : (
-        <>
-          {/* 🔹 Utilisateur connecté */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <span style={{ fontWeight: 'bold', color: '#0070f3' }}>
-              Connecté en tant que : {user.email || user.user_metadata?.full_name || 'Utilisateur'}
-            </span>
-            <button
-              onClick={handleLogout}
-              style={{
-                padding: '0.5rem 1rem',
-                backgroundColor: '#dc3545',
-                color: '#fff',
-                borderRadius: '6px',
-                border: 'none',
-                cursor: 'pointer',
-                fontWeight: 'bold',
-              }}
-            >
-              Se déconnecter
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+
+          <input
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            placeholder="Titre"
+            required
+          />
+
+          <textarea
+            value={description}
+            onChange={e => setDescription(e.target.value)}
+            placeholder="Description"
+          />
+
+          <div>
+            <input
+              value={latitude}
+              onChange={e => setLatitude(e.target.value)}
+              placeholder="Latitude"
+              required
+            />
+            <input
+              value={longitude}
+              onChange={e => setLongitude(e.target.value)}
+              placeholder="Longitude"
+              required
+            />
+            <button type="button" onClick={handleGeolocate}>
+              Ma position
             </button>
           </div>
 
-          {/* 🔹 Formulaire */}
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
+          <input
+            value={addressText}
+            onChange={e => setAddressText(e.target.value)}
+            placeholder="Adresse / lieu-dit"
+          />
 
-            {/* … champs inchangés … */}
+          <input
+            value={country}
+            onChange={e => setCountry(e.target.value)}
+            placeholder="Pays"
+          />
 
-            {/* 🔹 PHOTOS */}
-            <div>
-              <label style={{ fontWeight: 'bold' }}>
-                Photos du lieu (optionnel)
-              </label>
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={(e) => {
-                  if (!e.target.files) return;
-                  setPhotos((prev) => [...prev, ...Array.from(e.target.files)]);
-                }}
-                style={{ marginTop: '0.5rem' }}
-              />
+          <select
+            value={typeId ?? ''}
+            onChange={e => setTypeId(Number(e.target.value))}
+            required
+          >
+            <option value="" disabled>Choisir un type</option>
+            <option value={1}>Tombe</option>
+            <option value={2}>Monument</option>
+            <option value={3}>Plaque commémorative</option>
+            <option value={4}>Mémorial</option>
+            <option value={5}>Épave</option>
+            <option value={6}>Lieu de bataille</option>
+            <option value={7}>Musée</option>
+            <option value={8}>Autre lieu de mémoire</option>
+          </select>
 
-              {photos.length > 0 && (
-                <ul style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}>
-                  {photos.map((file, index) => (
-                    <li key={index}>{file.name}</li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                padding: '1rem 2rem',
-                backgroundColor: '#0070f3',
-                color: '#fff',
-                fontWeight: 'bold',
-                fontSize: '1rem',
-                borderRadius: '8px',
-                border: 'none',
-                cursor: 'pointer',
+          {/* 📸 PHOTOS */}
+          <div>
+            <label>Photos (plusieurs possibles)</label>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={(e) => {
+                if (!e.target.files) return;
+                setPhotos((prev) => [...prev, ...Array.from(e.target.files)]);
               }}
-            >
-              {loading ? 'Proposition en cours…' : 'Proposer le lieu'}
-            </button>
+            />
+            {photos.length > 0 && (
+              <ul>
+                {photos.map((file, i) => (
+                  <li key={i}>{file.name}</li>
+                ))}
+              </ul>
+            )}
+          </div>
 
-            {message && <p style={{ marginTop: '1rem', color: '#d63333', fontWeight: 'bold' }}>{message}</p>}
-          </form>
-        </>
+          <button type="submit" disabled={loading}>
+            {loading ? 'Envoi…' : 'Proposer le lieu'}
+          </button>
+
+          {message && <p>{message}</p>}
+        </form>
       )}
     </div>
   );
