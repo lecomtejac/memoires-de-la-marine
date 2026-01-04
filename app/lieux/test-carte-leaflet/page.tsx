@@ -57,6 +57,23 @@ export default function Page() {
           >
             ➕ Proposer un nouveau lieu de mémoire en me connectant
           </Link>
+
+          {/* Nouveau bouton "Créer un compte" */}
+          <Link
+            href="/inscription"
+            style={{
+              padding: '0.75rem 1.5rem',
+              backgroundColor: '#28a745',
+              color: '#fff',
+              borderRadius: '8px',
+              textDecoration: 'none',
+              fontWeight: 'bold',
+              fontSize: '1rem',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            📝 Créer un compte
+          </Link>
         </div>
       </div>
 
