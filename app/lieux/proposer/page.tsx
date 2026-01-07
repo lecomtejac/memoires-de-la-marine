@@ -405,7 +405,21 @@ export default function ProposerLieuPage() {
               />
             </div>
 
-            <button type="submit" disabled={loading}>
+            {/* BOUTON PROPOSER LE LIEU PLUS GROS ET BLEU */}
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                padding: '1.25rem 2.5rem',
+                backgroundColor: '#0070f3',
+                color: '#fff',
+                fontWeight: 'bold',
+                fontSize: '1.2rem',
+                borderRadius: '8px',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
               {loading ? 'Proposition en cours…' : 'Proposer le lieu'}
             </button>
 
