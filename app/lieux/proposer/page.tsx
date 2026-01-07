@@ -327,13 +327,20 @@ export default function ProposerLieuPage() {
               required
             />
 
-            <input
-              type="text"
-              placeholder="Description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              required
-            />
+<textarea
+  placeholder="Description"
+  value={description}
+  onChange={(e) => setDescription(e.target.value)}
+  required
+  style={{
+    padding: '0.5rem',
+    fontSize: '1rem',
+    borderRadius: '5px',
+    border: '1px solid #ccc',
+    minHeight: '150px',  // <-- taille augmentée
+    resize: 'vertical',   // permet de redimensionner verticalement
+  }}
+/>
 
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <input
