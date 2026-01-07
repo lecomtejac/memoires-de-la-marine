@@ -327,10 +327,12 @@ export default function ProposerLieuPage() {
               required
             />
 
-            <textarea
+            <input
+              type="text"
               placeholder="Description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              required
             />
 
             <div style={{ display: 'flex', gap: '0.5rem' }}>
