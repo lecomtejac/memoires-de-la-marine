@@ -333,6 +333,7 @@ export default function ProposerLieuPage() {
   onChange={(e) => setDescription(e.target.value)}
   required
   style={{
+    fontFamily: 'sans-serif',
     padding: '0.5rem',
     fontSize: '1rem',
     borderRadius: '5px',
