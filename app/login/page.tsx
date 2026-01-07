@@ -1,48 +1,78 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { supabase } from '../../lib/supabaseClient';
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { supabase } from '../../lib/supabaseClient'
 
 export default function LoginPage() {
-  const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const router = useRouter()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMessage(null);
-    setLoading(true);
+    e.preventDefault()
+    setErrorMessage(null)
+    setLoading(true)
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
-    });
+    })
 
-    setLoading(false);
+    setLoading(false)
 
     if (error) {
-      setErrorMessage(error.message);
+      setErrorMessage(error.message)
     } else if (data.session) {
       // 🔹 Redirection vers la page proposer lieu
-      router.push('/lieux/proposer');
+      router.push('/lieux/proposer')
     }
-  };
+  }
 
   return (
-    <div style={{ fontFamily: 'sans-serif', maxWidth: '500px', margin: '0 auto', padding: '2rem' }}>
+    <div
+      style={{
+        fontFamily: 'sans-serif',
+        maxWidth: '500px',
+        margin: '0 auto',
+        padding: '2rem',
+      }}
+    >
+      {/* Bouton retour */}
+      <Link
+        href="/lieux/test-carte-leaflet"
+        style={{
+          display: 'inline-block',
+          marginBottom: '1.5rem',
+          textDecoration: 'none',
+          color: '#0070f3',
+          fontWeight: 'bold',
+        }}
+      >
+        ⬅ Retour
+      </Link>
+
       <h1 style={{ textAlign: 'center', marginBottom: '2rem' }}>Se connecter</h1>
 
-      <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <form
+        onSubmit={handleLogin}
+        style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
+      >
         <input
           type="email"
-          placeholder="Email"
+          placeholder="Login : email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }}
+          style={{
+            padding: '0.5rem',
+            fontSize: '1rem',
+            borderRadius: '5px',
+            border: '1px solid #ccc',
+          }}
         />
 
         <input
@@ -51,7 +81,12 @@ export default function LoginPage() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }}
+          style={{
+            padding: '0.5rem',
+            fontSize: '1rem',
+            borderRadius: '5px',
+            border: '1px solid #ccc',
+          }}
         />
 
         <button
@@ -65,14 +100,24 @@ export default function LoginPage() {
             fontSize: '1rem',
             borderRadius: '8px',
             border: 'none',
-            cursor: 'pointer',
+            cursor: loading ? 'not-allowed' : 'pointer',
           }}
         >
           {loading ? 'Connexion en cours…' : 'Se connecter'}
         </button>
       </form>
 
-      {errorMessage && <p style={{ color: '#d63333', marginTop: '1rem', fontWeight: 'bold' }}>{errorMessage}</p>}
+      {errorMessage && (
+        <p
+          style={{
+            color: '#d63333',
+            marginTop: '1rem',
+            fontWeight: 'bold',
+          }}
+        >
+          {errorMessage}
+        </p>
+      )}
     </div>
-  );
+  )
 }
