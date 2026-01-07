@@ -1,14 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { supabase } from '../../lib/supabaseClient' // <-- chemin corrigé
+import { supabase } from '../../lib/supabaseClient'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [username, setUsername] = useState('') // conservé pour plus tard
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -34,7 +33,6 @@ export default function RegisterPage() {
 
       setEmail('')
       setPassword('')
-      setUsername('')
 
       setTimeout(() => {
         router.push('/login')
@@ -76,15 +74,6 @@ export default function RegisterPage() {
         onSubmit={handleSignup}
         style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
       >
-        {/* Champ Pseudo */}
-        <input
-          type="text"
-          placeholder="Pseudo"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          style={inputStyle}
-        />
-
         {/* Champ Login : email */}
         <input
           type="email"
@@ -98,7 +87,7 @@ export default function RegisterPage() {
         {/* Mot de passe */}
         <input
           type="password"
-          placeholder="Mot de passe 6 caractères"
+          placeholder="Mot de passe (6 caractères minimum)"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
