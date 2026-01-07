@@ -56,7 +56,7 @@ export default function RegisterPage() {
       }}
     >
       <Link
-        href="/lieux/proposer"
+        href="/lieux/test-carte-leaflet"
         style={{
           display: 'inline-block',
           marginBottom: '1.5rem',
