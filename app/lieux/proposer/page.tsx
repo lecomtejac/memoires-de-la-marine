@@ -94,7 +94,7 @@ export default function ProposerLieuPage() {
     e.preventDefault();
     setMessage(null);
 
-    // ✅ CORRECTION CLÉ : récupération fiable de l'utilisateur
+    // ✅ Récupération au moment du submit
     const { data: { user: authUser } } = await supabase.auth.getUser();
 
     if (!authUser) {
@@ -121,7 +121,7 @@ export default function ProposerLieuPage() {
           country: country || null,
           type_id: typeId,
           status: 'pending',
-          created_by: authUser.id, // ✅ utilisation sûre
+          created_by: authUser.id, // utilisation sûre
         }])
         .select('id')
         .single();
@@ -177,8 +177,38 @@ export default function ProposerLieuPage() {
 
   return (
     <div style={{ fontFamily: 'sans-serif', maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
-      {/* ⬇️ UI inchangée ⬇️ */}
-      {/* … */}
+      <div style={{ backgroundColor: '#ffcc00', padding: '1rem', textAlign: 'center', fontWeight: 'bold', borderRadius: '5px', marginBottom: '2rem' }}>
+        ⚠️ Ce site est en construction ⚠️
+      </div>
+
+      <header style={{ marginBottom: '2rem', textAlign: 'center' }}>
+        <h1>Proposer un lieu de mémoire</h1>
+        <p style={{ fontSize: '1.2rem', marginTop: '0.5rem' }}>Vous pouvez contribuer à enrichir la mémoire maritime en ajoutant des lieux de mémoire.</p>
+      </header>
+
+      {!user ? (
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <p>Vous devez vous identifier pour proposer un lieu de mémoire.</p>
+          <Link href="/login" style={{ display: 'inline-block', padding: '1rem 2rem', backgroundColor: '#0070f3', color: '#fff', borderRadius: '8px', textDecoration: 'none', fontWeight: 'bold', fontSize: '1.2rem' }}>S’identifier</Link>
+        </div>
+      ) : (
+        <>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <span style={{ fontWeight: 'bold', color: '#0070f3' }}>Connecté en tant que : {user.email || user.user_metadata?.full_name || 'Utilisateur'}</span>
+            <button onClick={handleLogout} style={{ padding: '0.5rem 1rem', backgroundColor: '#dc3545', color: '#fff', borderRadius: '6px', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>Se déconnecter</button>
+          </div>
+
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
+            {/* … Tous tes inputs/photo/select/bouton ici comme avant … */}
+
+            <button type="submit" disabled={loading} style={{ padding: '1rem 2rem', backgroundColor: '#0070f3', color: '#fff', fontWeight: 'bold', fontSize: '1rem', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>
+              {loading ? 'Proposition en cours…' : 'Proposer le lieu'}
+            </button>
+
+            {message && <p style={{ marginTop: '1rem', color: '#d63333', fontWeight: 'bold' }}>{message}</p>}
+          </form>
+        </>
+      )}
     </div>
   );
 }
