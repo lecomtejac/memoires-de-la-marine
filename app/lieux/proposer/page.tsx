@@ -23,7 +23,6 @@ export default function ProposerLieuPage() {
   /* =========================
      AUTH
   ========================= */
-
   useEffect(() => {
     const fetchUser = async () => {
       const { data } = await supabase.auth.getSession();
@@ -51,7 +50,6 @@ export default function ProposerLieuPage() {
   /* =========================
      GEOLOCALISATION
   ========================= */
-
   const handleGeolocate = () => {
     if (!navigator.geolocation) {
       alert('La géolocalisation n’est pas supportée par votre navigateur.');
@@ -75,7 +73,6 @@ export default function ProposerLieuPage() {
   /* =========================
      IMAGE COMPRESSION
   ========================= */
-
   async function compressImage(
     file: File,
     maxWidth = 1600,
@@ -121,7 +118,6 @@ export default function ProposerLieuPage() {
   /* =========================
      SUBMIT
   ========================= */
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
@@ -217,7 +213,6 @@ export default function ProposerLieuPage() {
   /* =========================
      RENDER
   ========================= */
-
   return (
     <div
       style={{
@@ -247,6 +242,24 @@ export default function ProposerLieuPage() {
           lieux de mémoire.
         </p>
       </header>
+
+      {/* BOUTON RETOUR VERS CARTE */}
+      <div style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
+        <Link
+          href="/lieux/test-carte-leaflet"
+          style={{
+            display: 'inline-block',
+            padding: '0.75rem 1.5rem',
+            backgroundColor: '#6c757d',
+            color: '#fff',
+            borderRadius: '6px',
+            textDecoration: 'none',
+            fontWeight: 'bold',
+          }}
+        >
+          ← Retour à la carte
+        </Link>
+      </div>
 
       {!user ? (
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
