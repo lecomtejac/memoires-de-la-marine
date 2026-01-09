@@ -181,8 +181,12 @@ export default function ProposerLieuPage() {
       setTimeout(() => {
         router.push('/lieux/test-carte-leaflet');
       }, 1500);
-    } catch {
-      setMessage('Une erreur est survenue lors de la proposition du lieu.');
+    } catch (error: any) {
+  console.error('ERREUR SUPABASE :', error);
+  setMessage(
+    error?.message ??
+      'Une erreur est survenue lors de la proposition du lieu.'
+  );
     }
 
     setLoading(false);
