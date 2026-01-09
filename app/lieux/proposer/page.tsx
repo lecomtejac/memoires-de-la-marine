@@ -16,7 +16,6 @@ export default function ProposerLieuPage() {
   const [country, setCountry] = useState('');
 
   const [typeId, setTypeId] = useState<number | null>(null);
-  const [locationTypes, setLocationTypes] = useState<any[]>([]);
 
   const [photos, setPhotos] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
@@ -50,24 +49,6 @@ export default function ProposerLieuPage() {
     await supabase.auth.signOut();
     setUser(null);
   };
-
-  /* =========================
-     LOCATION TYPES
-  ========================= */
-  useEffect(() => {
-    const fetchLocationTypes = async () => {
-      const { data, error } = await supabase
-        .from('location_types')
-        .select('id, name')
-        .order('name');
-
-      if (!error && data) {
-        setLocationTypes(data);
-      }
-    };
-
-    fetchLocationTypes();
-  }, []);
 
   /* =========================
      GEOLOCALISATION
@@ -310,9 +291,19 @@ export default function ProposerLieuPage() {
 
           <select value={typeId ?? ''} onChange={(e) => setTypeId(Number(e.target.value))} required>
             <option value="" disabled>Choisir un type de lieu</option>
-            {locationTypes.map((type) => (
-              <option key={type.id} value={type.id}>{type.name}</option>
-            ))}
+            <option value={1}>Tombe</option>
+            <option value={2}>Monument</option>
+            <option value={3}>Plaque commémorative</option>
+            <option value={4}>Mémorial</option>
+            <option value={5}>Lieu de bataille</option>
+            <option value={6}>Lieu de débarquement</option>
+            <option value={7}>Naufrage</option>
+            <option value={8}>Épave</option>
+            <option value={9}>Musée</option>
+            <option value={10}>Trace de passage</option>
+            <option value={11}>Base</option>
+            <option value={12}>Port</option>
+            <option value={13}>Autre lieu remarquable</option>
           </select>
 
           <input type="file" multiple accept="image/*" onChange={(e) => e.target.files && setPhotos(Array.from(e.target.files))} />
