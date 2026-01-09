@@ -1,19 +1,23 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { supabase } from '../../../lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 
 export default function ProposerLieuPage() {
   const [user, setUser] = useState<any>(null);
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
   const [addressText, setAddressText] = useState('');
   const [country, setCountry] = useState('');
+
   const [typeId, setTypeId] = useState<number | null>(null);
+  const [locationTypes, setLocationTypes] = useState<any[]>([]);
+
   const [photos, setPhotos] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -46,6 +50,24 @@ export default function ProposerLieuPage() {
     await supabase.auth.signOut();
     setUser(null);
   };
+
+  /* =========================
+     LOCATION TYPES
+  ========================= */
+  useEffect(() => {
+    const fetchLocationTypes = async () => {
+      const { data, error } = await supabase
+        .from('location_types')
+        .select('id, name')
+        .order('name');
+
+      if (!error && data) {
+        setLocationTypes(data);
+      }
+    };
+
+    fetchLocationTypes();
+  }, []);
 
   /* =========================
      GEOLOCALISATION
@@ -138,8 +160,8 @@ export default function ProposerLieuPage() {
           {
             title,
             description,
-            latitude: parseFloat(latitude),
-            longitude: parseFloat(longitude),
+            latitude: Number(latitude),
+            longitude: Number(longitude),
             address_text: addressText || null,
             country: country || null,
             type_id: typeId,
@@ -150,21 +172,25 @@ export default function ProposerLieuPage() {
         .select('id')
         .single();
 
-      if (error || !locationData) throw error;
+      if (error || !locationData) {
+        throw error;
+      }
 
       for (const file of photos) {
         const compressed = await compressImage(file);
-        const name = `${Date.now()}-${Math.random()
+        const fileName = `${Date.now()}-${Math.random()
           .toString(36)
           .slice(2)}.jpg`;
 
-        await supabase.storage
+        const { error: uploadError } = await supabase.storage
           .from('location-photos')
-          .upload(name, compressed);
+          .upload(fileName, compressed);
+
+        if (uploadError) continue;
 
         const publicUrl = supabase.storage
           .from('location-photos')
-          .getPublicUrl(name).data.publicUrl;
+          .getPublicUrl(fileName).data.publicUrl;
 
         await supabase.from('photos').insert([
           {
@@ -174,6 +200,15 @@ export default function ProposerLieuPage() {
         ]);
       }
 
+      setTitle('');
+      setDescription('');
+      setLatitude('');
+      setLongitude('');
+      setAddressText('');
+      setCountry('');
+      setTypeId(null);
+      setPhotos([]);
+
       setMessage(
         'Lieu proposé avec succès ! Il sera vérifié par un modérateur.'
       );
@@ -181,12 +216,8 @@ export default function ProposerLieuPage() {
       setTimeout(() => {
         router.push('/lieux/test-carte-leaflet');
       }, 1500);
-    } catch (error: any) {
-  console.error('ERREUR SUPABASE :', error);
-  setMessage(
-    error?.message ??
-      'Une erreur est survenue lors de la proposition du lieu.'
-  );
+    } catch {
+      setMessage('Une erreur est survenue lors de la proposition du lieu.');
     }
 
     setLoading(false);
@@ -196,77 +227,98 @@ export default function ProposerLieuPage() {
      RENDER
   ========================= */
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
-      <h1>Proposer un lieu de mémoire</h1>
+    <div
+      style={{
+        fontFamily: 'sans-serif',
+        maxWidth: '800px',
+        margin: '0 auto',
+        padding: '2rem',
+      }}
+    >
+      <div
+        style={{
+          backgroundColor: '#ffcc00',
+          padding: '1rem',
+          textAlign: 'center',
+          fontWeight: 'bold',
+          borderRadius: '5px',
+          marginBottom: '2rem',
+        }}
+      >
+        ⚠️ Ce site est en construction ⚠️
+      </div>
+
+      <header style={{ marginBottom: '2rem', textAlign: 'center' }}>
+        <h1>Proposer un lieu de mémoire</h1>
+        <p style={{ fontSize: '1.2rem', marginTop: '0.5rem' }}>
+          Vous pouvez contribuer à enrichir la mémoire maritime.
+        </p>
+      </header>
+
+      <div style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
+        <Link
+          href="/lieux/test-carte-leaflet"
+          style={{
+            display: 'inline-block',
+            padding: '0.75rem 1.5rem',
+            backgroundColor: '#6c757d',
+            color: '#fff',
+            borderRadius: '6px',
+            textDecoration: 'none',
+            fontWeight: 'bold',
+          }}
+        >
+          ← Retour à la carte
+        </Link>
+      </div>
 
       {!user ? (
-        <Link href="/login">S’identifier</Link>
+        <div style={{ textAlign: 'center' }}>
+          <Link href="/login">S’identifier</Link>
+        </div>
       ) : (
         <form
           onSubmit={handleSubmit}
           style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
         >
-          <input
-            type="text"
-            placeholder="Titre"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-          />
+          <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Titre" required />
 
           <textarea
-            placeholder="Description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            placeholder="Description"
             required
-            style={{ minHeight: '150px' }}
+            style={{
+              fontFamily: 'sans-serif',
+              padding: '0.5rem',
+              fontSize: '1rem',
+              borderRadius: '5px',
+              border: '1px solid #ccc',
+              minHeight: '150px',
+              resize: 'vertical',
+            }}
           />
 
           <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <input
-              type="number"
-              placeholder="Latitude"
-              value={latitude}
-              onChange={(e) => setLatitude(e.target.value)}
-              required
-            />
-            <input
-              type="number"
-              placeholder="Longitude"
-              value={longitude}
-              onChange={(e) => setLongitude(e.target.value)}
-              required
-            />
-            <button type="button" onClick={handleGeolocate}>
-              Ma position
-            </button>
+            <input value={latitude} onChange={(e) => setLatitude(e.target.value)} placeholder="Latitude" required />
+            <input value={longitude} onChange={(e) => setLongitude(e.target.value)} placeholder="Longitude" required />
+            <button type="button" onClick={handleGeolocate}>Ma position</button>
           </div>
 
-          <select
-            value={typeId ?? ''}
-            onChange={(e) => setTypeId(Number(e.target.value))}
-            required
-          >
-            <option value="" disabled>
-              Choisir un type
-            </option>
-            <option value={1}>Tombe</option>
-            <option value={2}>Monument</option>
-            <option value={3}>Plaque</option>
-            <option value={4}>Mémorial</option>
+          <input value={addressText} onChange={(e) => setAddressText(e.target.value)} placeholder="Adresse (optionnel)" />
+          <input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Pays (optionnel)" />
+
+          <select value={typeId ?? ''} onChange={(e) => setTypeId(Number(e.target.value))} required>
+            <option value="" disabled>Choisir un type de lieu</option>
+            {locationTypes.map((type) => (
+              <option key={type.id} value={type.id}>{type.name}</option>
+            ))}
           </select>
 
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={(e) =>
-              e.target.files && setPhotos(Array.from(e.target.files))
-            }
-          />
+          <input type="file" multiple accept="image/*" onChange={(e) => e.target.files && setPhotos(Array.from(e.target.files))} />
 
           <button type="submit" disabled={loading}>
-            {loading ? 'Envoi…' : 'Proposer le lieu'}
+            {loading ? 'Proposition en cours…' : 'Proposer le lieu'}
           </button>
 
           {message && <p>{message}</p>}
