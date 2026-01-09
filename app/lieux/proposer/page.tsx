@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { supabase } from '../../../lib/supabaseClient';
 import { useRouter } from 'next/navigation';
@@ -24,12 +24,12 @@ export default function ProposerLieuPage() {
      AUTH
   ========================= */
   useEffect(() => {
-    const init = async () => {
+    const fetchUser = async () => {
       const { data } = await supabase.auth.getSession();
       setUser(data.session?.user ?? null);
     };
 
-    init();
+    fetchUser();
 
     const { data: listener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
@@ -62,7 +62,9 @@ export default function ProposerLieuPage() {
         setLongitude(position.coords.longitude.toString());
       },
       () => {
-        alert('Impossible de récupérer votre position.');
+        alert(
+          'Impossible de récupérer votre position. Vérifiez vos permissions.'
+        );
       }
     );
   };
@@ -117,6 +119,11 @@ export default function ProposerLieuPage() {
     e.preventDefault();
     setMessage(null);
 
+    if (!user) {
+      setMessage('Vous devez être connecté pour proposer un lieu.');
+      return;
+    }
+
     if (!title || !latitude || !longitude || typeId === null) {
       setMessage('Veuillez remplir tous les champs obligatoires.');
       return;
@@ -125,128 +132,139 @@ export default function ProposerLieuPage() {
     setLoading(true);
 
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData.session?.user) {
-        throw new Error('Utilisateur non authentifié');
-      }
-
-      const currentUser = sessionData.session.user;
-
       const { data: locationData, error } = await supabase
         .from('locations')
         .insert([
           {
             title,
             description,
-            latitude: Number(latitude),
-            longitude: Number(longitude),
+            latitude: parseFloat(latitude),
+            longitude: parseFloat(longitude),
             address_text: addressText || null,
             country: country || null,
             type_id: typeId,
             status: 'pending',
-            created_by: currentUser.id,
+            created_by: user.id,
           },
         ])
         .select('id')
         .single();
 
-      if (error) throw error;
+      if (error || !locationData) throw error;
 
       for (const file of photos) {
-        try {
-          const compressed = await compressImage(file);
-          const fileName = `${Date.now()}-${Math.random()
-            .toString(36)
-            .slice(2)}.jpg`;
+        const compressed = await compressImage(file);
+        const name = `${Date.now()}-${Math.random()
+          .toString(36)
+          .slice(2)}.jpg`;
 
-          const { error: uploadError } = await supabase.storage
-            .from('location-photos')
-            .upload(fileName, compressed);
+        await supabase.storage
+          .from('location-photos')
+          .upload(name, compressed);
 
-          if (uploadError) continue;
+        const publicUrl = supabase.storage
+          .from('location-photos')
+          .getPublicUrl(name).data.publicUrl;
 
-          const publicUrl = supabase.storage
-            .from('location-photos')
-            .getPublicUrl(fileName).data.publicUrl;
-
-          await supabase.from('photos').insert([
-            {
-              location_id: locationData.id,
-              url: publicUrl,
-              description: null,
-            },
-          ]);
-        } catch {}
+        await supabase.from('photos').insert([
+          {
+            location_id: locationData.id,
+            url: publicUrl,
+          },
+        ]);
       }
 
-      setTitle('');
-      setDescription('');
-      setLatitude('');
-      setLongitude('');
-      setAddressText('');
-      setCountry('');
-      setTypeId(null);
-      setPhotos([]);
-
-      setMessage('Lieu proposé avec succès !');
+      setMessage(
+        'Lieu proposé avec succès ! Il sera vérifié par un modérateur.'
+      );
 
       setTimeout(() => {
         router.push('/lieux/test-carte-leaflet');
       }, 1500);
-    } catch (err: any) {
-      console.error(err);
-      setMessage(err.message || 'Erreur lors de la création du lieu.');
-    } finally {
-      setLoading(false);
+    } catch {
+      setMessage('Une erreur est survenue lors de la proposition du lieu.');
     }
+
+    setLoading(false);
   };
 
   /* =========================
      RENDER
   ========================= */
   return (
-    <div
-      style={{
-        fontFamily: 'sans-serif',
-        maxWidth: '800px',
-        margin: '0 auto',
-        padding: '2rem',
-      }}
-    >
-      <div
-        style={{
-          backgroundColor: '#ffcc00',
-          padding: '1rem',
-          textAlign: 'center',
-          fontWeight: 'bold',
-          borderRadius: '5px',
-          marginBottom: '2rem',
-        }}
-      >
-        ⚠️ Ce site est en construction ⚠️
-      </div>
-
-      <header style={{ marginBottom: '2rem', textAlign: 'center' }}>
-        <h1>Proposer un lieu de mémoire</h1>
-      </header>
+    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
+      <h1>Proposer un lieu de mémoire</h1>
 
       {!user ? (
-        <div style={{ textAlign: 'center' }}>
-          <Link href="/login">S’identifier</Link>
-        </div>
+        <Link href="/login">S’identifier</Link>
       ) : (
         <form
           onSubmit={handleSubmit}
           style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
         >
-          <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Titre" />
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} />
-          <input value={latitude} onChange={(e) => setLatitude(e.target.value)} placeholder="Latitude" />
-          <input value={longitude} onChange={(e) => setLongitude(e.target.value)} placeholder="Longitude" />
-          <button type="button" onClick={handleGeolocate}>Ma position</button>
+          <input
+            type="text"
+            placeholder="Titre"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+          />
+
+          <textarea
+            placeholder="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            required
+            style={{ minHeight: '150px' }}
+          />
+
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <input
+              type="number"
+              placeholder="Latitude"
+              value={latitude}
+              onChange={(e) => setLatitude(e.target.value)}
+              required
+            />
+            <input
+              type="number"
+              placeholder="Longitude"
+              value={longitude}
+              onChange={(e) => setLongitude(e.target.value)}
+              required
+            />
+            <button type="button" onClick={handleGeolocate}>
+              Ma position
+            </button>
+          </div>
+
+          <select
+            value={typeId ?? ''}
+            onChange={(e) => setTypeId(Number(e.target.value))}
+            required
+          >
+            <option value="" disabled>
+              Choisir un type
+            </option>
+            <option value={1}>Tombe</option>
+            <option value={2}>Monument</option>
+            <option value={3}>Plaque</option>
+            <option value={4}>Mémorial</option>
+          </select>
+
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={(e) =>
+              e.target.files && setPhotos(Array.from(e.target.files))
+            }
+          />
+
           <button type="submit" disabled={loading}>
-            {loading ? 'En cours…' : 'Proposer le lieu'}
+            {loading ? 'Envoi…' : 'Proposer le lieu'}
           </button>
+
           {message && <p>{message}</p>}
         </form>
       )}
