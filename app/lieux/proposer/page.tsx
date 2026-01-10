@@ -7,16 +7,13 @@ import { useRouter } from 'next/navigation';
 
 export default function ProposerLieuPage() {
   const [user, setUser] = useState<any>(null);
-
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
   const [addressText, setAddressText] = useState('');
   const [country, setCountry] = useState('');
-
   const [typeId, setTypeId] = useState<number | null>(null);
-
   const [photos, setPhotos] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -64,7 +61,8 @@ export default function ProposerLieuPage() {
         setLatitude(position.coords.latitude.toString());
         setLongitude(position.coords.longitude.toString());
       },
-      () => {
+      (error) => {
+        console.error(error);
         alert(
           'Impossible de récupérer votre position. Vérifiez vos permissions.'
         );
@@ -85,7 +83,7 @@ export default function ProposerLieuPage() {
       const reader = new FileReader();
 
       reader.onload = (e) => {
-        if (!e.target?.result) return reject();
+        if (!e.target?.result) return reject('Erreur lecture image');
         img.src = e.target.result as string;
       };
 
@@ -97,13 +95,13 @@ export default function ProposerLieuPage() {
         canvas.height = img.height * scale;
 
         const ctx = canvas.getContext('2d');
-        if (!ctx) return reject();
+        if (!ctx) return reject('Impossible de créer le canvas');
 
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
         canvas.toBlob(
           (blob) => {
-            if (!blob) return reject();
+            if (!blob) return reject('Erreur conversion blob');
             resolve(new File([blob], file.name, { type: 'image/jpeg' }));
           },
           'image/jpeg',
@@ -111,6 +109,8 @@ export default function ProposerLieuPage() {
         );
       };
 
+      img.onerror = (err) => reject(err);
+      reader.onerror = (err) => reject(err);
       reader.readAsDataURL(file);
     });
   }
@@ -135,14 +135,14 @@ export default function ProposerLieuPage() {
     setLoading(true);
 
     try {
-      const { data: locationData, error } = await supabase
+      const { data: locationData, error: insertError } = await supabase
         .from('locations')
         .insert([
           {
             title,
             description,
-            latitude: Number(latitude),
-            longitude: Number(longitude),
+            latitude: parseFloat(latitude),
+            longitude: parseFloat(longitude),
             address_text: addressText || null,
             country: country || null,
             type_id: typeId,
@@ -153,21 +153,25 @@ export default function ProposerLieuPage() {
         .select('id')
         .single();
 
-      if (error || !locationData) {
-        throw error;
+      if (insertError || !locationData) {
+        throw insertError ?? new Error('Erreur lors de la création du lieu.');
       }
 
       for (const file of photos) {
-        const compressed = await compressImage(file);
+        const compressedFile = await compressImage(file);
+        const fileExt = compressedFile.name.split('.').pop();
         const fileName = `${Date.now()}-${Math.random()
           .toString(36)
-          .slice(2)}.jpg`;
+          .slice(2)}.${fileExt}`;
 
         const { error: uploadError } = await supabase.storage
           .from('location-photos')
-          .upload(fileName, compressed);
+          .upload(fileName, compressedFile);
 
-        if (uploadError) continue;
+        if (uploadError) {
+          console.error('Erreur upload:', uploadError);
+          continue;
+        }
 
         const publicUrl = supabase.storage
           .from('location-photos')
@@ -177,6 +181,7 @@ export default function ProposerLieuPage() {
           {
             location_id: locationData.id,
             url: publicUrl,
+            description: null,
           },
         ]);
       }
@@ -197,7 +202,8 @@ export default function ProposerLieuPage() {
       setTimeout(() => {
         router.push('/lieux/test-carte-leaflet');
       }, 1500);
-    } catch {
+    } catch (error) {
+      console.error(error);
       setMessage('Une erreur est survenue lors de la proposition du lieu.');
     }
 
@@ -232,10 +238,12 @@ export default function ProposerLieuPage() {
       <header style={{ marginBottom: '2rem', textAlign: 'center' }}>
         <h1>Proposer un lieu de mémoire</h1>
         <p style={{ fontSize: '1.2rem', marginTop: '0.5rem' }}>
-          Vous pouvez contribuer à enrichir la mémoire maritime.
+          Vous pouvez contribuer à enrichir la mémoire maritime en ajoutant des
+          lieux de mémoire.
         </p>
       </header>
 
+      {/* BOUTON RETOUR VERS CARTE */}
       <div style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
         <Link
           href="/lieux/test-carte-leaflet"
@@ -254,66 +262,184 @@ export default function ProposerLieuPage() {
       </div>
 
       {!user ? (
-        <div style={{ textAlign: 'center' }}>
-          <Link href="/login">S’identifier</Link>
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <p>Vous devez vous identifier pour proposer un lieu de mémoire.</p>
+          <Link
+            href="/login"
+            style={{
+              display: 'inline-block',
+              padding: '1rem 2rem',
+              backgroundColor: '#0070f3',
+              color: '#fff',
+              borderRadius: '8px',
+              textDecoration: 'none',
+              fontWeight: 'bold',
+              fontSize: '1.2rem',
+            }}
+          >
+            S’identifier
+          </Link>
         </div>
       ) : (
-        <form
-          onSubmit={handleSubmit}
-          style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
-        >
-          <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Titre" required />
-
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Description"
-            required
+        <>
+          <div
             style={{
-              fontFamily: 'sans-serif',
-              padding: '0.5rem',
-              fontSize: '1rem',
-              borderRadius: '5px',
-              border: '1px solid #ccc',
-              minHeight: '150px',
-              resize: 'vertical',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '1rem',
             }}
-          />
-
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <input value={latitude} onChange={(e) => setLatitude(e.target.value)} placeholder="Latitude" required />
-            <input value={longitude} onChange={(e) => setLongitude(e.target.value)} placeholder="Longitude" required />
-            <button type="button" onClick={handleGeolocate}>Ma position</button>
+          >
+            <span style={{ fontWeight: 'bold', color: '#0070f3' }}>
+              Connecté en tant que :{' '}
+              {user.email || user.user_metadata?.full_name || 'Utilisateur'}
+            </span>
+            <button
+              onClick={handleLogout}
+              style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: '#dc3545',
+                color: '#fff',
+                borderRadius: '6px',
+                border: 'none',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+              }}
+            >
+              Se déconnecter
+            </button>
           </div>
 
-          <input value={addressText} onChange={(e) => setAddressText(e.target.value)} placeholder="Adresse (optionnel)" />
-          <input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Pays (optionnel)" />
+          <form
+            onSubmit={handleSubmit}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1rem',
+              marginBottom: '2rem',
+            }}
+          >
+            <input
+              type="text"
+              placeholder="Titre"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+            />
 
-          <select value={typeId ?? ''} onChange={(e) => setTypeId(Number(e.target.value))} required>
-            <option value="" disabled>Choisir un type de lieu</option>
-            <option value={7}>Tombe</option>
-            <option value={8}>Monument</option>
-            <option value={9}>Plaque commémorative</option>
-            <option value={10}>Mémorial</option>
-            <option value={11}>Lieu de bataille</option>
-            <option value={12}>Lieu de débarquement</option>
-            <option value={13}>Naufrage</option>
-            <option value={14}>Épave</option>
-            <option value={15}>Musée</option>
-            <option value={16}>Trace de passage</option>
-            <option value={17}>Base</option>
-            <option value={18}>Port</option>
-            <option value={19}>Autre lieu remarquable</option>
-          </select>
+<textarea
+  placeholder="Description"
+  value={description}
+  onChange={(e) => setDescription(e.target.value)}
+  required
+  style={{
+    fontFamily: 'sans-serif',
+    padding: '0.5rem',
+    fontSize: '1rem',
+    borderRadius: '5px',
+    border: '1px solid #ccc',
+    minHeight: '150px',  // <-- taille augmentée
+    resize: 'vertical',   // permet de redimensionner verticalement
+  }}
+/>
 
-          <input type="file" multiple accept="image/*" onChange={(e) => e.target.files && setPhotos(Array.from(e.target.files))} />
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <input
+                type="number"
+                placeholder="Latitude"
+                value={latitude}
+                onChange={(e) => setLatitude(e.target.value)}
+                required
+              />
+              <input
+                type="number"
+                placeholder="Longitude"
+                value={longitude}
+                onChange={(e) => setLongitude(e.target.value)}
+                required
+              />
+              <button type="button" onClick={handleGeolocate}>
+                Ma position
+              </button>
+            </div>
 
-          <button type="submit" disabled={loading}>
-            {loading ? 'Proposition en cours…' : 'Proposer le lieu'}
-          </button>
+            <input
+              type="text"
+              placeholder="Adresse (optionnel)"
+              value={addressText}
+              onChange={(e) => setAddressText(e.target.value)}
+            />
 
-          {message && <p>{message}</p>}
-        </form>
+            <input
+              type="text"
+              placeholder="Pays (optionnel)"
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+            />
+
+            <select
+              value={typeId ?? ''}
+              onChange={(e) => setTypeId(parseInt(e.target.value))}
+              required
+            >
+              <option value="" disabled>
+                Choisir un type de lieu
+              </option>
+              <option value={7}>Tombe</option>
+              <option value={8}>Monument</option>
+              <option value={9}>Plaque commémorative</option>
+              <option value={10}>Mémorial</option>
+              <option value={11}>Lieu de bataille</option>
+              <option value={12}>Lieu de débarquement</option>
+              <option value={13}>Naufrage</option>
+              <option value={14}>Épave</option>
+              <option value={15}>Musée</option>
+              <option value={16}>Trace de passage</option>
+              <option value={17}>Base</option>
+              <option value={18}>Port</option>
+              <option value={19}>Autre lieu remarquable</option>
+            </select>
+
+            <div>
+              <label style={{ fontWeight: 'bold' }}>
+                Photos du lieu (optionnel)
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => {
+                  if (e.target.files)
+                    setPhotos(Array.from(e.target.files));
+                }}
+              />
+            </div>
+
+            {/* BOUTON PROPOSER LE LIEU PLUS GROS ET BLEU */}
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                padding: '1.25rem 2.5rem',
+                backgroundColor: '#0070f3',
+                color: '#fff',
+                fontWeight: 'bold',
+                fontSize: '1.2rem',
+                borderRadius: '8px',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              {loading ? 'Proposition en cours…' : 'Proposer le lieu'}
+            </button>
+
+            {message && (
+              <p style={{ color: '#d63333', fontWeight: 'bold' }}>
+                {message}
+              </p>
+            )}
+          </form>
+        </>
       )}
     </div>
   );
