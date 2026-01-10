@@ -18,10 +18,6 @@ export default function ProposerLieuPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  const [locationTypes, setLocationTypes] = useState<
-    { id: number; label: string }[]
-  >([]);
-
   const router = useRouter();
 
   /* =========================
@@ -50,27 +46,6 @@ export default function ProposerLieuPage() {
     await supabase.auth.signOut();
     setUser(null);
   };
-
-  /* =========================
-     LOAD LOCATION TYPES
-  ========================= */
-  useEffect(() => {
-    const fetchLocationTypes = async () => {
-      const { data, error } = await supabase
-        .from('location_types')
-        .select('id, label')
-        .order('id');
-
-      if (error) {
-        console.error('Erreur chargement types de lieux:', error);
-        return;
-      }
-
-      setLocationTypes(data ?? []);
-    };
-
-    fetchLocationTypes();
-  }, []);
 
   /* =========================
      GEOLOCALISATION
@@ -184,15 +159,19 @@ export default function ProposerLieuPage() {
 
       for (const file of photos) {
         const compressedFile = await compressImage(file);
+        const fileExt = compressedFile.name.split('.').pop();
         const fileName = `${Date.now()}-${Math.random()
           .toString(36)
-          .slice(2)}.jpg`;
+          .slice(2)}.${fileExt}`;
 
         const { error: uploadError } = await supabase.storage
           .from('location-photos')
           .upload(fileName, compressedFile);
 
-        if (uploadError) continue;
+        if (uploadError) {
+          console.error('Erreur upload:', uploadError);
+          continue;
+        }
 
         const publicUrl = supabase.storage
           .from('location-photos')
@@ -235,23 +214,233 @@ export default function ProposerLieuPage() {
      RENDER
   ========================= */
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
-      {/* tout ton JSX inchangé jusqu’au select */}
-
-      <select
-        value={typeId ?? ''}
-        onChange={(e) => setTypeId(Number(e.target.value))}
-        required
+    <div
+      style={{
+        fontFamily: 'sans-serif',
+        maxWidth: '800px',
+        margin: '0 auto',
+        padding: '2rem',
+      }}
+    >
+      <div
+        style={{
+          backgroundColor: '#ffcc00',
+          padding: '1rem',
+          textAlign: 'center',
+          fontWeight: 'bold',
+          borderRadius: '5px',
+          marginBottom: '2rem',
+        }}
       >
-        <option value="" disabled>
-          Choisir un type de lieu
-        </option>
-        {locationTypes.map((type) => (
-          <option key={type.id} value={type.id}>
-            {type.label}
-          </option>
-        ))}
-      </select>
+        ⚠️ Ce site est en construction ⚠️
+      </div>
+
+      <header style={{ marginBottom: '2rem', textAlign: 'center' }}>
+        <h1>Proposer un lieu de mémoire</h1>
+        <p style={{ fontSize: '1.2rem', marginTop: '0.5rem' }}>
+          Vous pouvez contribuer à enrichir la mémoire maritime en ajoutant des
+          lieux de mémoire.
+        </p>
+      </header>
+
+      {/* BOUTON RETOUR VERS CARTE */}
+      <div style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
+        <Link
+          href="/lieux/test-carte-leaflet"
+          style={{
+            display: 'inline-block',
+            padding: '0.75rem 1.5rem',
+            backgroundColor: '#6c757d',
+            color: '#fff',
+            borderRadius: '6px',
+            textDecoration: 'none',
+            fontWeight: 'bold',
+          }}
+        >
+          ← Retour à la carte
+        </Link>
+      </div>
+
+      {!user ? (
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <p>Vous devez vous identifier pour proposer un lieu de mémoire.</p>
+          <Link
+            href="/login"
+            style={{
+              display: 'inline-block',
+              padding: '1rem 2rem',
+              backgroundColor: '#0070f3',
+              color: '#fff',
+              borderRadius: '8px',
+              textDecoration: 'none',
+              fontWeight: 'bold',
+              fontSize: '1.2rem',
+            }}
+          >
+            S’identifier
+          </Link>
+        </div>
+      ) : (
+        <>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '1rem',
+            }}
+          >
+            <span style={{ fontWeight: 'bold', color: '#0070f3' }}>
+              Connecté en tant que :{' '}
+              {user.email || user.user_metadata?.full_name || 'Utilisateur'}
+            </span>
+            <button
+              onClick={handleLogout}
+              style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: '#dc3545',
+                color: '#fff',
+                borderRadius: '6px',
+                border: 'none',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+              }}
+            >
+              Se déconnecter
+            </button>
+          </div>
+
+          <form
+            onSubmit={handleSubmit}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1rem',
+              marginBottom: '2rem',
+            }}
+          >
+            <input
+              type="text"
+              placeholder="Titre"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+            />
+
+<textarea
+  placeholder="Description"
+  value={description}
+  onChange={(e) => setDescription(e.target.value)}
+  required
+  style={{
+    fontFamily: 'sans-serif',
+    padding: '0.5rem',
+    fontSize: '1rem',
+    borderRadius: '5px',
+    border: '1px solid #ccc',
+    minHeight: '150px',  // <-- taille augmentée
+    resize: 'vertical',   // permet de redimensionner verticalement
+  }}
+/>
+
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <input
+                type="number"
+                placeholder="Latitude"
+                value={latitude}
+                onChange={(e) => setLatitude(e.target.value)}
+                required
+              />
+              <input
+                type="number"
+                placeholder="Longitude"
+                value={longitude}
+                onChange={(e) => setLongitude(e.target.value)}
+                required
+              />
+              <button type="button" onClick={handleGeolocate}>
+                Ma position
+              </button>
+            </div>
+
+            <input
+              type="text"
+              placeholder="Adresse (optionnel)"
+              value={addressText}
+              onChange={(e) => setAddressText(e.target.value)}
+            />
+
+            <input
+              type="text"
+              placeholder="Pays (optionnel)"
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+            />
+
+            <select
+              value={typeId ?? ''}
+              onChange={(e) => setTypeId(parseInt(e.target.value))}
+              required
+            >
+              <option value="" disabled>
+                Choisir un type de lieu
+              </option>
+              <option value={7}>Tombe</option>
+              <option value={8}>Monument</option>
+              <option value={9}>Plaque commémorative</option>
+              <option value={10}>Mémorial</option>
+              <option value={11}>Lieu de bataille</option>
+              <option value={12}>Lieu de débarquement</option>
+              <option value={13}>Naufrage</option>
+              <option value={14}>Épave</option>
+              <option value={15}>Musée</option>
+              <option value={16}>Trace de passage</option>
+              <option value={17}>Base</option>
+              <option value={18}>Port</option>
+              <option value={19}>Autre lieu remarquable</option>
+            </select>
+
+            <div>
+              <label style={{ fontWeight: 'bold' }}>
+                Photos du lieu (optionnel)
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => {
+                  if (e.target.files)
+                    setPhotos(Array.from(e.target.files));
+                }}
+              />
+            </div>
+
+            {/* BOUTON PROPOSER LE LIEU PLUS GROS ET BLEU */}
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                padding: '1.25rem 2.5rem',
+                backgroundColor: '#0070f3',
+                color: '#fff',
+                fontWeight: 'bold',
+                fontSize: '1.2rem',
+                borderRadius: '8px',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              {loading ? 'Proposition en cours…' : 'Proposer le lieu'}
+            </button>
+
+            {message && (
+              <p style={{ color: '#d63333', fontWeight: 'bold' }}>
+                {message}
+              </p>
+            )}
+          </form>
+        </>
+      )}
     </div>
   );
 }
