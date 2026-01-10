@@ -40,17 +40,15 @@ export type Lieu = {
   address_text: string | null;
   country: string | null;
 
-  period_start: string | null; // date → string côté JS
+  period_start: string | null;
   period_end: string | null;
 
   created_at: string | null;
   updated_at: string | null;
-  created_by: string | null; // uuid → string
+  created_by: string | null;
 
   photos?: { url: string }[];
 };
-
-
 
 // 🔹 Ajuste automatiquement la carte aux lieux
 function FitBounds({ lieux }: { lieux: Lieu[] }) {
@@ -122,10 +120,12 @@ function LocateUserControl({
 
 export default function LeafletMapSupabase() {
   const [lieux, setLieux] = useState<Lieu[]>([]);
+  const [types, setTypes] = useState<{ id: number; label: string; slug: string }[]>([]);
+  const [selectedType, setSelectedType] = useState<number | 'all'>('all');
   const [loading, setLoading] = useState(true);
-  const [userPosition, setUserPosition] =
-    useState<[number, number] | null>(null);
+  const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
 
+  // 🔹 Récupération des lieux
   useEffect(() => {
     async function fetchLieux() {
       const { data, error } = await supabase
@@ -137,22 +137,61 @@ export default function LeafletMapSupabase() {
           latitude,
           longitude,
           status,
+          type_id,
           photos(url)
-        `); // 🔹 on récupère les photos
+        `);
 
-      if (error) {
-        console.error('Erreur Supabase Leaflet:', error);
-      } else {
-        setLieux(data as Lieu[]);
-      }
+      if (error) console.error('Erreur Supabase Leaflet:', error);
+      else setLieux(data as Lieu[]);
+
       setLoading(false);
     }
 
     fetchLieux();
   }, []);
 
+  // 🔹 Récupération des types
+  useEffect(() => {
+    async function fetchTypes() {
+      const { data, error } = await supabase
+        .from('location_types')
+        .select('id,label,slug');
+      if (error) console.error('Erreur types:', error);
+      else setTypes(data ?? []);
+    }
+
+    fetchTypes();
+  }, []);
+
+  // 🔹 Filtrer les lieux par type sélectionné
+  const lieuxFiltres = lieux.filter(
+    (l) => selectedType === 'all' || l.type_id === selectedType
+  );
+
   return (
     <div style={{ position: 'relative', height: '500px', width: '100%' }}>
+      {/* 🔹 Dropdown filtre par type */}
+      <div style={{ marginBottom: '12px' }}>
+        <label htmlFor="filterType" style={{ marginRight: '8px', fontWeight: 'bold' }}>
+          Filtrer par type :
+        </label>
+        <select
+          id="filterType"
+          value={selectedType}
+          onChange={(e) =>
+            setSelectedType(e.target.value === 'all' ? 'all' : Number(e.target.value))
+          }
+          style={{ padding: '4px 8px', borderRadius: '6px' }}
+        >
+          <option value="all">Tous les types</option>
+          {types.map((t) => (
+            <option key={t.id} value={t.id}>
+              {t.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
       <MapContainer
         {...({
           style: { height: '500px', width: '100%' },
@@ -163,12 +202,10 @@ export default function LeafletMapSupabase() {
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
         {/* 🔹 Bouton géolocalisation */}
-        <LocateUserControl
-          onLocate={(lat, lng) => setUserPosition([lat, lng])}
-        />
+        <LocateUserControl onLocate={(lat, lng) => setUserPosition([lat, lng])} />
 
-        {/* 🔹 Lieux Supabase avec tooltip et popup */}
-        {lieux.map((lieu) => (
+        {/* 🔹 Lieux Supabase */}
+        {lieuxFiltres.map((lieu) => (
           <Marker key={lieu.id} position={[lieu.latitude, lieu.longitude]}>
             <Tooltip
               {...({
@@ -180,84 +217,82 @@ export default function LeafletMapSupabase() {
             >
               {lieu.title}
             </Tooltip>
-      <Popup>
-  <div
-    style={{
-      position: 'relative',
-      width: '260px',
-      padding: '16px',
-      boxSizing: 'border-box',
-      fontFamily: 'inherit',
-      borderRadius: '16px', // coins arrondis
-      boxShadow: '0 4px 12px rgba(0,0,0,0.15)', // ombre légère
-      backgroundColor: '#fff',
-    }}
-  >
-    {/* Badge en haut à droite */}
-    <div
-      style={{
-        position: 'absolute',
-        top: '12px',
-        right: '12px',
-        backgroundColor: lieu.status === 'approved' ? '#2e7d32' : '#c62828',
-        color: '#fff',
-        padding: '4px 10px',
-        fontSize: '12px',
-        fontWeight: 600,
-        borderRadius: '12px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '4px',
-        zIndex: 1,
-      }}
-    >
-      {lieu.status === 'approved' ? '✔ Lieu vérifié' : '⏳ Lieu non vérifié'}
-    </div>
+            <Popup>
+              <div
+                style={{
+                  position: 'relative',
+                  width: '260px',
+                  padding: '16px',
+                  boxSizing: 'border-box',
+                  fontFamily: 'inherit',
+                  borderRadius: '16px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  backgroundColor: '#fff',
+                }}
+              >
+                {/* Badge */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '12px',
+                    right: '12px',
+                    backgroundColor: lieu.status === 'approved' ? '#2e7d32' : '#c62828',
+                    color: '#fff',
+                    padding: '4px 10px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    borderRadius: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    zIndex: 1,
+                  }}
+                >
+                  {lieu.status === 'approved' ? '✔ Lieu vérifié' : '⏳ Lieu non vérifié'}
+                </div>
 
-    {/* Image */}
-    {lieu.photos?.[0]?.url && (
-      <img
-        src={lieu.photos[0].url}
-        alt={lieu.title}
-        style={{
-          width: '100%',
-          height: '150px',
-          objectFit: 'cover',
-          borderRadius: '12px',
-          marginBottom: '12px',
-        }}
-      />
-    )}
+                {/* Image */}
+                {lieu.photos?.[0]?.url && (
+                  <img
+                    src={lieu.photos[0].url}
+                    alt={lieu.title}
+                    style={{
+                      width: '100%',
+                      height: '150px',
+                      objectFit: 'cover',
+                      borderRadius: '12px',
+                      marginBottom: '12px',
+                    }}
+                  />
+                )}
 
-    {/* Titre */}
-    <strong
-      style={{
-        display: 'block',
-        fontSize: '16px',
-        marginBottom: '6px',
-        lineHeight: 1.3,
-      }}
-    >
-      {lieu.title}
-    </strong>
+                {/* Titre */}
+                <strong
+                  style={{
+                    display: 'block',
+                    fontSize: '16px',
+                    marginBottom: '6px',
+                    lineHeight: 1.3,
+                  }}
+                >
+                  {lieu.title}
+                </strong>
 
-    {/* Description */}
-    {lieu.description && (
-      <p
-        style={{
-          fontSize: '13px',
-          margin: 0,
-          lineHeight: '1.5',
-          color: '#333',
-        }}
-      >
-        {lieu.description}
-      </p>
-    )}
-  </div>
-</Popup>
-
-
+                {/* Description */}
+                {lieu.description && (
+                  <p
+                    style={{
+                      fontSize: '13px',
+                      margin: 0,
+                      lineHeight: '1.5',
+                      color: '#333',
+                    }}
+                  >
+                    {lieu.description}
+                  </p>
+                )}
+              </div>
+            </Popup>
           </Marker>
         ))}
 
@@ -273,7 +308,7 @@ export default function LeafletMapSupabase() {
           </Marker>
         )}
 
-        <FitBounds lieux={lieux} />
+        <FitBounds lieux={lieuxFiltres} />
       </MapContainer>
 
       {/* 🔹 Overlay chargement */}
@@ -296,7 +331,7 @@ export default function LeafletMapSupabase() {
       )}
 
       {/* 🔹 Aucun lieu */}
-      {!loading && lieux.length === 0 && (
+      {!loading && lieuxFiltres.length === 0 && (
         <div
           style={{
             position: 'absolute',
