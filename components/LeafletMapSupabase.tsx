@@ -162,25 +162,75 @@ export default function LeafletMapSupabase() {
             >
               {lieu.title}
             </Tooltip>
-            <Popup>
-              <div style={{ textAlign: 'center' }}>
-                <strong>{lieu.title}</strong>
-                <br />
-                {lieu.description ?? ''}
-                {lieu.photos?.[0]?.url && (
-                  <img
-                    src={lieu.photos[0].url}
-                    alt={lieu.title}
-                    style={{
-                      width: '200px',
-                      height: 'auto',
-                      borderRadius: '6px',
-                      marginTop: '0.5rem',
-                    }}
-                  />
-                )}
-              </div>
-            </Popup>
+           <Popup>
+  <div
+    style={{
+      position: 'relative',
+      width: '260px',
+      padding: '12px',
+      boxSizing: 'border-box',
+      fontFamily: 'inherit',
+    }}
+  >
+    {/* Badge statut */}
+    <div
+      style={{
+        position: 'absolute',
+        top: '8px',
+        right: '8px',
+        backgroundColor: lieu.status === 'approved' ? '#2e7d32' : '#c62828',
+        color: '#fff',
+        padding: '4px 10px',
+        fontSize: '12px',
+        fontWeight: 600,
+        borderRadius: '12px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '4px',
+      }}
+    >
+      {lieu.status === 'approved' ? '✔ Lieu vérifié' : '⏳ Lieu non vérifié'}
+    </div>
+
+    {/* Image */}
+    {lieu.photos?.[0]?.url && (
+      <img
+        src={lieu.photos[0].url}
+        alt={lieu.title}
+        style={{
+          width: '100%',
+          height: '140px',
+          objectFit: 'cover',
+          borderRadius: '8px',
+          marginBottom: '8px',
+        }}
+      />
+    )}
+
+    {/* Titre */}
+    <strong
+      style={{
+        display: 'block',
+        fontSize: '16px',
+        marginBottom: '4px',
+      }}
+    >
+      {lieu.title}
+    </strong>
+
+    {/* Description */}
+    <p
+      style={{
+        fontSize: '13px',
+        margin: 0,
+        lineHeight: '1.4',
+      }}
+    >
+      {lieu.description ?? ''}
+    </p>
+  </div>
+</Popup>
+
           </Marker>
         ))}
 
