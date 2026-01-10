@@ -180,22 +180,25 @@ export default function LeafletMapSupabase() {
             >
               {lieu.title}
             </Tooltip>
-         <Popup>
+      <Popup>
   <div
     style={{
       position: 'relative',
       width: '260px',
-      padding: '12px',
+      padding: '16px',
       boxSizing: 'border-box',
       fontFamily: 'inherit',
+      borderRadius: '16px', // coins arrondis
+      boxShadow: '0 4px 12px rgba(0,0,0,0.15)', // ombre légère
+      backgroundColor: '#fff',
     }}
   >
-    {/* Badge toujours visible */}
+    {/* Badge en haut à droite */}
     <div
       style={{
         position: 'absolute',
-        top: '8px',
-        right: '8px',
+        top: '12px',
+        right: '12px',
         backgroundColor: lieu.status === 'approved' ? '#2e7d32' : '#c62828',
         color: '#fff',
         padding: '4px 10px',
@@ -218,10 +221,10 @@ export default function LeafletMapSupabase() {
         alt={lieu.title}
         style={{
           width: '100%',
-          height: '140px',
+          height: '150px',
           objectFit: 'cover',
-          borderRadius: '8px',
-          marginBottom: '8px',
+          borderRadius: '12px',
+          marginBottom: '12px',
         }}
       />
     )}
@@ -231,7 +234,8 @@ export default function LeafletMapSupabase() {
       style={{
         display: 'block',
         fontSize: '16px',
-        marginBottom: '4px',
+        marginBottom: '6px',
+        lineHeight: 1.3,
       }}
     >
       {lieu.title}
@@ -243,7 +247,8 @@ export default function LeafletMapSupabase() {
         style={{
           fontSize: '13px',
           margin: 0,
-          lineHeight: '1.4',
+          lineHeight: '1.5',
+          color: '#333',
         }}
       >
         {lieu.description}
@@ -251,6 +256,7 @@ export default function LeafletMapSupabase() {
     )}
   </div>
 </Popup>
+
 
           </Marker>
         ))}
