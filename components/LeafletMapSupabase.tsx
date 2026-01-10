@@ -26,7 +26,7 @@ const userIcon = new L.Icon({
   iconAnchor: [12, 41],
 });
 
-type Lieu = {
+export type Lieu = {
   id: number;
   title: string;
   type_id: number | null;
@@ -34,23 +34,22 @@ type Lieu = {
   latitude: number | null;
   longitude: number | null;
 
-  status: string | null; // ✅ AJOUT OBLIGATOIRE
+  status: string | null; // texte en base, peut être 'pending', 'approved', ou null
 
   description: string | null;
   address_text: string | null;
   country: string | null;
 
-  period_start: string | null;
+  period_start: string | null; // date → string côté JS
   period_end: string | null;
 
   created_at: string | null;
   updated_at: string | null;
-  created_by: string | null;
+  created_by: string | null; // uuid → string
 
-  photos?: {
-    url: string;
-  }[];
+  photos?: { url: string }[];
 };
+
 
 
 // 🔹 Ajuste automatiquement la carte aux lieux
@@ -180,7 +179,7 @@ export default function LeafletMapSupabase() {
             >
               {lieu.title}
             </Tooltip>
-           <Popup>
+          <Popup>
   <div
     style={{
       position: 'relative',
@@ -215,7 +214,7 @@ export default function LeafletMapSupabase() {
     </div>
 
     {/* Image */}
-    {lieu.photos?.[0]?.url ? (
+    {lieu.photos?.[0]?.url && (
       <img
         src={lieu.photos[0].url}
         alt={lieu.title}
@@ -227,7 +226,7 @@ export default function LeafletMapSupabase() {
           marginBottom: '8px',
         }}
       />
-    ) : null}
+    )}
 
     {/* Titre */}
     <strong
@@ -254,6 +253,7 @@ export default function LeafletMapSupabase() {
     )}
   </div>
 </Popup>
+
 
 
           </Marker>
