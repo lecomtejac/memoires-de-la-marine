@@ -189,48 +189,26 @@ export default function LeafletMapSupabase() {
       fontFamily: 'inherit',
     }}
   >
-    {/* Badge : affiché uniquement si pending */}
-    {lieu.status === 'pending' && (
-      <div
-        style={{
-          position: 'absolute',
-          top: '8px',
-          right: '8px',
-          backgroundColor: '#c62828', // rouge
-          color: '#fff',
-          padding: '4px 10px',
-          fontSize: '12px',
-          fontWeight: 600,
-          borderRadius: '12px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '4px',
-          zIndex: 1,
-        }}
-      >
-        ⏳ Lieu non vérifié
-      </div>
-    )}
-
-    {/* Optionnel : petit badge discret si approved */}
-    {lieu.status === 'approved' && (
-      <div
-        style={{
-          position: 'absolute',
-          top: '8px',
-          right: '8px',
-          backgroundColor: '#2e7d32', // vert
-          color: '#fff',
-          padding: '2px 6px',
-          fontSize: '10px',
-          fontWeight: 500,
-          borderRadius: '8px',
-          zIndex: 1,
-        }}
-      >
-        ✔ Vérifié
-      </div>
-    )}
+    {/* Badge toujours visible */}
+    <div
+      style={{
+        position: 'absolute',
+        top: '8px',
+        right: '8px',
+        backgroundColor: lieu.status === 'approved' ? '#2e7d32' : '#c62828',
+        color: '#fff',
+        padding: '4px 10px',
+        fontSize: '12px',
+        fontWeight: 600,
+        borderRadius: '12px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '4px',
+        zIndex: 1,
+      }}
+    >
+      {lieu.status === 'approved' ? '✔ Lieu vérifié' : '⏳ Lieu non vérifié'}
+    </div>
 
     {/* Image */}
     {lieu.photos?.[0]?.url && (
