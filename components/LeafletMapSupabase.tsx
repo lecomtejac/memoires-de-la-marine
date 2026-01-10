@@ -34,7 +34,7 @@ export type Lieu = {
   latitude: number | null;
   longitude: number | null;
 
-  status: string | null; // texte en base, peut être 'pending', 'approved', ou null
+  status: string | null;
 
   description: string | null;
   address_text: string | null;
@@ -170,26 +170,35 @@ export default function LeafletMapSupabase() {
 
   return (
     <div style={{ position: 'relative', height: '500px', width: '100%' }}>
-      {/* 🔹 Dropdown filtre par type */}
-      <div style={{ marginBottom: '12px' }}>
-        <label htmlFor="filterType" style={{ marginRight: '8px', fontWeight: 'bold' }}>
-          Filtrer par type :
-        </label>
-        <select
-          id="filterType"
-          value={selectedType}
-          onChange={(e) =>
-            setSelectedType(e.target.value === 'all' ? 'all' : Number(e.target.value))
-          }
-          style={{ padding: '4px 8px', borderRadius: '6px' }}
+      {/* 🔹 Boutons filtres */}
+      <div style={{ marginBottom: '12px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+        <button
+          onClick={() => setSelectedType('all')}
+          style={{
+            padding: '6px 12px',
+            borderRadius: '12px',
+            border: selectedType === 'all' ? '2px solid #2e7d32' : '1px solid #ccc',
+            backgroundColor: selectedType === 'all' ? '#e8f5e9' : '#fff',
+            cursor: 'pointer',
+          }}
         >
-          <option value="all">Tous les types</option>
-          {types.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.label}
-            </option>
-          ))}
-        </select>
+          Tous
+        </button>
+        {types.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setSelectedType(t.id)}
+            style={{
+              padding: '6px 12px',
+              borderRadius: '12px',
+              border: selectedType === t.id ? '2px solid #2e7d32' : '1px solid #ccc',
+              backgroundColor: selectedType === t.id ? '#e8f5e9' : '#fff',
+              cursor: 'pointer',
+            }}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
 
       <MapContainer
