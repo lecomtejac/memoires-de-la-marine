@@ -136,6 +136,7 @@ export default function LeafletMapSupabase() {
           description,
           latitude,
           longitude,
+          status,
           photos(url)
         `); // 🔹 on récupère les photos
 
