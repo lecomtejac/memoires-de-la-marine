@@ -32,6 +32,7 @@ type Lieu = {
   description: string | null;
   latitude: number;
   longitude: number;
+  photos?: { url: string }[];
 };
 
 // 🔹 Ajuste automatiquement la carte aux lieux
@@ -112,7 +113,14 @@ export default function LeafletMapSupabase() {
     async function fetchLieux() {
       const { data, error } = await supabase
         .from('locations')
-        .select('id, title, description, latitude, longitude');
+        .select(`
+          id,
+          title,
+          description,
+          latitude,
+          longitude,
+          photos(url)
+        `); // 🔹 on récupère les photos
 
       if (error) {
         console.error('Erreur Supabase Leaflet:', error);
@@ -141,12 +149,9 @@ export default function LeafletMapSupabase() {
           onLocate={(lat, lng) => setUserPosition([lat, lng])}
         />
 
-        {/* 🔹 Lieux Supabase avec tooltip au survol */}
+        {/* 🔹 Lieux Supabase avec tooltip et popup */}
         {lieux.map((lieu) => (
-          <Marker
-            key={lieu.id}
-            position={[lieu.latitude, lieu.longitude]}
-          >
+          <Marker key={lieu.id} position={[lieu.latitude, lieu.longitude]}>
             <Tooltip
               {...({
                 direction: 'top',
@@ -158,9 +163,23 @@ export default function LeafletMapSupabase() {
               {lieu.title}
             </Tooltip>
             <Popup>
-              <strong>{lieu.title}</strong>
-              <br />
-              {lieu.description ?? ''}
+              <div style={{ textAlign: 'center' }}>
+                <strong>{lieu.title}</strong>
+                <br />
+                {lieu.description ?? ''}
+                {lieu.photos?.[0]?.url && (
+                  <img
+                    src={lieu.photos[0].url}
+                    alt={lieu.title}
+                    style={{
+                      width: '200px',
+                      height: 'auto',
+                      borderRadius: '6px',
+                      marginTop: '0.5rem',
+                    }}
+                  />
+                )}
+              </div>
             </Popup>
           </Marker>
         ))}
