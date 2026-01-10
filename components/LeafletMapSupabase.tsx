@@ -178,7 +178,8 @@ export default function LeafletMapSupabase() {
         position: 'absolute',
         top: '8px',
         right: '8px',
-        backgroundColor: lieu.status === 'approved' ? '#2e7d32' : '#c62828',
+        backgroundColor:
+          lieu.status === 'approved' ? '#2e7d32' : '#c62828',
         color: '#fff',
         padding: '4px 10px',
         fontSize: '12px',
@@ -187,13 +188,16 @@ export default function LeafletMapSupabase() {
         display: 'flex',
         alignItems: 'center',
         gap: '4px',
+        zIndex: 1,
       }}
     >
-      {lieu.status === 'approved' ? '✔ Lieu vérifié' : '⏳ Lieu non vérifié'}
+      {lieu.status === 'approved'
+        ? '✔ Lieu vérifié'
+        : '⏳ Lieu non vérifié'}
     </div>
 
     {/* Image */}
-    {lieu.photos?.[0]?.url && (
+    {lieu.photos?.[0]?.url ? (
       <img
         src={lieu.photos[0].url}
         alt={lieu.title}
@@ -205,7 +209,7 @@ export default function LeafletMapSupabase() {
           marginBottom: '8px',
         }}
       />
-    )}
+    ) : null}
 
     {/* Titre */}
     <strong
@@ -219,17 +223,20 @@ export default function LeafletMapSupabase() {
     </strong>
 
     {/* Description */}
-    <p
-      style={{
-        fontSize: '13px',
-        margin: 0,
-        lineHeight: '1.4',
-      }}
-    >
-      {lieu.description ?? ''}
-    </p>
+    {lieu.description && (
+      <p
+        style={{
+          fontSize: '13px',
+          margin: 0,
+          lineHeight: '1.4',
+        }}
+      >
+        {lieu.description}
+      </p>
+    )}
   </div>
 </Popup>
+
 
           </Marker>
         ))}
