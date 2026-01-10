@@ -27,13 +27,31 @@ const userIcon = new L.Icon({
 });
 
 type Lieu = {
-  id: string;
+  id: number;
   title: string;
+  type_id: number | null;
+
+  latitude: number | null;
+  longitude: number | null;
+
+  status: string | null; // ✅ AJOUT OBLIGATOIRE
+
   description: string | null;
-  latitude: number;
-  longitude: number;
-  photos?: { url: string }[];
+  address_text: string | null;
+  country: string | null;
+
+  period_start: string | null;
+  period_end: string | null;
+
+  created_at: string | null;
+  updated_at: string | null;
+  created_by: string | null;
+
+  photos?: {
+    url: string;
+  }[];
 };
+
 
 // 🔹 Ajuste automatiquement la carte aux lieux
 function FitBounds({ lieux }: { lieux: Lieu[] }) {
