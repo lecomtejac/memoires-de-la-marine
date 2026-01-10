@@ -401,20 +401,51 @@ export default function ProposerLieuPage() {
             </select>
 
             <div>
-              <label style={{ fontWeight: 'bold' }}>
-                Photos du lieu (optionnel)
-              </label>
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-              
-                onChange={(e) => {
-                  if (e.target.files)
-                    setPhotos(Array.from(e.target.files));
-                }}
-              />
-            </div>
+  <label style={{ fontWeight: 'bold' }}>Photos du lieu (optionnel)</label>
+
+  {/* Input caché */}
+  <input
+    type="file"
+    accept="image/*"
+    multiple
+    id="photoInput"
+    style={{ display: 'none' }}
+    onChange={(e) => {
+      if (e.target.files) setPhotos(Array.from(e.target.files));
+    }}
+  />
+
+  {/* Bouton caméra */}
+  <button
+    type="button"
+    onClick={() => document.getElementById('photoInput')?.click()}
+    style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '0.5rem',
+      padding: '0.5rem 1rem',
+      backgroundColor: '#0070f3',
+      color: '#fff',
+      borderRadius: '6px',
+      border: 'none',
+      cursor: 'pointer',
+      fontWeight: 'bold',
+      marginTop: '0.5rem',
+    }}
+  >
+    📷 Ajouter une photo
+  </button>
+
+  {/* Affichage des fichiers sélectionnés */}
+  {photos.length > 0 && (
+    <ul style={{ marginTop: '0.5rem' }}>
+      {photos.map((file, i) => (
+        <li key={i}>{file.name}</li>
+      ))}
+    </ul>
+  )}
+</div>
+
 
             {/* BOUTON PROPOSER LE LIEU PLUS GROS ET BLEU */}
             <button
