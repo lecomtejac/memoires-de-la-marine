@@ -408,7 +408,7 @@ export default function ProposerLieuPage() {
                 type="file"
                 accept="image/*"
                 multiple
-                capture="environment" // <-- ajoute cette ligne
+              
                 onChange={(e) => {
                   if (e.target.files)
                     setPhotos(Array.from(e.target.files));
