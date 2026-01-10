@@ -18,7 +18,6 @@ export default function ProposerLieuPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  // ➕ TYPES DE LIEUX (AJOUT)
   const [locationTypes, setLocationTypes] = useState<
     { id: number; label: string }[]
   >([]);
@@ -47,8 +46,13 @@ export default function ProposerLieuPage() {
     };
   }, []);
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+  };
+
   /* =========================
-     LOAD LOCATION TYPES (AJOUT)
+     LOAD LOCATION TYPES
   ========================= */
   useEffect(() => {
     const fetchLocationTypes = async () => {
@@ -67,11 +71,6 @@ export default function ProposerLieuPage() {
 
     fetchLocationTypes();
   }, []);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-  };
 
   /* =========================
      GEOLOCALISATION
@@ -185,19 +184,15 @@ export default function ProposerLieuPage() {
 
       for (const file of photos) {
         const compressedFile = await compressImage(file);
-        const fileExt = compressedFile.name.split('.').pop();
         const fileName = `${Date.now()}-${Math.random()
           .toString(36)
-          .slice(2)}.${fileExt}`;
+          .slice(2)}.jpg`;
 
         const { error: uploadError } = await supabase.storage
           .from('location-photos')
           .upload(fileName, compressedFile);
 
-        if (uploadError) {
-          console.error('Erreur upload:', uploadError);
-          continue;
-        }
+        if (uploadError) continue;
 
         const publicUrl = supabase.storage
           .from('location-photos')
@@ -240,8 +235,8 @@ export default function ProposerLieuPage() {
      RENDER
   ========================= */
   return (
-    <div style={{ fontFamily: 'sans-serif', maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
-      {/* ... TOUT LE RESTE IDENTIQUE ... */}
+    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
+      {/* tout ton JSX inchangé jusqu’au select */}
 
       <select
         value={typeId ?? ''}
@@ -251,15 +246,12 @@ export default function ProposerLieuPage() {
         <option value="" disabled>
           Choisir un type de lieu
         </option>
-
         {locationTypes.map((type) => (
           <option key={type.id} value={type.id}>
             {type.label}
           </option>
         ))}
       </select>
-
-      {/* ... */}
     </div>
   );
 }
