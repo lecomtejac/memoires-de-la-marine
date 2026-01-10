@@ -403,40 +403,73 @@ export default function ProposerLieuPage() {
             <div>
   <label style={{ fontWeight: 'bold' }}>Photos du lieu (optionnel)</label>
 
-  {/* Input caché */}
+  {/* Input pour choisir depuis la galerie */}
   <input
     type="file"
     accept="image/*"
     multiple
-    id="photoInput"
+    id="fileInput"
     style={{ display: 'none' }}
     onChange={(e) => {
-      if (e.target.files) setPhotos(Array.from(e.target.files));
+      if (e.target.files) setPhotos((prev) => [...prev, ...Array.from(e.target.files)]);
     }}
   />
 
-  {/* Bouton caméra */}
-  <button
-    type="button"
-    onClick={() => document.getElementById('photoInput')?.click()}
-    style={{
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: '0.5rem',
-      padding: '0.5rem 1rem',
-      backgroundColor: '#0070f3',
-      color: '#fff',
-      borderRadius: '6px',
-      border: 'none',
-      cursor: 'pointer',
-      fontWeight: 'bold',
-      marginTop: '0.5rem',
+  {/* Input pour prendre une photo avec l’appareil photo */}
+  <input
+    type="file"
+    accept="image/*"
+    capture="environment"
+    id="cameraInput"
+    style={{ display: 'none' }}
+    onChange={(e) => {
+      if (e.target.files) setPhotos((prev) => [...prev, ...Array.from(e.target.files)]);
     }}
-  >
-    📷 Ajouter une photo
-  </button>
+  />
 
-  {/* Affichage des fichiers sélectionnés */}
+  <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+    {/* Bouton pour choisir depuis la galerie */}
+    <button
+      type="button"
+      onClick={() => document.getElementById('fileInput')?.click()}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '0.5rem',
+        padding: '0.5rem 1rem',
+        backgroundColor: '#0070f3',
+        color: '#fff',
+        borderRadius: '6px',
+        border: 'none',
+        cursor: 'pointer',
+        fontWeight: 'bold',
+      }}
+    >
+      📁 Choisir depuis la galerie
+    </button>
+
+    {/* Bouton pour prendre une photo avec la caméra */}
+    <button
+      type="button"
+      onClick={() => document.getElementById('cameraInput')?.click()}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '0.5rem',
+        padding: '0.5rem 1rem',
+        backgroundColor: '#28a745',
+        color: '#fff',
+        borderRadius: '6px',
+        border: 'none',
+        cursor: 'pointer',
+        fontWeight: 'bold',
+      }}
+    >
+      📷 Prendre une photo
+    </button>
+  </div>
+
+  {/* Aperçu des fichiers sélectionnés */}
   {photos.length > 0 && (
     <ul style={{ marginTop: '0.5rem' }}>
       {photos.map((file, i) => (
@@ -445,6 +478,7 @@ export default function ProposerLieuPage() {
     </ul>
   )}
 </div>
+
 
 
             {/* BOUTON PROPOSER LE LIEU PLUS GROS ET BLEU */}
