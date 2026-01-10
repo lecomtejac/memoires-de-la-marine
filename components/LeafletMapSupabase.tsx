@@ -219,11 +219,11 @@ export default function LeafletMapSupabase() {
         <LocateUserControl onLocate={(lat, lng) => setUserPosition([lat, lng])} />
 
         {lieuxFiltres.map((lieu) => (
-          <Marker
-            key={lieu.id}
-            position={[lieu.latitude, lieu.longitude]}
-            icon={createMarkerIcon(lieu.type_id)}
-          >
+         <Marker
+  key={lieu.id}
+  position={[lieu.latitude!, lieu.longitude!]}
+  {...({ icon: createMarkerIcon(lieu.type_id) } as any)}
+>
             <Tooltip
               {...({
                 direction: 'top',
