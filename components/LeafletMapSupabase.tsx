@@ -169,33 +169,35 @@ export default function LeafletMapSupabase() {
     (l) => selectedType === 'all' || l.type_id === selectedType
   );
 
-  return (
-      <div style={{ width: '100%' }}>
-      {/* 🔹 Boutons filtres */}
-     <div
-  style={{
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '8px',
-    marginBottom: '12px',
-    background: 'white',
-    padding: '10px',
-    borderRadius: '12px',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-  }}
->
-  <button
-    onClick={() => setSelectedType('all')}
-    style={{
-      padding: '6px 12px',
-      borderRadius: '12px',
-      border: selectedType === 'all' ? '2px solid #2e7d32' : '1px solid #ccc',
-      backgroundColor: selectedType === 'all' ? '#e8f5e9' : '#fff',
-      cursor: 'pointer',
-    }}
-  >
-    Tous
-  </button>
+ return (
+  <div style={{ width: '100%' }}>
+    {/* 🔹 Filtres (AU-DESSUS, hors carte) */}
+    <div
+      style={{
+        position: 'relative',
+        zIndex: 1000,
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '8px',
+        marginBottom: '12px',
+        background: 'white',
+        padding: '10px',
+        borderRadius: '12px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+      }}
+    >
+      <button
+        onClick={() => setSelectedType('all')}
+        style={{
+          padding: '6px 12px',
+          borderRadius: '12px',
+          border: selectedType === 'all' ? '2px solid #2e7d32' : '1px solid #ccc',
+          backgroundColor: selectedType === 'all' ? '#e8f5e9' : '#fff',
+          cursor: 'pointer',
+        }}
+      >
+        Tous
+      </button>
 
   {types.map((t) => (
     <button
