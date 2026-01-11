@@ -52,7 +52,7 @@ function FitBounds({ lieux }: { lieux: Lieu[] }) {
     if (lieux.length === 0) return;
 
     const bounds = L.latLngBounds(
-      lieux.map((l) => [l.latitude!, l.longitude!] as [number, number])
+      lieux.map((l) => [l.latitude, l.longitude] as [number, number])
     );
     map.fitBounds(bounds, { padding: [50, 50] });
   }, [lieux, map]);
@@ -96,7 +96,9 @@ function LocateUserControl({
             onLocate(latitude, longitude);
             map.setView([latitude, longitude], 14);
           },
-          () => alert('Impossible de récupérer votre position.')
+          () => {
+            alert('Impossible de récupérer votre position.');
+          }
         );
       };
 
@@ -117,17 +119,24 @@ export default function LeafletMapSupabase() {
   const [loading, setLoading] = useState(true);
   const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
 
-  // 🔹 BRIDE LE Z-INDEX LEAFLET (clé du bug)
+  // 🔹 BRIDE LE Z-INDEX LEAFLET (FIX DEFINITIF, TypeScript OK)
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     const style = document.createElement('style');
     style.innerHTML = `
       .leaflet-pane,
-      .leaflet-control {
+      .leaflet-control,
+      .leaflet-top,
+      .leaflet-bottom {
         z-index: 1 !important;
       }
     `;
     document.head.appendChild(style);
-    return () => document.head.removeChild(style);
+
+    return () => {
+      document.head.removeChild(style);
+    };
   }, []);
 
   // 🔹 Récupération des lieux
@@ -146,7 +155,9 @@ export default function LeafletMapSupabase() {
           photos(url)
         `);
 
-      if (!error) setLieux(data as Lieu[]);
+      if (error) console.error('Erreur Supabase Leaflet:', error);
+      else setLieux(data as Lieu[]);
+
       setLoading(false);
     }
 
@@ -156,26 +167,29 @@ export default function LeafletMapSupabase() {
   // 🔹 Récupération des types
   useEffect(() => {
     async function fetchTypes() {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('location_types')
         .select('id,label,slug');
-      setTypes(data ?? []);
+
+      if (error) console.error('Erreur types:', error);
+      else setTypes(data ?? []);
     }
 
     fetchTypes();
   }, []);
 
+  // 🔹 Filtrer les lieux
   const lieuxFiltres = lieux.filter(
     (l) => selectedType === 'all' || l.type_id === selectedType
   );
 
   return (
     <div style={{ width: '100%' }}>
-      {/* 🔹 Filtres */}
+      {/* 🔹 Filtres AU-DESSUS de la carte */}
       <div
         style={{
           position: 'relative',
-          zIndex: 2,
+          zIndex: 1000,
           display: 'flex',
           flexWrap: 'wrap',
           gap: '8px',
@@ -186,73 +200,69 @@ export default function LeafletMapSupabase() {
           boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
         }}
       >
-        <button onClick={() => setSelectedType('all')}>Tous</button>
+        <button
+          onClick={() => setSelectedType('all')}
+          style={{
+            padding: '6px 12px',
+            borderRadius: '12px',
+            border: selectedType === 'all' ? '2px solid #2e7d32' : '1px solid #ccc',
+            backgroundColor: selectedType === 'all' ? '#e8f5e9' : '#fff',
+            cursor: 'pointer',
+          }}
+        >
+          Tous
+        </button>
+
         {types.map((t) => (
-          <button key={t.id} onClick={() => setSelectedType(t.id)}>
+          <button
+            key={t.id}
+            onClick={() => setSelectedType(t.id)}
+            style={{
+              padding: '6px 12px',
+              borderRadius: '12px',
+              border: selectedType === t.id ? '2px solid #2e7d32' : '1px solid #ccc',
+              backgroundColor: selectedType === t.id ? '#e8f5e9' : '#fff',
+              cursor: 'pointer',
+            }}
+          >
             {t.label}
           </button>
         ))}
       </div>
 
-      {/* 🔹 Carte + overlays */}
+      {/* 🔹 Carte */}
       <div style={{ position: 'relative', height: '500px', zIndex: 1 }}>
         <MapContainer
-          center={[48.8566, 2.3522]}
-          zoom={5}
-          style={{ height: '100%', width: '100%' }}
+          {...({
+            style: { height: '100%', width: '100%', zIndex: 1 },
+            zoom: 5,
+            center: [48.8566, 2.3522],
+          } as any)}
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+
           <LocateUserControl onLocate={(lat, lng) => setUserPosition([lat, lng])} />
 
           {lieuxFiltres.map((lieu) => (
-            <Marker key={lieu.id} position={[lieu.latitude!, lieu.longitude!]}>
+            <Marker key={lieu.id} position={[lieu.latitude, lieu.longitude]}>
               <Tooltip>{lieu.title}</Tooltip>
-              <Popup>{lieu.title}</Popup>
+              <Popup>
+                <div style={{ width: '260px' }}>
+                  <strong>{lieu.title}</strong>
+                  {lieu.description && <p>{lieu.description}</p>}
+                </div>
+              </Popup>
             </Marker>
           ))}
 
           {userPosition && (
-            <Marker position={userPosition} icon={userIcon}>
+            <Marker position={userPosition} icon={userIcon as any}>
               <Popup>Vous êtes ici</Popup>
             </Marker>
           )}
 
           <FitBounds lieux={lieuxFiltres} />
         </MapContainer>
-
-        {loading && (
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background: 'rgba(255,255,255,0.8)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 5,
-              pointerEvents: 'none',
-            }}
-          >
-            Chargement des lieux…
-          </div>
-        )}
-
-        {!loading && lieuxFiltres.length === 0 && (
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background: 'rgba(255,255,255,0.8)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 5,
-              pointerEvents: 'none',
-            }}
-          >
-            Aucun lieu trouvé.
-          </div>
-        )}
       </div>
     </div>
   );
