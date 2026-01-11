@@ -174,9 +174,10 @@ export default function LeafletMapSupabase() {
       {/* 🔹 Boutons filtres */}
       <div
 style={{
-    position: 'absolute',
-    top: '12px',
-    right: '12px',
+   position: 'absolute',
+    top: '12px',       // tu peux augmenter si besoin : '16px' ou '20px'
+    right: '12px',     // ok
+    maxWidth: 'calc(100% - 150px)', // empêche la zone de s’étendre trop
     zIndex: 1000,
     display: 'flex',
     flexWrap: 'wrap',
