@@ -75,7 +75,7 @@ function LocateUserControl({
   const map = useMap();
 
   useEffect(() => {
-    const control = L.control({ position: 'bottomleft' });
+    const control = L.control({ position: 'topleft' });
 
     control.onAdd = () => {
       const button = L.DomUtil.create('button');
