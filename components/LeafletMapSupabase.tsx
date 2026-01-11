@@ -173,10 +173,10 @@ export default function LeafletMapSupabase() {
     <div style={{ position: 'relative', height: '500px', width: '100%' }}>
       {/* 🔹 Boutons filtres */}
       <div
-  style={{
+style={{
     position: 'absolute',
     top: '12px',
-    left: '12px',
+    right: '12px',
     zIndex: 1000,
     display: 'flex',
     flexWrap: 'wrap',
