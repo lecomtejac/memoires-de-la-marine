@@ -213,13 +213,14 @@ export default function LeafletMapSupabase() {
 
       {/* 🔹 Carte sous les filtres */}
       <div style={{ position: 'relative', height: '500px', zIndex: 1 }}>
-     <MapContainer
+    <MapContainer
   style={{ height: '100%', width: '100%' }}
   scrollWheelZoom={true}
   whenCreated={(map) => {
-    map.setView([48.8566, 2.3522], 5); // centre et zoom initial
+    map.setView([48.8566, 2.3522], 5);
   }}
 >
+
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
           {/* 🔹 Bouton géolocalisation */}
