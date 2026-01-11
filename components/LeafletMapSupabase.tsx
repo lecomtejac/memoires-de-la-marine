@@ -219,8 +219,8 @@ export default function LeafletMapSupabase() {
 <div style={{ position: 'relative', height: '500px', zIndex: 1 }}>
   <MapContainer
     style={{ height: '100%', width: '100%' }}
-    center={[48.8566, 2.3522]}
-    zoom={5}
+    scrollWheelZoom={true}
+    whenReady={(map) => map.target.setView([48.8566, 2.3522], 5)}
   >
     <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
