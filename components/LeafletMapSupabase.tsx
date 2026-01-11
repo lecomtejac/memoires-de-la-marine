@@ -147,7 +147,7 @@ export default function LeafletMapSupabase() {
 
       {/* 🔹 Zone carte */}
       <div style={{ position: 'relative', height: '500px' }}>
-        <MapContainer style={{ height: '100%', width: '100%' }} zoom={5} center={[48.8566, 2.3522]}>
+        <MapContainer center={[48.8566, 2.3522]} zoom={5} style={{ height: '100%', width: '100%' }}>
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           <LocateUserControl onLocate={(lat, lng) => setUserPosition([lat, lng])} />
 
