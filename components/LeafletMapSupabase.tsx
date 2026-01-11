@@ -216,12 +216,16 @@ export default function LeafletMapSupabase() {
   ))}
 </div>
 
-<div style={{ position: 'relative', height: '500px', zIndex: 1 }}>
+<div style={{ position: 'relative', height: '500px', zIndex: 1, }}>
   <MapContainer
-  style={{ height: '100%', width: '100%' }}
-  scrollWheelZoom={true}
->
-    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+    {...({
+      style: { height: '100%', width: '100%', zIndex: 1 },
+      zoom: 5,
+      center: [48.8566, 2.3522],
+    } as any)}
+  >
+  
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
         {/* 🔹 Bouton géolocalisation */}
         <LocateUserControl onLocate={(lat, lng) => setUserPosition([lat, lng])} />
