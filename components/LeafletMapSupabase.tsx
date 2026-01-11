@@ -58,7 +58,7 @@ function FitBounds({ lieux }: { lieux: Lieu[] }) {
     if (lieux.length === 0) return;
 
     const bounds = L.latLngBounds(
-      lieux.map((l) => [l.latitude!, l.longitude!] as [number, number])
+      lieux.map((l) => [l.latitude, l.longitude] as [number, number])
     );
     map.fitBounds(bounds, { padding: [50, 50] });
   }, [lieux, map]);
@@ -67,7 +67,11 @@ function FitBounds({ lieux }: { lieux: Lieu[] }) {
 }
 
 // 🔹 Bouton Leaflet : géolocalisation utilisateur
-function LocateUserControl({ onLocate }: { onLocate: (lat: number, lng: number) => void }) {
+function LocateUserControl({
+  onLocate,
+}: {
+  onLocate: (lat: number, lng: number) => void;
+}) {
   const map = useMap();
 
   useEffect(() => {
@@ -121,6 +125,7 @@ export default function LeafletMapSupabase() {
   const [loading, setLoading] = useState(true);
   const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
 
+ 
   // 🔹 Récupération des lieux
   useEffect(() => {
     async function fetchLieux() {
@@ -164,207 +169,208 @@ export default function LeafletMapSupabase() {
     (l) => selectedType === 'all' || l.type_id === selectedType
   );
 
-  return (
-    <div style={{ width: '100%' }}>
-      {/* 🔹 Filtres en haut */}
-      <div
+ return (
+  <div style={{ width: '100%' }}>
+    {/* 🔹 Filtres (AU-DESSUS, hors carte) */}
+    <div
+      style={{
+        position: 'relative',
+        zIndex: 1000,
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '8px',
+        marginBottom: '12px',
+        background: 'white',
+        padding: '10px',
+        borderRadius: '12px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+      }}
+    >
+      <button
+        onClick={() => setSelectedType('all')}
         style={{
-          position: 'relative',
-          zIndex: 1000,
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '8px',
-          marginBottom: '12px',
-          background: 'white',
-          padding: '10px',
+          padding: '6px 12px',
           borderRadius: '12px',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+          border: selectedType === 'all' ? '2px solid #2e7d32' : '1px solid #ccc',
+          backgroundColor: selectedType === 'all' ? '#e8f5e9' : '#fff',
+          cursor: 'pointer',
         }}
       >
-        <button
-          onClick={() => setSelectedType('all')}
-          style={{
-            padding: '6px 12px',
-            borderRadius: '12px',
-            border: selectedType === 'all' ? '2px solid #2e7d32' : '1px solid #ccc',
-            backgroundColor: selectedType === 'all' ? '#e8f5e9' : '#fff',
-            cursor: 'pointer',
-          }}
-        >
-          Tous
-        </button>
+        Tous
+      </button>
 
-        {types.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setSelectedType(t.id)}
-            style={{
-              padding: '6px 12px',
-              borderRadius: '12px',
-              border: selectedType === t.id ? '2px solid #2e7d32' : '1px solid #ccc',
-              backgroundColor: selectedType === t.id ? '#e8f5e9' : '#fff',
-              cursor: 'pointer',
-            }}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+  {types.map((t) => (
+    <button
+      key={t.id}
+      onClick={() => setSelectedType(t.id)}
+      style={{
+        padding: '6px 12px',
+        borderRadius: '12px',
+        border: selectedType === t.id ? '2px solid #2e7d32' : '1px solid #ccc',
+        backgroundColor: selectedType === t.id ? '#e8f5e9' : '#fff',
+        cursor: 'pointer',
+      }}
+    >
+      {t.label}
+    </button>
+  ))}
+</div>
 
-      {/* 🔹 Carte sous les filtres */}
-      <div style={{ position: 'relative', height: '500px', zIndex: 1 }}>
+<div style={{ position: 'relative', height: '500px', zIndex: 1 }}>
   <MapContainer
-  style={{ height: '100%', width: '100%' }}
-  whenReady={(e) => {
-    const map = e.target; // accès à l'objet Leaflet Map
-    map.setView([48.8566, 2.3522], 5);
-    map.scrollWheelZoom.enable(); // active le scroll wheel
-  }}
->
-  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-  {/* ... markers, FitBounds, etc. ... */}
-</MapContainer>
+    style={{ height: '100%', width: '100%' }}
+    center={[48.8566, 2.3522]}
+    zoom={5}
+  >
+    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
+        {/* 🔹 Bouton géolocalisation */}
+        <LocateUserControl onLocate={(lat, lng) => setUserPosition([lat, lng])} />
 
-
-          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-
-          {/* 🔹 Bouton géolocalisation */}
-          <LocateUserControl onLocate={(lat, lng) => setUserPosition([lat, lng])} />
-
-          {/* 🔹 Lieux Supabase */}
-          {lieuxFiltres.map((lieu) => (
-            <Marker key={lieu.id} position={[lieu.latitude!, lieu.longitude!]}>
-              <Tooltip direction="top" offset={[0, -10]} opacity={1} permanent={false}>
-                {lieu.title}
-              </Tooltip>
-              <Popup>
+        {/* 🔹 Lieux Supabase */}
+        {lieuxFiltres.map((lieu) => (
+          <Marker key={lieu.id} position={[lieu.latitude, lieu.longitude]}>
+            <Tooltip
+              {...({
+                direction: 'top',
+                offset: [0, -10],
+                opacity: 1,
+                permanent: false,
+              } as any)}
+            >
+              {lieu.title}
+            </Tooltip>
+            <Popup>
+              <div
+                style={{
+                  position: 'relative',
+                  width: '260px',
+                  padding: '16px',
+                  boxSizing: 'border-box',
+                  fontFamily: 'inherit',
+                  borderRadius: '16px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  backgroundColor: '#fff',
+                }}
+              >
+                {/* Badge */}
                 <div
                   style={{
-                    position: 'relative',
-                    width: '260px',
-                    padding: '16px',
-                    boxSizing: 'border-box',
-                    fontFamily: 'inherit',
-                    borderRadius: '16px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                    backgroundColor: '#fff',
+                    position: 'absolute',
+                    top: '12px',
+                    right: '12px',
+                    backgroundColor: lieu.status === 'approved' ? '#2e7d32' : '#c62828',
+                    color: '#fff',
+                    padding: '4px 10px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    borderRadius: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    zIndex: 1,
                   }}
                 >
-                  {/* Badge */}
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '12px',
-                      right: '12px',
-                      backgroundColor: lieu.status === 'approved' ? '#2e7d32' : '#c62828',
-                      color: '#fff',
-                      padding: '4px 10px',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      borderRadius: '12px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      zIndex: 1,
-                    }}
-                  >
-                    {lieu.status === 'approved' ? '✔ Lieu vérifié' : '⏳ Lieu non vérifié'}
-                  </div>
-
-                  {/* Image */}
-                  {lieu.photos?.[0]?.url && (
-                    <img
-                      src={lieu.photos[0].url}
-                      alt={lieu.title}
-                      style={{
-                        width: '100%',
-                        height: '150px',
-                        objectFit: 'cover',
-                        borderRadius: '12px',
-                        marginBottom: '12px',
-                      }}
-                    />
-                  )}
-
-                  {/* Titre */}
-                  <strong
-                    style={{
-                      display: 'block',
-                      fontSize: '16px',
-                      marginBottom: '6px',
-                      lineHeight: 1.3,
-                    }}
-                  >
-                    {lieu.title}
-                  </strong>
-
-                  {/* Description */}
-                  {lieu.description && (
-                    <p
-                      style={{
-                        fontSize: '13px',
-                        margin: 0,
-                        lineHeight: '1.5',
-                        color: '#333',
-                      }}
-                    >
-                      {lieu.description}
-                    </p>
-                  )}
+                  {lieu.status === 'approved' ? '✔ Lieu vérifié' : '⏳ Lieu non vérifié'}
                 </div>
-              </Popup>
-            </Marker>
-          ))}
 
-          {/* 🔹 Position utilisateur */}
-          {userPosition && (
-            <Marker position={userPosition} icon={userIcon}>
-              <Popup>Vous êtes ici</Popup>
-            </Marker>
-          )}
+                {/* Image */}
+                {lieu.photos?.[0]?.url && (
+                  <img
+                    src={lieu.photos[0].url}
+                    alt={lieu.title}
+                    style={{
+                      width: '100%',
+                      height: '150px',
+                      objectFit: 'cover',
+                      borderRadius: '12px',
+                      marginBottom: '12px',
+                    }}
+                  />
+                )}
 
-          <FitBounds lieux={lieuxFiltres} />
-        </MapContainer>
+                {/* Titre */}
+                <strong
+                  style={{
+                    display: 'block',
+                    fontSize: '16px',
+                    marginBottom: '6px',
+                    lineHeight: 1.3,
+                  }}
+                >
+                  {lieu.title}
+                </strong>
 
-        {/* 🔹 Overlay chargement */}
-        {loading && (
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              backgroundColor: 'rgba(255,255,255,0.8)',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              fontSize: '1.2rem',
-              fontWeight: 'bold',
-              zIndex: 1000,
-            }}
+                {/* Description */}
+                {lieu.description && (
+                  <p
+                    style={{
+                      fontSize: '13px',
+                      margin: 0,
+                      lineHeight: '1.5',
+                      color: '#333',
+                    }}
+                  >
+                    {lieu.description}
+                  </p>
+                )}
+              </div>
+            </Popup>
+          </Marker>
+        ))}
+
+        {/* 🔹 Position utilisateur */}
+        {userPosition && (
+          <Marker
+            {...({
+              position: userPosition,
+              icon: userIcon,
+            } as any)}
           >
-            Chargement des lieux…
-          </div>
+            <Popup>Vous êtes ici</Popup>
+          </Marker>
         )}
 
-        {/* 🔹 Aucun lieu */}
-        {!loading && lieuxFiltres.length === 0 && (
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              backgroundColor: 'rgba(255,255,255,0.8)',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              fontSize: '1.2rem',
-              fontWeight: 'bold',
-              zIndex: 1000,
-            }}
-          >
-            Aucun lieu trouvé.
-          </div>
-        )}
-      </div>
+        <FitBounds lieux={lieuxFiltres} />
+      </MapContainer>
+  </div>
+      {/* 🔹 Overlay chargement */}
+      {loading && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundColor: 'rgba(255,255,255,0.8)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            fontSize: '1.2rem',
+            fontWeight: 'bold',
+            zIndex: 1000,
+          }}
+        >
+          Chargement des lieux…
+        </div>
+      )}
+
+      {/* 🔹 Aucun lieu */}
+      {!loading && lieuxFiltres.length === 0 && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundColor: 'rgba(255,255,255,0.8)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            fontSize: '1.2rem',
+            fontWeight: 'bold',
+            zIndex: 1000,
+          }}
+        >
+          Aucun lieu trouvé.
+        </div>
+      )}
     </div>
   );
 }
