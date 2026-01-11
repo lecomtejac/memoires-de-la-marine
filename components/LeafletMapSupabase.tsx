@@ -222,7 +222,7 @@ export default function LeafletMapSupabase() {
       center: [48.8566, 2.3522],
     } as any)}
   >
-    </div>
+  
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
         {/* 🔹 Bouton géolocalisation */}
@@ -334,7 +334,7 @@ export default function LeafletMapSupabase() {
 
         <FitBounds lieux={lieuxFiltres} />
       </MapContainer>
-
+  </div>
       {/* 🔹 Overlay chargement */}
       {loading && (
         <div
