@@ -22,6 +22,10 @@ export default function RegisterPage() {
       const { error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+    emailRedirectTo:
+      'https://memoires-de-la-marine-i8gy.vercel.app/compte-active',
+  },
       })
 
       if (error) {
