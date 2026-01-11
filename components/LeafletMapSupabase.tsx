@@ -216,10 +216,10 @@ export default function LeafletMapSupabase() {
   ))}
 </div>
 
-<div style={{ position: 'relative', height: '500px' }}>
+<div style={{ position: 'relative', height: '500px', zIndex: 1, }}>
   <MapContainer
     {...({
-      style: { height: '100%', width: '100%' },
+      style: { height: '100%', width: '100%', zIndex: 1 },
       zoom: 5,
       center: [48.8566, 2.3522],
     } as any)}
