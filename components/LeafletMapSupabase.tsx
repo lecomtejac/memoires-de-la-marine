@@ -47,49 +47,36 @@ export type Lieu = {
 // 🔹 Ajuste automatiquement la carte aux lieux
 function FitBounds({ lieux }: { lieux: Lieu[] }) {
   const map = useMap();
-
   useEffect(() => {
     if (lieux.length === 0) return;
-
     const bounds = L.latLngBounds(
       lieux.map((l) => [l.latitude, l.longitude] as [number, number])
     );
     map.fitBounds(bounds, { padding: [50, 50] });
   }, [lieux, map]);
-
   return null;
 }
 
 // 🔹 Bouton Leaflet : géolocalisation utilisateur
-function LocateUserControl({
-  onLocate,
-}: {
-  onLocate: (lat: number, lng: number) => void;
-}) {
+function LocateUserControl({ onLocate }: { onLocate: (lat: number, lng: number) => void }) {
   const map = useMap();
-
   useEffect(() => {
     const control = L.control({ position: 'topleft' });
-
     control.onAdd = () => {
       const button = L.DomUtil.create('button');
       button.innerHTML = '📍 Ma position';
-
       button.style.background = '#fff';
       button.style.padding = '6px 10px';
       button.style.borderRadius = '6px';
       button.style.border = '1px solid #ccc';
       button.style.cursor = 'pointer';
       button.style.fontWeight = 'bold';
-
       L.DomEvent.disableClickPropagation(button);
-
       button.onclick = () => {
         if (!navigator.geolocation) {
           alert('La géolocalisation n’est pas supportée.');
           return;
         }
-
         navigator.geolocation.getCurrentPosition(
           (position) => {
             const { latitude, longitude } = position.coords;
@@ -101,14 +88,11 @@ function LocateUserControl({
           }
         );
       };
-
       return button;
     };
-
     control.addTo(map);
     return () => control.remove();
   }, [map, onLocate]);
-
   return null;
 }
 
@@ -119,10 +103,9 @@ export default function LeafletMapSupabase() {
   const [loading, setLoading] = useState(true);
   const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
 
-  // 🔹 BRIDE LE Z-INDEX LEAFLET (FIX DEFINITIF, TypeScript OK)
+  // 🔹 BRIDE LE Z-INDEX LEAFLET
   useEffect(() => {
     if (typeof window === 'undefined') return;
-
     const style = document.createElement('style');
     style.innerHTML = `
       .leaflet-pane,
@@ -133,10 +116,7 @@ export default function LeafletMapSupabase() {
       }
     `;
     document.head.appendChild(style);
-
-    return () => {
-      document.head.removeChild(style);
-    };
+    return () => document.head.removeChild(style);
   }, []);
 
   // 🔹 Récupération des lieux
@@ -154,13 +134,10 @@ export default function LeafletMapSupabase() {
           type_id,
           photos(url)
         `);
-
       if (error) console.error('Erreur Supabase Leaflet:', error);
       else setLieux(data as Lieu[]);
-
       setLoading(false);
     }
-
     fetchLieux();
   }, []);
 
@@ -170,22 +147,19 @@ export default function LeafletMapSupabase() {
       const { data, error } = await supabase
         .from('location_types')
         .select('id,label,slug');
-
       if (error) console.error('Erreur types:', error);
       else setTypes(data ?? []);
     }
-
     fetchTypes();
   }, []);
 
-  // 🔹 Filtrer les lieux
   const lieuxFiltres = lieux.filter(
     (l) => selectedType === 'all' || l.type_id === selectedType
   );
 
   return (
     <div style={{ width: '100%' }}>
-      {/* 🔹 Filtres AU-DESSUS de la carte */}
+      {/* 🔹 Filtres */}
       <div
         style={{
           position: 'relative',
@@ -212,7 +186,6 @@ export default function LeafletMapSupabase() {
         >
           Tous
         </button>
-
         {types.map((t) => (
           <button
             key={t.id}
@@ -233,18 +206,15 @@ export default function LeafletMapSupabase() {
       {/* 🔹 Carte */}
       <div style={{ position: 'relative', height: '500px', zIndex: 1 }}>
         <MapContainer
-          {...({
-            style: { height: '100%', width: '100%', zIndex: 1 },
-            zoom: 5,
-            center: [48.8566, 2.3522],
-          } as any)}
+          style={{ height: '100%', width: '100%' }}
+          zoom={5}
+          center={[48.8566, 2.3522]}
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-
           <LocateUserControl onLocate={(lat, lng) => setUserPosition([lat, lng])} />
 
           {lieuxFiltres.map((lieu) => (
-            <Marker key={lieu.id} position={[lieu.latitude, lieu.longitude]}>
+            <Marker key={lieu.id} position={[lieu.latitude!, lieu.longitude!]}>
               <Tooltip>{lieu.title}</Tooltip>
               <Popup>
                 <div style={{ width: '260px' }}>
@@ -255,8 +225,12 @@ export default function LeafletMapSupabase() {
             </Marker>
           ))}
 
+          {/* 🔹 Position utilisateur */}
           {userPosition && (
-            <Marker position={userPosition} icon={userIcon as any}>
+            <Marker
+              position={userPosition}
+              icon={userIcon as L.Icon}
+            >
               <Popup>Vous êtes ici</Popup>
             </Marker>
           )}
