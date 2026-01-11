@@ -17,7 +17,6 @@ L.Icon.Default.mergeOptions({
     'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
 });
 
-// 🔹 Icône utilisateur
 const userIcon = new L.Icon({
   iconUrl:
     'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
@@ -36,7 +35,6 @@ export type Lieu = {
   photos?: { url: string }[];
 };
 
-// 🔹 Ajuste automatiquement la carte aux lieux
 function FitBounds({ lieux }: { lieux: Lieu[] }) {
   const map = useMap();
   useEffect(() => {
@@ -49,7 +47,6 @@ function FitBounds({ lieux }: { lieux: Lieu[] }) {
   return null;
 }
 
-// 🔹 Bouton géolocalisation
 function LocateUserControl({ onLocate }: { onLocate: (lat: number, lng: number) => void }) {
   const map = useMap();
   useEffect(() => {
@@ -85,7 +82,6 @@ export default function LeafletMapSupabase() {
   const [loading, setLoading] = useState(true);
   const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
 
-  // 🔹 Lieux Supabase
   useEffect(() => {
     async function fetchLieux() {
       const { data, error } = await supabase
@@ -98,7 +94,6 @@ export default function LeafletMapSupabase() {
     fetchLieux();
   }, []);
 
-  // 🔹 Types Supabase
   useEffect(() => {
     async function fetchTypes() {
       const { data, error } = await supabase.from('location_types').select('id,label');
@@ -114,7 +109,7 @@ export default function LeafletMapSupabase() {
 
   return (
     <div style={{ width: '100%' }}>
-      {/* 🔹 Zone filtres */}
+      {/* Zone filtre */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
         <button
           onClick={() => setSelectedType('all')}
@@ -145,9 +140,13 @@ export default function LeafletMapSupabase() {
         ))}
       </div>
 
-      {/* 🔹 Zone carte */}
+      {/* Zone carte */}
       <div style={{ position: 'relative', height: '500px' }}>
-        <MapContainer center={[48.8566, 2.3522]} zoom={5} style={{ height: '100%', width: '100%' }}>
+        <MapContainer
+          style={{ height: '100%', width: '100%' }}
+          scrollWheelZoom
+          whenCreated={(map) => map.setView([48.8566, 2.3522], 5)}
+        >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           <LocateUserControl onLocate={(lat, lng) => setUserPosition([lat, lng])} />
 
@@ -179,12 +178,15 @@ export default function LeafletMapSupabase() {
             </Marker>
           ))}
 
-          {userPosition && <Marker position={userPosition} icon={userIcon}><Popup>Vous êtes ici</Popup></Marker>}
+          {userPosition && (
+            <Marker position={userPosition} icon={userIcon}>
+              <Popup>Vous êtes ici</Popup>
+            </Marker>
+          )}
 
           <FitBounds lieux={lieuxFiltres} />
         </MapContainer>
 
-        {/* 🔹 Overlay */}
         {loading && (
           <div
             style={{
