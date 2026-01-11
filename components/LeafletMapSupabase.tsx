@@ -175,7 +175,7 @@ export default function LeafletMapSupabase() {
       <div
 style={{
    position: 'absolute',
-    top: '8px',       // tu peux augmenter si besoin : '16px' ou '20px'
+    top: '0px',       // tu peux augmenter si besoin : '16px' ou '20px'
     right: '12px',     // ok
     maxWidth: 'calc(100% - 150px)', // empêche la zone de s’étendre trop
     zIndex: 1000,
