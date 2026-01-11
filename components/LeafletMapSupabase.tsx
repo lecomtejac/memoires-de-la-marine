@@ -171,7 +171,15 @@ export default function LeafletMapSupabase() {
   return (
     <div style={{ position: 'relative', height: '500px', width: '100%' }}>
       {/* 🔹 Boutons filtres */}
-      <div style={{ marginBottom: '12px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+      <div style={{ position: 'relative',
+    zIndex: 1000,
+    marginBottom: '12px',
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '8px',
+    background: 'white',
+    padding: '8px',
+    borderRadius: '12px',}}>
         <button
           onClick={() => setSelectedType('all')}
           style={{
