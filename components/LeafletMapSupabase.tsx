@@ -260,8 +260,8 @@ export default function LeafletMapSupabase() {
                 <div
                   style={{
                     position: 'absolute',
-                    top: '12px',
-                    right: '12px',
+                    top: '6px',
+                    right: '6px',
                     backgroundColor: lieu.status === 'approved' ? '#2e7d32' : '#c62828',
                     color: '#fff',
                     padding: '4px 10px',
@@ -274,7 +274,7 @@ export default function LeafletMapSupabase() {
                     zIndex: 1,
                   }}
                 >
-                  {lieu.status === 'approved' ? '✔ Lieu vérifié' : '⏳ Lieu non vérifié'}
+                  {lieu.status === 'approved' ? '✔ Vérifié' : '⏳ Non vérifié'}
                 </div>
 
                 {/* Image */}
