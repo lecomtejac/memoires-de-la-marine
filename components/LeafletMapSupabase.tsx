@@ -125,21 +125,7 @@ export default function LeafletMapSupabase() {
   const [loading, setLoading] = useState(true);
   const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
 
-// ✅ ICI
-  useEffect(() => {
-    const style = document.createElement('style');
-    style.innerHTML = `
-      .leaflet-container {
-        z-index: 1;
-      }
-    `;
-    document.head.appendChild(style);
-
-    return () => {
-      document.head.removeChild(style);
-    };
-  }, []);
-  
+ 
   // 🔹 Récupération des lieux
   useEffect(() => {
     async function fetchLieux() {
