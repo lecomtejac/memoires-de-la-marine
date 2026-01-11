@@ -170,60 +170,59 @@ export default function LeafletMapSupabase() {
   );
 
   return (
-    <div style={{ position: 'relative', height: '500px', width: '100%' }}>
+      <div style={{ width: '100%' }}>
       {/* 🔹 Boutons filtres */}
-      <div
-style={{
-   position: 'absolute',
-    top: '0px',       // tu peux augmenter si besoin : '16px' ou '20px'
-    right: '12px',     // ok
-    maxWidth: 'calc(100% - 150px)', // empêche la zone de s’étendre trop
-    zIndex: 1000,
+     <div
+  style={{
     display: 'flex',
     flexWrap: 'wrap',
     gap: '8px',
+    marginBottom: '12px',
     background: 'white',
-    padding: '8px',
+    padding: '10px',
     borderRadius: '12px',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
   }}
 >
-        <button
-          onClick={() => setSelectedType('all')}
-          style={{
-            padding: '6px 12px',
-            borderRadius: '12px',
-            border: selectedType === 'all' ? '2px solid #2e7d32' : '1px solid #ccc',
-            backgroundColor: selectedType === 'all' ? '#e8f5e9' : '#fff',
-            cursor: 'pointer',
-          }}
-        >
-          Tous
-        </button>
-        {types.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setSelectedType(t.id)}
-            style={{
-              padding: '6px 12px',
-              borderRadius: '12px',
-              border: selectedType === t.id ? '2px solid #2e7d32' : '1px solid #ccc',
-              backgroundColor: selectedType === t.id ? '#e8f5e9' : '#fff',
-              cursor: 'pointer',
-            }}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+  <button
+    onClick={() => setSelectedType('all')}
+    style={{
+      padding: '6px 12px',
+      borderRadius: '12px',
+      border: selectedType === 'all' ? '2px solid #2e7d32' : '1px solid #ccc',
+      backgroundColor: selectedType === 'all' ? '#e8f5e9' : '#fff',
+      cursor: 'pointer',
+    }}
+  >
+    Tous
+  </button>
 
-      <MapContainer
-        {...({
-          style: { height: '500px', width: '100%' },
-          zoom: 5,
-          center: [48.8566, 2.3522],
-        } as any)}
-      >
+  {types.map((t) => (
+    <button
+      key={t.id}
+      onClick={() => setSelectedType(t.id)}
+      style={{
+        padding: '6px 12px',
+        borderRadius: '12px',
+        border: selectedType === t.id ? '2px solid #2e7d32' : '1px solid #ccc',
+        backgroundColor: selectedType === t.id ? '#e8f5e9' : '#fff',
+        cursor: 'pointer',
+      }}
+    >
+      {t.label}
+    </button>
+  ))}
+</div>
+
+<div style={{ position: 'relative', height: '500px' }}>
+  <MapContainer
+    {...({
+      style: { height: '100%', width: '100%' },
+      zoom: 5,
+      center: [48.8566, 2.3522],
+    } as any)}
+  >
+    </div>
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
         {/* 🔹 Bouton géolocalisation */}
