@@ -228,6 +228,8 @@ if (personName.trim()) {
       setCountry('');
       setTypeId(null);
       setPhotos([]);
+      setPersonName('');
+      setPersonRank('');
 
       setMessage(
         'Lieu proposé avec succès ! Il sera vérifié par un modérateur.'
