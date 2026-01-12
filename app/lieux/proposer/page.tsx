@@ -344,51 +344,6 @@ const [personRank, setPersonRank] = useState('');
     resize: 'vertical',   // permet de redimensionner verticalement
   }}
 />
-{/* MARIN CONCERNÉ */}
-<div style={{ marginTop: '0.5rem' }}>
-  <label
-    style={{
-      fontWeight: 'bold',
-      fontSize: '0.9rem',
-      display: 'block',
-      marginBottom: '0.3rem',
-    }}
-  >
-    Marin célèbre concerné par ce lieu de mémoire (optionnel)
-  </label>
-
-  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-    <input
-      type="text"
-      placeholder="Grade / rang"
-      value={personRank}
-      onChange={(e) => setPersonRank(e.target.value)}
-      style={{
-        flex: '1 1 150px',
-        padding: '0.5rem',
-        borderRadius: '5px',
-        border: '1px solid #ccc',
-      }}
-    />
-
-    <input
-      type="text"
-      placeholder="Nom du marin"
-      value={personName}
-      onChange={(e) => setPersonName(e.target.value)}
-      style={{
-        flex: '2 1 250px',
-        padding: '0.5rem',
-        borderRadius: '5px',
-        border: '1px solid #ccc',
-      }}
-    />
-  </div>
-
-  <p style={{ fontSize: '0.75rem', color: '#666', marginTop: '0.3rem' }}>
-    Exemple : <em>Amiral</em> – <em>Jean Bart</em>
-  </p>
-</div>
 
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <input
@@ -446,7 +401,51 @@ const [personRank, setPersonRank] = useState('');
               <option value={18}>Port</option>
               <option value={19}>Autre lieu remarquable</option>
             </select>
+{/* MARIN CONCERNÉ */}
+<div style={{ marginTop: '0.5rem' }}>
+  <label
+    style={{
+      fontWeight: 'bold',
+      fontSize: '0.9rem',
+      display: 'block',
+      marginBottom: '0.3rem',
+    }}
+  >
+    Marin célèbre concerné par ce lieu de mémoire (optionnel)
+  </label>
 
+  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+    <input
+      type="text"
+      placeholder="Grade / rang"
+      value={personRank}
+      onChange={(e) => setPersonRank(e.target.value)}
+      style={{
+        flex: '1 1 150px',
+        padding: '0.5rem',
+        borderRadius: '5px',
+        border: '1px solid #ccc',
+      }}
+    />
+
+    <input
+      type="text"
+      placeholder="Nom du marin"
+      value={personName}
+      onChange={(e) => setPersonName(e.target.value)}
+      style={{
+        flex: '2 1 250px',
+        padding: '0.5rem',
+        borderRadius: '5px',
+        border: '1px solid #ccc',
+      }}
+    />
+  </div>
+
+  <p style={{ fontSize: '0.75rem', color: '#666', marginTop: '0.3rem' }}>
+    Exemple : <em>Amiral</em> – <em>Jean Bart</em>
+  </p>
+</div>
             <div>
   <label style={{ fontWeight: 'bold' }}>Photos du lieu (optionnel)</label>
 
