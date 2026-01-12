@@ -155,6 +155,38 @@ const [personRank, setPersonRank] = useState('');
         .select('id')
         .single();
 
+// =========================
+// MARIN CONCERNÉ (OPTIONNEL)
+// =========================
+if (personName.trim()) {
+  // 1. Insertion du marin
+  const { data: personData, error: personError } = await supabase
+    .from('persons')
+    .insert({
+      name: personName.trim(),
+      rank: personRank.trim() || null,
+    })
+    .select('id')
+    .single();
+
+  if (personError || !personData) {
+    throw personError ?? new Error('Erreur lors de la création du marin.');
+  }
+
+  // 2. Lien lieu ↔ marin
+  const { error: linkError } = await supabase
+    .from('location_persons')
+    .insert({
+      location_id: locationData.id,
+      person_id: personData.id,
+    });
+
+  if (linkError) {
+    throw linkError;
+  }
+}
+
+      
       if (insertError || !locationData) {
         throw insertError ?? new Error('Erreur lors de la création du lieu.');
       }
