@@ -469,7 +469,7 @@ if (personName.trim()) {
       marginBottom: '0.3rem',
     }}
   >
-    Marin célèbre pouvant être concerné par ce lieu de mémoire (optionnel)
+    Marin célèbre pouvant être associé à ce lieu de mémoire (optionnel)
   </label>
 
   <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
