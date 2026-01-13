@@ -171,50 +171,7 @@ export default function LeafletMapSupabase() {
 
  return (
   <div style={{ width: '100%' }}>
-    {/* 🔹 Filtres (AU-DESSUS, hors carte) */}
-    <div
-      style={{
-        position: 'relative',
-        zIndex: 1000,
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: '8px',
-        marginBottom: '12px',
-        background: 'white',
-        padding: '10px',
-        borderRadius: '12px',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-      }}
-    >
-      <button
-        onClick={() => setSelectedType('all')}
-        style={{
-          padding: '6px 12px',
-          borderRadius: '12px',
-          border: selectedType === 'all' ? '2px solid #2e7d32' : '1px solid #ccc',
-          backgroundColor: selectedType === 'all' ? '#e8f5e9' : '#fff',
-          cursor: 'pointer',
-        }}
-      >
-        Tous
-      </button>
-
-  {types.map((t) => (
-    <button
-      key={t.id}
-      onClick={() => setSelectedType(t.id)}
-      style={{
-        padding: '6px 12px',
-        borderRadius: '12px',
-        border: selectedType === t.id ? '2px solid #2e7d32' : '1px solid #ccc',
-        backgroundColor: selectedType === t.id ? '#e8f5e9' : '#fff',
-        cursor: 'pointer',
-      }}
-    >
-      {t.label}
-    </button>
-  ))}
-</div>
+ 
 
 <div style={{ position: 'relative', height: '500px', zIndex: 1, }}>
   <MapContainer
