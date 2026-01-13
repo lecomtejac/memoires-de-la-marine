@@ -21,6 +21,30 @@ const [personRank, setPersonRank] = useState('');
   const [message, setMessage] = useState<string | null>(null);
 
   const router = useRouter();
+  const RANKS = [
+  '',
+  'Matelot',
+  'Quartier-maître',
+  'Second maître',
+  'Maître',
+  'Premier maître',
+  'Maître principal',
+
+  'Aspirant',
+  'Enseigne de vaisseau de 2e classe',
+  'Enseigne de vaisseau de 1re classe',
+  'Lieutenant de vaisseau',
+  'Capitaine de corvette',
+  'Capitaine de frégate',
+  'Capitaine de vaisseau',
+
+  'Contre-amiral',
+  'Vice-amiral',
+  'Vice-amiral d’escadre',
+  'Amiral',
+
+  'Autre / inconnu',
+];
 
   /* =========================
      AUTH
@@ -449,18 +473,24 @@ if (personName.trim()) {
   </label>
 
   <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-    <input
-      type="text"
-      placeholder="Grade / rang"
-      value={personRank}
-      onChange={(e) => setPersonRank(e.target.value)}
-      style={{
-        flex: '1 1 150px',
-        padding: '0.5rem',
-        borderRadius: '5px',
-        border: '1px solid #ccc',
-      }}
-    />
+   <select
+  value={personRank}
+  onChange={(e) => setPersonRank(e.target.value)}
+  style={{
+    flex: '1 1 180px',
+    padding: '0.5rem',
+    borderRadius: '5px',
+    border: '1px solid #ccc',
+    backgroundColor: '#fff',
+  }}
+>
+  <option value="">Grade / rang</option>
+  {RANKS.map((rank) => (
+    <option key={rank} value={rank}>
+      {rank}
+    </option>
+  ))}
+</select>
 
     <input
       type="text"
