@@ -484,7 +484,7 @@ if (personName.trim()) {
     backgroundColor: '#fff',
   }}
 >
-  <option value="">Grade / rang</option>
+  <option value="">Grade </option>
   {RANKS.map((rank) => (
     <option key={rank} value={rank}>
       {rank}
