@@ -53,9 +53,11 @@ export default function RegisterPage() {
       // 👤 Mise à jour du profil (username)
       if (user) {
         const { error: profileError } = await supabase
-          .from('profiles')
-          .update({ username })
-          .eq('id', user.id)
+    .from('profiles')
+    .upsert(
+      { id: user.id, username }, // id = user.id obligatoire pour relier au compte
+      { onConflict: 'id' }       // si la ligne existe déjà, met à jour
+    )
 
         if (profileError) {
           console.error(profileError)
