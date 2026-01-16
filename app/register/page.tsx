@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation'
 export default function RegisterPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [username, setUsername] = useState('')
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -19,13 +20,27 @@ export default function RegisterPage() {
     setLoading(true)
 
     try {
-      const { error } = await supabase.auth.signUp({
+      // 🔍 Vérification unicité du pseudo
+      const { data: existingUser } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('username', username)
+        .maybeSingle()
+
+      if (existingUser) {
+        setMessage('❌ Ce pseudo est déjà utilisé.')
+        setLoading(false)
+        return
+      }
+
+      // 🔐 Création du compte
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-    emailRedirectTo:
-      'https://memoires-de-la-marine-i8gy.vercel.app/compte-active',
-  },
+          emailRedirectTo:
+            'https://memoires-de-la-marine-i8gy.vercel.app/compte-active',
+        },
       })
 
       if (error) {
@@ -33,10 +48,27 @@ export default function RegisterPage() {
         return
       }
 
+      const user = data.user
+
+      // 👤 Mise à jour du profil (username)
+      if (user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ username })
+          .eq('id', user.id)
+
+        if (profileError) {
+          console.error(profileError)
+          setMessage("Compte créé, mais erreur lors de l'enregistrement du pseudo.")
+          return
+        }
+      }
+
       setMessage('✅ Compte créé avec succès. Vous pouvez maintenant vous connecter.')
 
       setEmail('')
       setPassword('')
+      setUsername('')
 
       setTimeout(() => {
         router.push('/login')
@@ -78,7 +110,18 @@ export default function RegisterPage() {
         onSubmit={handleSignup}
         style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
       >
-        {/* Champ Login : email */}
+        {/* Pseudo */}
+        <input
+          type="text"
+          placeholder="Pseudo"
+          value={username}
+          onChange={(e) => setUsername(e.target.value.toLowerCase())}
+          required
+          minLength={3}
+          style={inputStyle}
+        />
+
+        {/* Email */}
         <input
           type="email"
           placeholder="Login : email"
