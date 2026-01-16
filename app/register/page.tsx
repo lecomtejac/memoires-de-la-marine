@@ -45,6 +45,7 @@ export default function RegisterPage() {
 
       if (error) {
         setMessage('Erreur lors de la création du compte : ' + error.message)
+        setLoading(false)
         return
       }
 
@@ -53,15 +54,16 @@ export default function RegisterPage() {
       // 👤 Mise à jour du profil (username)
       if (user) {
         const { error: profileError } = await supabase
-    .from('profiles')
-    .upsert(
-      { id: user.id, username }, // id = user.id obligatoire pour relier au compte
-      { onConflict: 'id' }       // si la ligne existe déjà, met à jour
-    )
+          .from('profiles')
+          .upsert(
+            { id: user.id, username },
+            { onConflict: 'id' }
+          )
 
         if (profileError) {
           console.error(profileError)
           setMessage("Compte créé, mais erreur lors de l'enregistrement du pseudo.")
+          setLoading(false)
           return
         }
       }
@@ -156,29 +158,3 @@ export default function RegisterPage() {
             color: '#fff',
             fontWeight: 'bold',
             cursor: loading ? 'not-allowed' : 'pointer',
-          }}
-        >
-          {loading ? 'Création en cours...' : '✍️ Créer le compte'}
-        </button>
-      </form>
-
-      {message && (
-        <p
-          style={{
-            marginTop: '1.5rem',
-            color: message.startsWith('✅') ? 'green' : 'red',
-          }}
-        >
-          {message}
-        </p>
-      )}
-    </div>
-  )
-}
-
-const inputStyle: React.CSSProperties = {
-  padding: '0.75rem',
-  fontSize: '1rem',
-  borderRadius: '8px',
-  border: '1px solid #ccc',
-}
