@@ -26,6 +26,25 @@ const userIcon = new L.Icon({
   iconAnchor: [12, 41],
 });
 
+// 🔹 Icônes par type de lieu
+const iconSize: [number, number] = [30, 30];
+
+const iconsByTypeId: Record<number, L.Icon> = {
+  7: new L.Icon({ iconUrl: '/icons/tombe.png', iconSize, iconAnchor: [15, 30] }),
+  8: new L.Icon({ iconUrl: '/icons/monument.png', iconSize, iconAnchor: [15, 30] }),
+  9: new L.Icon({ iconUrl: '/icons/plaque.png', iconSize, iconAnchor: [15, 30] }),
+  10: new L.Icon({ iconUrl: '/icons/memorial.png', iconSize, iconAnchor: [15, 30] }),
+  11: new L.Icon({ iconUrl: '/icons/bataille.png', iconSize, iconAnchor: [15, 30] }),
+  12: new L.Icon({ iconUrl: '/icons/debarquement.png', iconSize, iconAnchor: [15, 30] }),
+  13: new L.Icon({ iconUrl: '/icons/naufrage.png', iconSize, iconAnchor: [15, 30] }),
+  14: new L.Icon({ iconUrl: '/icons/epave.png', iconSize, iconAnchor: [15, 30] }),
+  15: new L.Icon({ iconUrl: '/icons/musee.png', iconSize, iconAnchor: [15, 30] }),
+  16: new L.Icon({ iconUrl: '/icons/trace.png', iconSize, iconAnchor: [15, 30] }),
+  17: new L.Icon({ iconUrl: '/icons/base.png', iconSize, iconAnchor: [15, 30] }),
+  18: new L.Icon({ iconUrl: '/icons/port.png', iconSize, iconAnchor: [15, 30] }),
+  19: new L.Icon({ iconUrl: '/icons/autre.png', iconSize, iconAnchor: [15, 30] }),
+};
+
 export type Lieu = {
   id: number;
   title: string;
@@ -125,7 +144,6 @@ export default function LeafletMapSupabase() {
   const [loading, setLoading] = useState(true);
   const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
 
- 
   // 🔹 Récupération des lieux
   useEffect(() => {
     async function fetchLieux() {
@@ -169,131 +187,133 @@ export default function LeafletMapSupabase() {
     (l) => selectedType === 'all' || l.type_id === selectedType
   );
 
- return (
-  <div style={{ width: '100%' }}>
- 
+  return (
+    <div style={{ width: '100%' }}>
+      <div style={{ position: 'relative', height: '500px', zIndex: 1 }}>
+        <MapContainer
+          {...({
+            style: { height: '100%', width: '100%', zIndex: 1 },
+            zoom: 5,
+            center: [48.8566, 2.3522],
+          } as any)}
+        >
+          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-<div style={{ position: 'relative', height: '500px', zIndex: 1, }}>
-  <MapContainer
-    {...({
-      style: { height: '100%', width: '100%', zIndex: 1 },
-      zoom: 5,
-      center: [48.8566, 2.3522],
-    } as any)}
-  >
-  
-        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          {/* 🔹 Bouton géolocalisation */}
+          <LocateUserControl onLocate={(lat, lng) => setUserPosition([lat, lng])} />
 
-        {/* 🔹 Bouton géolocalisation */}
-        <LocateUserControl onLocate={(lat, lng) => setUserPosition([lat, lng])} />
-
-        {/* 🔹 Lieux Supabase */}
-        {lieuxFiltres.map((lieu) => (
-          <Marker key={lieu.id} position={[lieu.latitude, lieu.longitude]}>
-            <Tooltip
-              {...({
-                direction: 'top',
-                offset: [0, -10],
-                opacity: 1,
-                permanent: false,
-              } as any)}
+          {/* 🔹 Lieux Supabase */}
+          {lieuxFiltres.map((lieu) => (
+            <Marker
+              key={lieu.id}
+              position={[lieu.latitude, lieu.longitude]}
+              icon={lieu.type_id ? iconsByTypeId[lieu.type_id] || undefined : undefined} // <-- icône par type
             >
-              {lieu.title}
-            </Tooltip>
-            <Popup>
-              <div
-                style={{
-                  position: 'relative',
-                  width: '260px',
-                  padding: '16px',
-                  boxSizing: 'border-box',
-                  fontFamily: 'inherit',
-                  borderRadius: '16px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                  backgroundColor: '#fff',
-                }}
+              <Tooltip
+                {...({
+                  direction: 'top',
+                  offset: [0, -10],
+                  opacity: 1,
+                  permanent: false,
+                } as any)}
               >
-                {/* Badge */}
+                {lieu.title}
+              </Tooltip>
+              <Popup>
                 <div
                   style={{
-                    position: 'absolute',
-                    top: '6px',
-                    right: '6px',
-                    backgroundColor: lieu.status === 'approved' ? '#2e7d32' : '#c62828',
-                    color: '#fff',
-                    padding: '2px 6px',
-                    fontSize: '10px',
-                    fontWeight: 600,
-                    borderRadius: '12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    zIndex: 1,
+                    position: 'relative',
+                    width: '260px',
+                    padding: '16px',
+                    boxSizing: 'border-box',
+                    fontFamily: 'inherit',
+                    borderRadius: '16px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    backgroundColor: '#fff',
                   }}
                 >
-                  {lieu.status === 'approved' ? '✔ Vérifié' : '⏳ Non vérifié'}
-                </div>
-
-                {/* Image */}
-                {lieu.photos?.[0]?.url && (
-                  <img
-                    src={lieu.photos[0].url}
-                    alt={lieu.title}
+                  {/* Badge */}
+                  <div
                     style={{
-                      width: '100%',
-                      height: '150px',
-                      objectFit: 'cover',
+                      position: 'absolute',
+                      top: '6px',
+                      right: '6px',
+                      backgroundColor: lieu.status === 'approved' ? '#2e7d32' : '#c62828',
+                      color: '#fff',
+                      padding: '2px 6px',
+                      fontSize: '10px',
+                      fontWeight: 600,
                       borderRadius: '12px',
-                      marginBottom: '12px',
-                    }}
-                  />
-                )}
-
-                {/* Titre */}
-                <strong
-                  style={{
-                    display: 'block',
-                    fontSize: '16px',
-                    marginBottom: '6px',
-                    lineHeight: 1.3,
-                  }}
-                >
-                  {lieu.title}
-                </strong>
-
-                {/* Description */}
-                {lieu.description && (
-                  <p
-                    style={{
-                      fontSize: '13px',
-                      margin: 0,
-                      lineHeight: '1.5',
-                      color: '#333',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      zIndex: 1,
                     }}
                   >
-                    {lieu.description}
-                  </p>
-                )}
-              </div>
-            </Popup>
-          </Marker>
-        ))}
+                    {lieu.status === 'approved' ? '✔ Vérifié' : '⏳ Non vérifié'}
+                  </div>
 
-        {/* 🔹 Position utilisateur */}
-        {userPosition && (
-          <Marker
-            {...({
-              position: userPosition,
-              icon: userIcon,
-            } as any)}
-          >
-            <Popup>Vous êtes ici</Popup>
-          </Marker>
-        )}
+                  {/* Image */}
+                  {lieu.photos?.[0]?.url && (
+                    <img
+                      src={lieu.photos[0].url}
+                      alt={lieu.title}
+                      style={{
+                        width: '100%',
+                        height: '150px',
+                        objectFit: 'cover',
+                        borderRadius: '12px',
+                        marginBottom: '12px',
+                      }}
+                    />
+                  )}
 
-        <FitBounds lieux={lieuxFiltres} />
-      </MapContainer>
-  </div>
+                  {/* Titre */}
+                  <strong
+                    style={{
+                      display: 'block',
+                      fontSize: '16px',
+                      marginBottom: '6px',
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    {lieu.title}
+                  </strong>
+
+                  {/* Description */}
+                  {lieu.description && (
+                    <p
+                      style={{
+                        fontSize: '13px',
+                        margin: 0,
+                        lineHeight: '1.5',
+                        color: '#333',
+                      }}
+                    >
+                      {lieu.description}
+                    </p>
+                  )}
+                </div>
+              </Popup>
+            </Marker>
+          ))}
+
+          {/* 🔹 Position utilisateur */}
+          {userPosition && (
+            <Marker
+              {...({
+                position: userPosition,
+                icon: userIcon,
+              } as any)}
+            >
+              <Popup>Vous êtes ici</Popup>
+            </Marker>
+          )}
+
+          <FitBounds lieux={lieuxFiltres} />
+        </MapContainer>
+      </div>
+
       {/* 🔹 Overlay chargement */}
       {loading && (
         <div
