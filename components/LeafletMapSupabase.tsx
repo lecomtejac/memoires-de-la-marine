@@ -47,6 +47,10 @@ export type Lieu = {
   updated_at: string | null;
   created_by: string | null;
 
+  location_types?: {
+    label: string;
+    slug: string;
+  };
   photos?: { url: string }[];
 };
 
@@ -139,6 +143,10 @@ export default function LeafletMapSupabase() {
           longitude,
           status,
           type_id,
+          location_types (
+          label,
+          slug
+           ),
           photos(url)
         `);
 
