@@ -18,13 +18,76 @@ L.Icon.Default.mergeOptions({
     'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
 });
 
-// 🔹 Icône position utilisateur
-const userIcon = new L.Icon({
-  iconUrl:
-    'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-});
+// 🔹 Icônes par type de lieu
+const iconSize: [number, number] = [30, 30];
+
+const iconsBySlug: Record<string, L.Icon> = {
+  tombe: new L.Icon({
+    iconUrl: '/icons/tombe.png',
+    iconSize,
+    iconAnchor: [15, 30],
+  }),
+  monument: new L.Icon({
+    iconUrl: '/icons/monument.png',
+    iconSize,
+    iconAnchor: [15, 30],
+  }),
+  plaque_commemorative: new L.Icon({
+    iconUrl: '/icons/plaque.png',
+    iconSize,
+    iconAnchor: [15, 30],
+  }),
+  memorial: new L.Icon({
+    iconUrl: '/icons/memorial.png',
+    iconSize,
+    iconAnchor: [15, 30],
+  }),
+  lieu_de_bataille: new L.Icon({
+    iconUrl: '/icons/bataille.png',
+    iconSize,
+    iconAnchor: [15, 30],
+  }),
+  lieu_de_debarquement: new L.Icon({
+    iconUrl: '/icons/debarquement.png',
+    iconSize,
+    iconAnchor: [15, 30],
+  }),
+  naufrage: new L.Icon({
+    iconUrl: '/icons/naufrage.png',
+    iconSize,
+    iconAnchor: [15, 30],
+  }),
+  epave: new L.Icon({
+    iconUrl: '/icons/epave.png',
+    iconSize,
+    iconAnchor: [15, 30],
+  }),
+  musee: new L.Icon({
+    iconUrl: '/icons/musee.png',
+    iconSize,
+    iconAnchor: [15, 30],
+  }),
+  trace_de_passage: new L.Icon({
+    iconUrl: '/icons/trace.png',
+    iconSize,
+    iconAnchor: [15, 30],
+  }),
+  base: new L.Icon({
+    iconUrl: '/icons/base.png',
+    iconSize,
+    iconAnchor: [15, 30],
+  }),
+  port: new L.Icon({
+    iconUrl: '/icons/port.png',
+    iconSize,
+    iconAnchor: [15, 30],
+  }),
+  autre_lieu_remarquable: new L.Icon({
+    iconUrl: '/icons/autre.png',
+    iconSize,
+    iconAnchor: [15, 30],
+  }),
+};
 
 export type Lieu = {
   id: number;
