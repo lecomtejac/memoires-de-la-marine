@@ -126,6 +126,27 @@ export default function LeafletMapSupabase() {
   const [loading, setLoading] = useState(true);
   const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
 
+  // 🔹 Icônes par type de lieu selon ton table location_types
+const typeIcons: Record<number, string> = {
+  7: '⚓',   // Tombe
+  8: '🏛️',  // Monument
+  9: '📜',  // Plaque commémorative
+  10: '🕊️', // Mémorial
+  11: '⚔️', // Lieu de bataille
+  12: '⛴️', // Lieu de débarquement
+  13: '💥', // Naufrage
+  14: '🛳️', // Épave
+  15: '🏛️', // Musée
+  16: '👣', // Trace de passage
+  17: '🏰', // Base
+  18: '⚓',  // Port
+  19: '⭐',  // Autre lieu remarquable
+};
+
+  function getTypeIcon(typeId: number | null) {
+  if (!typeId) return '❓'; // inconnu
+  return typeIcons[typeId] || '❓';
+}
  
   // 🔹 Récupération des lieux
   useEffect(() => {
@@ -210,7 +231,7 @@ function getTypeLabel(
                 permanent: false,
               } as any)}
             >
-             {lieu.title}
+             {lieu.title} {getTypeIcon(lieu.type_id)}
             </Tooltip>
             <Popup>
               <div
