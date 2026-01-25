@@ -19,11 +19,11 @@ L.Icon.Default.mergeOptions({
 });
 
 // 🔹 Icône position utilisateur
-const userIcon = new L.Icon({
-  iconUrl:
-    'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
+const battleIcon = new L.Icon({
+  iconUrl: '/icons/bataille.svg', // chemin depuis public/
+  iconSize: [35, 35], // tu peux ajuster la taille
+  iconAnchor: [17, 35], // pointe vers le bas
+  popupAnchor: [0, -35], // popups au-dessus
 });
 
 export type Lieu = {
@@ -189,7 +189,8 @@ export default function LeafletMapSupabase() {
 
         {/* 🔹 Lieux Supabase */}
         {lieuxFiltres.map((lieu) => (
-          <Marker key={lieu.id} position={[lieu.latitude, lieu.longitude]}>
+          <Marker key={lieu.id} position={[lieu.latitude, lieu.longitude]}
+            icon={battleIcon}> // <-- ici
             <Tooltip
               {...({
                 direction: 'top',
