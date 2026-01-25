@@ -15,7 +15,7 @@ export default function HomePage() {
         style={{
           maxWidth: '960px',
           margin: '0 auto',
-          padding: '3.5rem 1.5rem 5rem',
+          padding: '2.5rem 1.5rem 4rem', // ↓ remonté
           color: '#0f172a',
         }}
       >
@@ -24,11 +24,11 @@ export default function HomePage() {
           style={{
             backgroundColor: '#fef3c7',
             color: '#92400e',
-            padding: '1rem',
+            padding: '0.9rem',
             textAlign: 'center',
             fontWeight: 600,
             borderRadius: '12px',
-            marginBottom: '3.5rem',
+            marginBottom: '2.5rem', // ↓
             border: '1px solid #fde68a',
           }}
         >
@@ -40,8 +40,8 @@ export default function HomePage() {
           style={{
             position: 'relative',
             textAlign: 'center',
-            marginBottom: '4rem',
-            padding: '3rem 1rem',
+            marginBottom: '2.5rem', // ↓
+            padding: '2rem 1rem', // ↓
             overflow: 'hidden',
           }}
         >
@@ -51,8 +51,8 @@ export default function HomePage() {
             preserveAspectRatio="none"
             style={{
               position: 'absolute',
-              top: '0',
-              left: '0',
+              top: 0,
+              left: 0,
               width: '100%',
               height: '100%',
               zIndex: 0,
@@ -69,10 +69,10 @@ export default function HomePage() {
           <div style={{ position: 'relative', zIndex: 1 }}>
             <h1
               style={{
-                fontSize: '2.8rem',
+                fontSize: '2.6rem', // légèrement ↓
                 fontWeight: 700,
                 letterSpacing: '-0.03em',
-                marginBottom: '1.2rem',
+                marginBottom: '1rem',
               }}
             >
               Mémoires de la Marine
@@ -80,8 +80,8 @@ export default function HomePage() {
 
             <p
               style={{
-                fontSize: '1.15rem',
-                lineHeight: '1.8',
+                fontSize: '1.1rem',
+                lineHeight: '1.7',
                 maxWidth: '780px',
                 margin: '0 auto',
                 color: '#334155',
@@ -92,8 +92,8 @@ export default function HomePage() {
 
             <p
               style={{
-                fontSize: '1rem',
-                marginTop: '1.6rem',
+                fontSize: '0.95rem',
+                marginTop: '1.2rem',
                 color: '#64748b',
               }}
             >
@@ -107,20 +107,20 @@ export default function HomePage() {
           style={{
             display: 'flex',
             justifyContent: 'center',
-            marginBottom: '5rem',
+            marginBottom: '3.5rem', // ↓ remonté
           }}
         >
           <Link
             href="https://memoires-de-la-marine-i8gy.vercel.app/lieux/test-carte-leaflet"
             style={{
-              padding: '1.1rem 2.8rem',
+              padding: '1rem 2.6rem',
               backgroundColor: '#0f172a',
               color: '#ffffff',
               borderRadius: '999px',
               textDecoration: 'none',
               fontWeight: 600,
-              fontSize: '1.1rem',
-              boxShadow: '0 12px 30px rgba(15, 23, 42, 0.25)',
+              fontSize: '1.05rem',
+              boxShadow: '0 10px 24px rgba(15, 23, 42, 0.25)',
             }}
           >
             Consulter les lieux de mémoire
