@@ -7,7 +7,10 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
 // 🔹 Fonction utilitaire pour récupérer le label d'un type
-function getTypeLabel(typeId: number | null, types: { id: number; label: string }[]) {
+function getTypeLabel(
+  typeId: number | null,
+  types: { id: number; label: string }[]
+) {
   if (!typeId) return 'Catégorie inconnue';
   const type = types.find((t) => t.id === typeId);
   return type ? type.label : 'Catégorie inconnue';
