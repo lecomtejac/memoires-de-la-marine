@@ -85,7 +85,7 @@ export default function Page() {
                 whiteSpace: 'nowrap',
               }}
             >
-              ➕ Proposer un nouveau lieu de mémoire en me connectant
+              ➕ Proposer un nouveau lieu en me connectant
             </Link>
 
             <Link
