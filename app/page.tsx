@@ -18,18 +18,17 @@ export default function HomePage() {
           marginBottom: '2rem',
         }}
       >
-        ⚠️ Ce site est en construction ⚠️
+        ⚠️ Ce site est en cours de développement ⚠️
       </div>
 
       {/* Entête */}
       <header style={{ marginBottom: '2rem', textAlign: 'center' }}>
-        <h1>Mémoire de la Marine</h1>
+        <h1>Mémoires de la Marine</h1>
         <p style={{ fontSize: '1.2rem', marginTop: '0.5rem' }}>
-          Ce projet vise à recenser tous les lieux de mémoire maritime : tombes de marins, monuments,
-          plaques commémoratives, épaves, musées et sites symboliques.
+          Ce projet vise à recenser tous les lieux de mémoire de la Marine, de la Marine nationale en particulier et du monde maritime en général : tombes de marins célèbres, monuments, plaques commémoratives, musées, lieux de naufrage ou de débarquement, port ou bases navales principales. Et tout autres sites symboliques en lien avec la Marine...
         </p>
         <p style={{ fontSize: '1rem', marginTop: '1rem', color: '#555' }}>
-          Contribuez à enrichir cette mémoire collective en découvrant ou ajoutant des lieux de mémoire.
+          Contribuez à enrichir cette mémoire collective en découvrant ou en ajoutant des lieux de mémoire.
         </p>
       </header>
 
@@ -57,13 +56,13 @@ export default function HomePage() {
       <section style={{ marginTop: '4rem', lineHeight: '1.6', color: '#333' }}>
         <h2>À propos du projet</h2>
         <p>
-          L’objectif est de créer une carte collaborative des lieux de mémoire maritime, avec fiches détaillées, photos,
-          informations historiques et contribution des utilisateurs. Chaque lieu peut être validé par un administrateur
-          pour garantir la qualité et la fiabilité des données.
+          L’objectif est de créer une carte collaborative des lieux de mémoire maritime, avec fiches détaillées, photos, informations historiques et contribution des utilisateurs. Chaque lieu proposé sera validé par un administrateur pour garantir la qualité et la fiabilité des données..
         </p>
         <p>
-          Les types de lieux recensés incluent : tombes, monuments, plaques, épaves, sites de bataille, lieux de débarquement
-          et musées. La base de données est construite sur Supabase et le site est développé avec Next.js.
+          Les types de lieux recensés incluent : tombes, monuments, plaques, épaves, sites de bataille, lieux de débarquement et musées. 
+        </p>
+        <p>
+         Issu d’une initiative personnelle, ce site évoluera progressivement tant dans son design que dans ses fonctionnalités. 
         </p>
       </section>
     </div>
