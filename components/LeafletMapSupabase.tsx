@@ -190,9 +190,16 @@ export default function LeafletMapSupabase() {
         {/* 🔹 Lieux Supabase */}
         {lieuxFiltres.map((lieu) => (
           <Marker key={lieu.id} position={[lieu.latitude, lieu.longitude]}>
-    <Tooltip {...tooltipProps}>
-    {lieu.title}
-  </Tooltip>
+            <Tooltip
+              {...({
+                direction: 'top',
+                offset: [0, -10],
+                opacity: 1,
+                permanent: false,
+              } as any)}
+            >
+             {lieu.title} - {lieu.type_id}
+            </Tooltip>
             <Popup>
               <div
                 style={{
