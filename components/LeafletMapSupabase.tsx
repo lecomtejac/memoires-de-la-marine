@@ -6,6 +6,13 @@ import L from 'leaflet';
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
+// 🔹 Fonction utilitaire pour récupérer le label d'un type
+function getTypeLabel(typeId: number | null, types: { id: number; label: string }[]) {
+  if (!typeId) return 'Catégorie inconnue';
+  const type = types.find((t) => t.id === typeId);
+  return type ? type.label : 'Catégorie inconnue';
+}
+
 // 🔹 Fix icônes Leaflet pour Next.js
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 
@@ -198,9 +205,7 @@ export default function LeafletMapSupabase() {
                 permanent: false,
               } as any)}
             >
-             {lieu.title} - {lieu.type_id
-      ? type.find((t) => t.id === lieu.type_id)?.label || 'Catégorie inconnue'
-      : 'Catégorie inconnue'}
+             {lieu.title} - {getTypeLabel(lieu.type_id, types)}
             </Tooltip>
             <Popup>
               <div
