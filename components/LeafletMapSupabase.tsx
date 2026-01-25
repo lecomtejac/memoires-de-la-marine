@@ -198,7 +198,7 @@ export default function LeafletMapSupabase() {
                 permanent: false,
               } as any)}
             >
-             {lieu.title} - {lieu.type_id}
+             {lieu.title} - {location_types.label}
             </Tooltip>
             <Popup>
               <div
