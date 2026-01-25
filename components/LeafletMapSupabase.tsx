@@ -209,7 +209,7 @@ function getTypeLabel(
                 permanent: false,
               } as any)}
             >
-             {lieu.title} - {getTypeLabel(lieu.type_id, types)}
+             {lieu.title} - {types.length ? getTypeLabel(lieu.type_id, types) : 'Chargement...'}
             </Tooltip>
             <Popup>
               <div
