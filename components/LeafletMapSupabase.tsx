@@ -168,10 +168,10 @@ export default function LeafletMapSupabase() {
 // 🔹 Fonction utilitaire pour récupérer le label d'un type
 function getTypeLabel(
   typeId: number | null,
-  types: { id: number; label: string }[]
+  types: { id: number | string; label: string }[]
 ) {
   if (!typeId) return 'Catégorie inconnue';
-  const type = types.find((t) => t.id === typeId);
+  const type = types.find((t) => Number(t.id) === typeId);
   return type ? type.label : 'Catégorie inconnue';
 }
   
@@ -209,7 +209,7 @@ function getTypeLabel(
                 permanent: false,
               } as any)}
             >
-             {lieu.title} - {types.length ? getTypeLabel(lieu.type_id, types) : 'Chargement...'}
+             {lieu.title} - {getTypeLabel(lieu.type_id, types)}
             </Tooltip>
             <Popup>
               <div
