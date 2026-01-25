@@ -198,7 +198,9 @@ export default function LeafletMapSupabase() {
                 permanent: false,
               } as any)}
             >
-             {lieu.title} - {lieu.type_id}
+             {lieu.title} - lieu.type_id
+    ? types.find((t) => t.id === lieu.type_id)?.label || 'Catégorie inconnue'
+    : 'Catégorie inconnue'
             </Tooltip>
             <Popup>
               <div
