@@ -7,122 +7,156 @@ export default function HomePage() {
     <div
       style={{
         fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-        maxWidth: '900px',
-        margin: '0 auto',
-        padding: '1.5rem 1rem',
+        background: 'linear-gradient(180deg, #f6f9fc 0%, #ffffff 100%)',
+        padding: '1.5rem 1rem 4rem',
       }}
     >
-      {/* Bannière "en construction" */}
       <div
         style={{
-          backgroundColor: '#ffcc00',
-          color: '#000',
-          padding: '0.75rem 1rem',
-          textAlign: 'center',
-          fontWeight: 'bold',
-          borderRadius: '6px',
-          marginBottom: '1.5rem',
-          fontSize: '0.95rem',
-        }}
-      >
-        ⚠️ Ce site est en cours de développement ⚠️
-      </div>
-
-      {/* Entête */}
-      <header
-        style={{
-          textAlign: 'center',
-          marginBottom: '1.5rem',
-        }}
-      >
-        <h1
-          style={{
-            fontSize: 'clamp(1.8rem, 4vw, 2.4rem)',
-            marginBottom: '0.75rem',
-          }}
-        >
-          Mémoires de la Marine
-        </h1>
-
-        <p
-          style={{
-            fontSize: '1.05rem',
-            margin: '0 auto 0.75rem',
-            maxWidth: '750px',
-          }}
-        >
-          Ce projet vise à recenser tous les lieux de mémoire de la Marine, de la Marine nationale en particulier et du monde maritime en général : tombes de marins célèbres, monuments, plaques commémoratives, musées, lieux de naufrage ou de débarquement, port ou bases navales principales. Et tout autres sites symboliques en lien avec la Marine...
-        </p>
-
-        <p
-          style={{
-            fontSize: '0.95rem',
-            color: '#555',
-            maxWidth: '700px',
-            margin: '0 auto',
-          }}
-        >
-          Contribuez à enrichir cette mémoire collective en découvrant ou en ajoutant des lieux de mémoire.
-        </p>
-      </header>
-
-      {/* Bouton vers la page */}
-      <div
-        style={{
-          textAlign: 'center',
-          marginTop: '1.5rem',
-          marginBottom: '2.5rem',
-        }}
-      >
-        <Link
-          href="https://memoires-de-la-marine-i8gy.vercel.app/lieux/test-carte-leaflet"
-          style={{
-            display: 'inline-block',
-            padding: '0.9rem 1.6rem',
-            backgroundColor: '#0070f3',
-            color: '#fff',
-            borderRadius: '999px',
-            textDecoration: 'none',
-            fontWeight: 'bold',
-            fontSize: '1.05rem',
-            boxShadow: '0 6px 16px rgba(0,0,0,0.15)',
-          }}
-        >
-          Consulter les lieux de mémoire
-        </Link>
-      </div>
-
-      {/* Section explicative */}
-      <section
-        style={{
-          lineHeight: '1.65',
-          color: '#333',
-          maxWidth: '800px',
+          maxWidth: '960px',
           margin: '0 auto',
         }}
       >
-        <h2
+        {/* Bannière "en construction" */}
+        <div
           style={{
-            fontSize: '1.4rem',
-            marginBottom: '1rem',
+            backgroundColor: '#ffe08a',
+            color: '#1a1a1a',
+            padding: '0.6rem 1rem',
             textAlign: 'center',
+            fontWeight: '600',
+            borderRadius: '8px',
+            marginBottom: '1.5rem',
+            fontSize: '0.9rem',
           }}
         >
-          À propos du projet
-        </h2>
+          ⚠️ Ce site est en cours de développement ⚠️
+        </div>
 
-        <p>
-          L’objectif est de créer une carte collaborative des lieux de mémoire maritime, avec fiches détaillées, photos, informations historiques et contribution des utilisateurs. Chaque lieu proposé sera validé par un administrateur pour garantir la qualité et la fiabilité des données..
-        </p>
+        {/* Carte principale */}
+        <div
+          style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '20px',
+            padding: '2rem 1.5rem 2.5rem',
+            boxShadow: '0 20px 40px rgba(0, 40, 80, 0.08)',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          {/* Illustration maritime très légère */}
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              backgroundImage:
+                'radial-gradient(circle at top right, rgba(0,112,243,0.06), transparent 60%)',
+              pointerEvents: 'none',
+            }}
+          />
 
-        <p>
-          Les types de lieux recensés incluent : tombes, monuments, plaques, épaves, sites de bataille, lieux de débarquement et musées. 
-        </p>
+          {/* Entête */}
+          <header
+            style={{
+              position: 'relative',
+              textAlign: 'center',
+              marginBottom: '2rem',
+            }}
+          >
+            <h1
+              style={{
+                fontSize: 'clamp(2rem, 4.5vw, 2.6rem)',
+                marginBottom: '1rem',
+                color: '#0b1f33',
+                letterSpacing: '0.5px',
+              }}
+            >
+              Mémoires de la Marine
+            </h1>
 
-        <p>
-          Issu d’une initiative personnelle, ce site évoluera progressivement tant dans son design que dans ses fonctionnalités. 
-        </p>
-      </section>
+            <p
+              style={{
+                fontSize: '1.05rem',
+                maxWidth: '760px',
+                margin: '0 auto 1rem',
+                color: '#1f2933',
+              }}
+            >
+              Ce projet vise à recenser tous les lieux de mémoire de la Marine, de la Marine nationale en particulier et du monde maritime en général : tombes de marins célèbres, monuments, plaques commémoratives, musées, lieux de naufrage ou de débarquement, port ou bases navales principales. Et tout autres sites symboliques en lien avec la Marine...
+            </p>
+
+            <p
+              style={{
+                fontSize: '0.95rem',
+                color: '#4b5563',
+                maxWidth: '720px',
+                margin: '0 auto',
+              }}
+            >
+              Contribuez à enrichir cette mémoire collective en découvrant ou en ajoutant des lieux de mémoire.
+            </p>
+          </header>
+
+          {/* Bouton */}
+          <div
+            style={{
+              textAlign: 'center',
+              marginBottom: '2.5rem',
+            }}
+          >
+            <Link
+              href="https://memoires-de-la-marine-i8gy.vercel.app/lieux/test-carte-leaflet"
+              style={{
+                display: 'inline-block',
+                padding: '1rem 2.2rem',
+                background:
+                  'linear-gradient(135deg, #003a8f, #005fcc)',
+                color: '#ffffff',
+                borderRadius: '999px',
+                textDecoration: 'none',
+                fontWeight: '600',
+                fontSize: '1.05rem',
+                boxShadow: '0 12px 24px rgba(0, 64, 128, 0.35)',
+              }}
+            >
+              Consulter les lieux de mémoire
+            </Link>
+          </div>
+
+          {/* Section explicative */}
+          <section
+            style={{
+              maxWidth: '820px',
+              margin: '0 auto',
+              lineHeight: '1.7',
+              color: '#1f2933',
+            }}
+          >
+            <h2
+              style={{
+                fontSize: '1.5rem',
+                marginBottom: '1.2rem',
+                textAlign: 'center',
+                color: '#0b1f33',
+              }}
+            >
+              À propos du projet
+            </h2>
+
+            <p>
+              L’objectif est de créer une carte collaborative des lieux de mémoire maritime, avec fiches détaillées, photos, informations historiques et contribution des utilisateurs. Chaque lieu proposé sera validé par un administrateur pour garantir la qualité et la fiabilité des données..
+            </p>
+
+            <p>
+              Les types de lieux recensés incluent : tombes, monuments, plaques, épaves, sites de bataille, lieux de débarquement et musées. 
+            </p>
+
+            <p>
+              Issu d’une initiative personnelle, ce site évoluera progressivement tant dans son design que dans ses fonctionnalités. 
+            </p>
+          </section>
+        </div>
+      </div>
     </div>
   );
 }
