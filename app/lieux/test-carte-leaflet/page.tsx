@@ -10,83 +10,123 @@ const LeafletMapSupabase = dynamic(
 
 export default function Page() {
   return (
-    <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
-      
-      {/* En-tête avec boutons */}
+    <div
+      style={{
+        fontFamily: 'sans-serif',
+        backgroundColor: '#f5f7fa',
+        minHeight: '100vh',
+      }}
+    >
+      {/* En-tête */}
       <div
         style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '1.5rem',
-          flexWrap: 'wrap',
-          gap: '1rem',
+          backgroundColor: '#ffffff',
+          padding: '1.5rem',
+          boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 10,
         }}
       >
-        <h1 style={{ margin: 0 }}>Carte des lieux de mémoire</h1>
-
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-          <Link
-            href="/"
+        <div
+          style={{
+            maxWidth: '1200px',
+            margin: '0 auto',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem',
+          }}
+        >
+          <h1
             style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#0070f3',
-              color: '#fff',
-              borderRadius: '8px',
-              textDecoration: 'none',
-              fontWeight: 'bold',
-              fontSize: '1rem',
-              whiteSpace: 'nowrap',
+              margin: 0,
+              fontSize: '1.6rem',
+              textAlign: 'center',
             }}
           >
-            ⬅ Retour accueil
-          </Link>
+            Carte des lieux de mémoire
+          </h1>
 
-          <Link
-            href="/lieux/proposer"
+          {/* Boutons */}
+          <div
             style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#ff6600',
-              color: '#fff',
-              borderRadius: '8px',
-              textDecoration: 'none',
-              fontWeight: 'bold',
-              fontSize: '1rem',
-              whiteSpace: 'nowrap',
+              display: 'flex',
+              gap: '0.75rem',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
             }}
           >
-            ➕ Proposer un nouveau lieu de mémoire en me connectant
-          </Link>
+            <Link
+              href="/"
+              style={{
+                padding: '0.7rem 1.4rem',
+                backgroundColor: '#e9edf3',
+                color: '#333',
+                borderRadius: '999px',
+                textDecoration: 'none',
+                fontWeight: 600,
+                fontSize: '0.95rem',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              ⬅ Retour accueil
+            </Link>
 
-          {/* Nouveau bouton "Créer un compte" */}
-          <Link
-            href="/register"
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#28a745',
-              color: '#fff',
-              borderRadius: '8px',
-              textDecoration: 'none',
-              fontWeight: 'bold',
-              fontSize: '1rem',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            📝 Créer un compte
-          </Link>
+            <Link
+              href="/lieux/proposer"
+              style={{
+                padding: '0.7rem 1.4rem',
+                backgroundColor: '#0070f3',
+                color: '#fff',
+                borderRadius: '999px',
+                textDecoration: 'none',
+                fontWeight: 600,
+                fontSize: '0.95rem',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              ➕ Proposer un nouveau lieu de mémoire en me connectant
+            </Link>
+
+            <Link
+              href="/register"
+              style={{
+                padding: '0.7rem 1.4rem',
+                backgroundColor: '#28a745',
+                color: '#fff',
+                borderRadius: '999px',
+                textDecoration: 'none',
+                fontWeight: 600,
+                fontSize: '0.95rem',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              📝 Créer un compte
+            </Link>
+          </div>
         </div>
       </div>
 
-      {/* Carte Leaflet */}
+      {/* Carte */}
       <div
         style={{
-          height: '70vh',
-          width: '100%',
-          borderRadius: '10px',
-          overflow: 'hidden',
+          maxWidth: '1200px',
+          margin: '1.5rem auto',
+          padding: '0 1rem',
         }}
       >
-        <LeafletMapSupabase />
+        <div
+          style={{
+            height: '75vh',
+            width: '100%',
+            borderRadius: '16px',
+            overflow: 'hidden',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.12)',
+            backgroundColor: '#fff',
+          }}
+        >
+          <LeafletMapSupabase />
+        </div>
       </div>
     </div>
   );
