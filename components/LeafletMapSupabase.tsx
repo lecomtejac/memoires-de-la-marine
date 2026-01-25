@@ -128,17 +128,17 @@ export default function LeafletMapSupabase() {
 
   // 🔹 Icônes par type de lieu selon ton table location_types
 const typeIcons: Record<number, string> = {
-  7: '⚓',   // Tombe
+  7: '🪦',   // Tombe
   8: '🏛️',  // Monument
   9: '📜',  // Plaque commémorative
-  10: '🕊️', // Mémorial
+  10: '🏛️', // Mémorial
   11: '⚔️', // Lieu de bataille
   12: '⛴️', // Lieu de débarquement
   13: '💥', // Naufrage
   14: '🛳️', // Épave
   15: '🏛️', // Musée
   16: '👣', // Trace de passage
-  17: '🏰', // Base
+  17: '🪖', // Base
   18: '⚓',  // Port
   19: '⭐',  // Autre lieu remarquable
 };
