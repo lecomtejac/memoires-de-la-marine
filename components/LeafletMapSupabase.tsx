@@ -190,7 +190,7 @@ export default function LeafletMapSupabase() {
         {/* 🔹 Lieux Supabase */}
         {lieuxFiltres.map((lieu) => (
           <Marker key={lieu.id} position={[lieu.latitude, lieu.longitude]}
-            icon={battleIcon}> // <-- ici
+            icon={battleIcon}>
             <Tooltip
               {...({
                 direction: 'top',
