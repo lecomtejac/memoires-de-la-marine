@@ -30,7 +30,7 @@ export default function HomePage() {
             fontSize: '0.9rem',
           }}
         >
-          ⚠️ Ce site est en cours de développement ⚠️
+          ⚠️ Site en cours de développement ⚠️
         </div>
 
         {/* Carte principale */}
