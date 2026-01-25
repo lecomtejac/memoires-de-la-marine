@@ -164,8 +164,7 @@ export default function LeafletMapSupabase() {
 
     fetchTypes();
   }, []);
-
-  const isReady = !loading && types.length > 0;
+  
 
 // 🔹 Fonction utilitaire pour récupérer le label d'un type
 function getTypeLabel(
@@ -211,7 +210,7 @@ function getTypeLabel(
                 permanent: false,
               } as any)}
             >
-             {lieu.title} - {getTypeLabel(lieu.type_id, types)}
+             {lieu.title}
             </Tooltip>
             <Popup>
               <div
