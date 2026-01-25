@@ -191,9 +191,7 @@ export default function LeafletMapSupabase() {
         {lieuxFiltres.map((lieu) => (
           <Marker key={lieu.id} position={[lieu.latitude, lieu.longitude]}>
     <Tooltip {...tooltipProps}>
-    {lieu.title} - {lieu.type_id
-      ? types.find((t) => t.id === lieu.type_id)?.label || 'Catégorie inconnue'
-      : 'Catégorie inconnue'}
+    {lieu.title}
   </Tooltip>
             <Popup>
               <div
