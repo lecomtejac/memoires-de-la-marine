@@ -59,21 +59,34 @@ export default async function LieuPage({ params }: LieuProps) {
   // Render page
   // ------------------------
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
-      <h1>{lieu.title}</h1>
-      <p>{lieu.description}</p>
+    <div style={{ maxWidth: '900px', margin: '0 auto', padding: '2rem', fontFamily: 'sans-serif' }}>
+      <h1 style={{ marginBottom: '1rem' }}>{lieu.title}</h1>
 
-      <h3>Localisation</h3>
-      <p>
-        {lieu.address_text || ''} {lieu.country || ''} ({lieu.latitude},{' '}
-        {lieu.longitude})
-      </p>
+      <section style={{ marginBottom: '1.5rem' }}>
+        <h3>Description</h3>
+        <p>{lieu.description || 'Aucune description.'}</p>
+      </section>
 
-      <h3>Statut</h3>
-      <p>{lieu.status}</p>
+      <section style={{ marginBottom: '1.5rem' }}>
+        <h3>Localisation</h3>
+        <p>
+          {lieu.address_text || '-'} {lieu.country || '-'} <br />
+          Coordonnées : {lieu.latitude}, {lieu.longitude}
+        </p>
+      </section>
+
+      <section style={{ marginBottom: '1.5rem' }}>
+        <h3>Type de lieu</h3>
+        <p>{lieu.type_id || '-'}</p>
+      </section>
+
+      <section style={{ marginBottom: '1.5rem' }}>
+        <h3>Statut</h3>
+        <p>{lieu.status}</p>
+      </section>
 
       {marins.length > 0 && (
-        <>
+        <section style={{ marginBottom: '1.5rem' }}>
           <h3>Marins associés</h3>
           <ul>
             {marins.map((m: any, idx: number) => (
@@ -83,11 +96,11 @@ export default async function LieuPage({ params }: LieuProps) {
               </li>
             ))}
           </ul>
-        </>
+        </section>
       )}
 
       {photos.length > 0 && (
-        <>
+        <section style={{ marginBottom: '1.5rem' }}>
           <h3>Photos</h3>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
             {photos.map((p: any, idx: number) => (
@@ -95,11 +108,11 @@ export default async function LieuPage({ params }: LieuProps) {
                 key={idx}
                 src={p.url}
                 alt={p.description || 'Photo du lieu'}
-                style={{ maxWidth: '200px', borderRadius: '6px' }}
+                style={{ maxWidth: '250px', borderRadius: '6px', objectFit: 'cover' }}
               />
             ))}
           </div>
-        </>
+        </section>
       )}
     </div>
   );
