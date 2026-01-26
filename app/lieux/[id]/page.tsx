@@ -1,6 +1,5 @@
 import { supabase } from '../../../lib/supabaseClient';
 import React from 'react';
-import { FaMapMarkerAlt, FaUsers, FaPhotoVideo, FaInfoCircle } from 'react-icons/fa';
 
 // Next.js App Router : page dynamique côté serveur
 interface LieuProps {
@@ -73,17 +72,13 @@ export default async function LieuPage({ params }: LieuProps) {
 
       {/* Description */}
       <div style={{ backgroundColor: '#f9f9f9', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
-        <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0070f3' }}>
-          <FaInfoCircle /> Description
-        </h3>
+        <h3 style={{ color: '#0070f3' }}>ℹ️ Description</h3>
         <p>{lieu.description || 'Aucune description.'}</p>
       </div>
 
       {/* Localisation */}
       <div style={{ backgroundColor: '#eef6f9', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
-        <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0070f3' }}>
-          <FaMapMarkerAlt /> Localisation
-        </h3>
+        <h3 style={{ color: '#0070f3' }}>📍 Localisation</h3>
         <p>
           {lieu.address_text || '-'} {lieu.country || '-'} <br />
           Coordonnées : {lieu.latitude}, {lieu.longitude}
@@ -93,11 +88,11 @@ export default async function LieuPage({ params }: LieuProps) {
       {/* Type et statut */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginBottom: '1rem' }}>
         <div style={{ flex: '1 1 200px', backgroundColor: '#fff3e6', padding: '1rem', borderRadius: '8px' }}>
-          <h3 style={{ color: '#d97706' }}>Type de lieu</h3>
+          <h3 style={{ color: '#d97706' }}>🏷️ Type de lieu</h3>
           <p>{getTypeLabel(lieu.type_id)}</p>
         </div>
         <div style={{ flex: '1 1 200px', backgroundColor: '#f0f5ff', padding: '1rem', borderRadius: '8px' }}>
-          <h3 style={{ color: '#3b82f6' }}>Statut</h3>
+          <h3 style={{ color: '#3b82f6' }}>📌 Statut</h3>
           <p>{lieu.status}</p>
         </div>
       </div>
@@ -105,9 +100,7 @@ export default async function LieuPage({ params }: LieuProps) {
       {/* Marins associés */}
       {marins.length > 0 && (
         <div style={{ backgroundColor: '#f9f9f9', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
-          <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0070f3' }}>
-            <FaUsers /> Marins associés
-          </h3>
+          <h3 style={{ color: '#0070f3' }}>👨‍✈️ Marins associés</h3>
           <ul>
             {marins.map((m: any, idx: number) => (
               <li key={idx}>
@@ -122,9 +115,7 @@ export default async function LieuPage({ params }: LieuProps) {
       {/* Photos */}
       {photos.length > 0 && (
         <div style={{ backgroundColor: '#eef6f9', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
-          <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0070f3' }}>
-            <FaPhotoVideo /> Photos
-          </h3>
+          <h3 style={{ color: '#0070f3' }}>📷 Photos</h3>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
             {photos.map((p: any, idx: number) => (
               <img
