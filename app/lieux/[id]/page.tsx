@@ -1,56 +1,106 @@
-'use client';
-
-import { useEffect, useState } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
-import { useParams } from 'next/navigation';
+import React from 'react';
 
-export default function LieuPage() {
-  const params = useParams();
-  const idParam = params.id; // peut être string | string[] | undefined
-  const [lieu, setLieu] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+// Next.js App Router : page dynamique côté serveur
+interface LieuProps {
+  params: { id: string };
+}
 
-  // Convertir id en integer si c'est bien une string
-  const id = Array.isArray(idParam) ? idParam[0] : idParam;
+export default async function LieuPage({ params }: LieuProps) {
+  const id = parseInt(params.id);
 
-  useEffect(() => {
-    if (!id) return;
+  if (isNaN(id)) {
+    return <p>ID invalide</p>;
+  }
 
-    const fetchLieu = async () => {
-      setLoading(true);
-      setErrorMsg(null);
+  // ------------------------
+  // Fetch lieu
+  // ------------------------
+  const { data: lieu, error: lieuError } = await supabase
+    .from('locations')
+    .select('*')
+    .eq('id', id)
+    .single();
 
-      const { data, error } = await supabase
-        .from('locations')
-        .select('*')
-        .eq('id', parseInt(id)) // <-- maintenant safe
-        .single();
+  if (lieuError || !lieu) {
+    console.error(lieuError);
+    return <p>Lieu non trouvé.</p>;
+  }
 
-      if (error) {
-        console.error(error);
-        setErrorMsg('Lieu non trouvé.');
-      } else {
-        setLieu(data);
-      }
-      setLoading(false);
-    };
+  // ------------------------
+  // Fetch marins associés
+  // ------------------------
+  const { data: marinsData, error: marinsError } = await supabase
+    .from('location_persons')
+    .select(`person_id, persons(name, rank)`)
+    .eq('location_id', id);
 
-    fetchLieu();
-  }, [id]);
+  if (marinsError) {
+    console.error(marinsError);
+  }
 
-  if (loading) return <p>Chargement…</p>;
-  if (errorMsg) return <p>{errorMsg}</p>;
-  if (!lieu) return <p>Aucun lieu à afficher.</p>;
+  const marins = marinsData?.map((item: any) => item.persons) || [];
 
+  // ------------------------
+  // Fetch photos associées
+  // ------------------------
+  const { data: photosData, error: photosError } = await supabase
+    .from('photos')
+    .select('*')
+    .eq('location_id', id);
+
+  if (photosError) {
+    console.error(photosError);
+  }
+
+  const photos = photosData || [];
+
+  // ------------------------
+  // Render page
+  // ------------------------
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
       <h1>{lieu.title}</h1>
       <p>{lieu.description}</p>
+
+      <h3>Localisation</h3>
       <p>
-        Localisation : {lieu.address_text || ''} {lieu.country || ''} ({lieu.latitude}, {lieu.longitude})
+        {lieu.address_text || ''} {lieu.country || ''} ({lieu.latitude},{' '}
+        {lieu.longitude})
       </p>
-      <p>Statut : {lieu.status}</p>
+
+      <h3>Statut</h3>
+      <p>{lieu.status}</p>
+
+      {marins.length > 0 && (
+        <>
+          <h3>Marins associés</h3>
+          <ul>
+            {marins.map((m: any, idx: number) => (
+              <li key={idx}>
+                {m.rank ? `${m.rank} – ` : ''}
+                {m.name}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+
+      {photos.length > 0 && (
+        <>
+          <h3>Photos</h3>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+            {photos.map((p: any, idx: number) => (
+              <img
+                key={idx}
+                src={p.url}
+                alt={p.description || 'Photo du lieu'}
+                style={{ maxWidth: '200px', borderRadius: '6px' }}
+              />
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
