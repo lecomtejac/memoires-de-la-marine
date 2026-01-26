@@ -6,10 +6,13 @@ import { useParams } from 'next/navigation';
 
 export default function LieuPage() {
   const params = useParams();
-  const id = params.id;
+  const idParam = params.id; // peut être string | string[] | undefined
   const [lieu, setLieu] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Convertir id en integer si c'est bien une string
+  const id = Array.isArray(idParam) ? idParam[0] : idParam;
 
   useEffect(() => {
     if (!id) return;
@@ -21,7 +24,7 @@ export default function LieuPage() {
       const { data, error } = await supabase
         .from('locations')
         .select('*')
-        .eq('id', parseInt(id)) // <-- Conversion string -> integer
+        .eq('id', parseInt(id)) // <-- maintenant safe
         .single();
 
       if (error) {
