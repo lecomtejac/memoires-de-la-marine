@@ -1,17 +1,35 @@
 import { supabase } from '../../../lib/supabaseClient';
 import React from 'react';
+import { FaMapMarkerAlt, FaUsers, FaPhotoVideo, FaInfoCircle } from 'react-icons/fa';
 
 // Next.js App Router : page dynamique côté serveur
 interface LieuProps {
   params: { id: string };
 }
 
+// Fonction pour retourner un nom lisible du type de lieu
+function getTypeLabel(typeId: number) {
+  const types: { [key: number]: string } = {
+    7: 'Tombe',
+    8: 'Monument',
+    9: 'Plaque commémorative',
+    10: 'Mémorial',
+    11: 'Lieu de bataille',
+    12: 'Lieu de débarquement',
+    13: 'Naufrage',
+    14: 'Épave',
+    15: 'Musée',
+    16: 'Trace de passage',
+    17: 'Base',
+    18: 'Port',
+    19: 'Autre lieu remarquable',
+  };
+  return types[typeId] || 'Inconnu';
+}
+
 export default async function LieuPage({ params }: LieuProps) {
   const id = parseInt(params.id);
-
-  if (isNaN(id)) {
-    return <p>ID invalide</p>;
-  }
+  if (isNaN(id)) return <p>ID invalide</p>;
 
   // ------------------------
   // Fetch lieu
@@ -21,7 +39,6 @@ export default async function LieuPage({ params }: LieuProps) {
     .select('*')
     .eq('id', id)
     .single();
-
   if (lieuError || !lieu) {
     console.error(lieuError);
     return <p>Lieu non trouvé.</p>;
@@ -34,11 +51,7 @@ export default async function LieuPage({ params }: LieuProps) {
     .from('location_persons')
     .select(`person_id, persons(name, rank)`)
     .eq('location_id', id);
-
-  if (marinsError) {
-    console.error(marinsError);
-  }
-
+  if (marinsError) console.error(marinsError);
   const marins = marinsData?.map((item: any) => item.persons) || [];
 
   // ------------------------
@@ -48,11 +61,7 @@ export default async function LieuPage({ params }: LieuProps) {
     .from('photos')
     .select('*')
     .eq('location_id', id);
-
-  if (photosError) {
-    console.error(photosError);
-  }
-
+  if (photosError) console.error(photosError);
   const photos = photosData || [];
 
   // ------------------------
@@ -60,34 +69,45 @@ export default async function LieuPage({ params }: LieuProps) {
   // ------------------------
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto', padding: '2rem', fontFamily: 'sans-serif' }}>
-      <h1 style={{ marginBottom: '1rem' }}>{lieu.title}</h1>
+      <h1 style={{ marginBottom: '1rem', fontSize: '2rem', color: '#003366' }}>{lieu.title}</h1>
 
-      <section style={{ marginBottom: '1.5rem' }}>
-        <h3>Description</h3>
+      {/* Description */}
+      <div style={{ backgroundColor: '#f9f9f9', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
+        <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0070f3' }}>
+          <FaInfoCircle /> Description
+        </h3>
         <p>{lieu.description || 'Aucune description.'}</p>
-      </section>
+      </div>
 
-      <section style={{ marginBottom: '1.5rem' }}>
-        <h3>Localisation</h3>
+      {/* Localisation */}
+      <div style={{ backgroundColor: '#eef6f9', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
+        <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0070f3' }}>
+          <FaMapMarkerAlt /> Localisation
+        </h3>
         <p>
           {lieu.address_text || '-'} {lieu.country || '-'} <br />
           Coordonnées : {lieu.latitude}, {lieu.longitude}
         </p>
-      </section>
+      </div>
 
-      <section style={{ marginBottom: '1.5rem' }}>
-        <h3>Type de lieu</h3>
-        <p>{lieu.type_id || '-'}</p>
-      </section>
+      {/* Type et statut */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginBottom: '1rem' }}>
+        <div style={{ flex: '1 1 200px', backgroundColor: '#fff3e6', padding: '1rem', borderRadius: '8px' }}>
+          <h3 style={{ color: '#d97706' }}>Type de lieu</h3>
+          <p>{getTypeLabel(lieu.type_id)}</p>
+        </div>
+        <div style={{ flex: '1 1 200px', backgroundColor: '#f0f5ff', padding: '1rem', borderRadius: '8px' }}>
+          <h3 style={{ color: '#3b82f6' }}>Statut</h3>
+          <p>{lieu.status}</p>
+        </div>
+      </div>
 
-      <section style={{ marginBottom: '1.5rem' }}>
-        <h3>Statut</h3>
-        <p>{lieu.status}</p>
-      </section>
-
+      {/* Marins associés */}
       {marins.length > 0 && (
-        <section style={{ marginBottom: '1.5rem' }}>
-          <h3>Marins associés</h3>
+        <div style={{ backgroundColor: '#f9f9f9', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
+          <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0070f3' }}>
+            <FaUsers /> Marins associés
+          </h3>
           <ul>
             {marins.map((m: any, idx: number) => (
               <li key={idx}>
@@ -96,12 +116,15 @@ export default async function LieuPage({ params }: LieuProps) {
               </li>
             ))}
           </ul>
-        </section>
+        </div>
       )}
 
+      {/* Photos */}
       {photos.length > 0 && (
-        <section style={{ marginBottom: '1.5rem' }}>
-          <h3>Photos</h3>
+        <div style={{ backgroundColor: '#eef6f9', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
+          <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0070f3' }}>
+            <FaPhotoVideo /> Photos
+          </h3>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
             {photos.map((p: any, idx: number) => (
               <img
@@ -112,7 +135,7 @@ export default async function LieuPage({ params }: LieuProps) {
               />
             ))}
           </div>
-        </section>
+        </div>
       )}
     </div>
   );
