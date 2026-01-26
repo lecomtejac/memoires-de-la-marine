@@ -1,12 +1,25 @@
 import { supabase } from '../../../lib/supabaseClient';
 import React from 'react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+// Correction icône par défaut Leaflet
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl:
+    'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+  iconUrl:
+    'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  shadowUrl:
+    'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+});
 
 // Next.js App Router : page dynamique côté serveur
 interface LieuProps {
   params: { id: string };
 }
 
-// Fonction pour retourner un nom lisible du type de lieu
 function getTypeLabel(typeId: number) {
   const types: { [key: number]: string } = {
     7: 'Tombe',
@@ -68,6 +81,22 @@ export default async function LieuPage({ params }: LieuProps) {
   // ------------------------
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto', padding: '2rem', fontFamily: 'sans-serif' }}>
+      
+      {/* Statut en haut */}
+      <div
+        style={{
+          padding: '0.5rem 1rem',
+          borderRadius: '6px',
+          textAlign: 'center',
+          fontWeight: 'bold',
+          color: '#fff',
+          backgroundColor: lieu.status === 'approved' ? '#28a745' : '#dc3545',
+          marginBottom: '1rem',
+        }}
+      >
+        {lieu.status === 'approved' ? '✅ Vérifié' : '⚠️ Non vérifié'}
+      </div>
+
       <h1 style={{ marginBottom: '1rem', fontSize: '2rem', color: '#003366' }}>{lieu.title}</h1>
 
       {/* Description */}
@@ -83,17 +112,33 @@ export default async function LieuPage({ params }: LieuProps) {
           {lieu.address_text || '-'} {lieu.country || '-'} <br />
           Coordonnées : {lieu.latitude}, {lieu.longitude}
         </p>
+
+        {/* Mini-plan Leaflet */}
+        {lieu.latitude && lieu.longitude && (
+          <div style={{ height: '300px', width: '100%', marginTop: '1rem', borderRadius: '8px', overflow: 'hidden' }}>
+            <MapContainer
+              center={[lieu.latitude, lieu.longitude]}
+              zoom={13}
+              style={{ height: '100%', width: '100%' }}
+              scrollWheelZoom={false}
+            >
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              <Marker position={[lieu.latitude, lieu.longitude]}>
+                <Popup>{lieu.title}</Popup>
+              </Marker>
+            </MapContainer>
+          </div>
+        )}
       </div>
 
-      {/* Type et statut */}
+      {/* Type de lieu */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginBottom: '1rem' }}>
         <div style={{ flex: '1 1 200px', backgroundColor: '#fff3e6', padding: '1rem', borderRadius: '8px' }}>
           <h3 style={{ color: '#d97706' }}>🏷️ Type de lieu</h3>
           <p>{getTypeLabel(lieu.type_id)}</p>
-        </div>
-        <div style={{ flex: '1 1 200px', backgroundColor: '#f0f5ff', padding: '1rem', borderRadius: '8px' }}>
-          <h3 style={{ color: '#3b82f6' }}>📌 Statut</h3>
-          <p>{lieu.status}</p>
         </div>
       </div>
 
@@ -122,7 +167,7 @@ export default async function LieuPage({ params }: LieuProps) {
                 key={idx}
                 src={p.url}
                 alt={p.description || 'Photo du lieu'}
-                style={{ maxWidth: '250px', borderRadius: '6px', objectFit: 'cover' }}
+                style={{ maxWidth: '300px', borderRadius: '6px', objectFit: 'cover' }}
               />
             ))}
           </div>
