@@ -218,13 +218,12 @@ function getTypeLabel(
 
 <div style={{ position: 'relative', height: '500px', zIndex: 1, }}>
   <MapContainer
-    {...({
-      ref={mapRef}
-      style: { height: '100%', width: '100%', zIndex: 1 },
-      zoom: 5,
-      center: [48.8566, 2.3522],
-    } as any)}
-  >
+  ref={mapRef} // ← ici, directement
+  style={{ height: '100%', width: '100%', zIndex: 1 }}
+  zoom={5}
+  center={[48.8566, 2.3522]}
+>
+
   
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
