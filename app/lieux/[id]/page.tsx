@@ -77,7 +77,7 @@ export default async function LieuPage({ params }: LieuProps) {
     top: 0,
     zIndex: 1000,
     backgroundColor: 'white',
-    padding: '0.5rem 2rem',
+    padding: '0.3rem 1rem',
     borderBottom: '1px solid #ddd',
     display: 'flex',
     justifyContent: 'flex-start',
@@ -87,16 +87,16 @@ export default async function LieuPage({ params }: LieuProps) {
     href="/lieux/test-carte-leaflet"
     style={{
       display: 'inline-block',
-      padding: '8px 12px',
+      padding: '4px 8px',
       backgroundColor: '#1e88e5',
       color: 'white',
-      borderRadius: '8px',
+      borderRadius: '6px',
       fontWeight: '600',
-      fontSize: '14px',
+      fontSize: '12px',
       textDecoration: 'none',
     }}
   >
-    ← Retour à la carte
+    ← Carte
   </Link>
 </div>
 
