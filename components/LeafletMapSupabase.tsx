@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import Link from 'next/link';
 
 
 // 🔹 Fix icônes Leaflet pour Next.js
@@ -307,6 +308,21 @@ function getTypeLabel(
                     {lieu.description}
                   </p>
                 )}
+
+                {/* 🔹 Lien vers la fiche lieu */}
+<div style={{ marginTop: '12px', textAlign: 'right' }}>
+  <Link
+    href={`/lieux/${lieu.id}`}
+    style={{
+      fontSize: '13px',
+      fontWeight: 600,
+      color: '#1e88e5',
+      textDecoration: 'none',
+    }}
+  >
+    Voir la fiche complète →
+  </Link>
+</div>
               </div>
             </Popup>
           </Marker>
