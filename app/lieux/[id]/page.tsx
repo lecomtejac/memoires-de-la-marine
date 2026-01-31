@@ -1,6 +1,6 @@
-
 import { supabase } from '../../../lib/supabaseClient';
 import React from 'react';
+import Link from 'next/link';
 
 // Next.js App Router : page dynamique côté serveur
 interface LieuProps {
@@ -69,6 +69,27 @@ export default async function LieuPage({ params }: LieuProps) {
   // ------------------------
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto', padding: '2rem', fontFamily: 'sans-serif' }}>
+      
+      {/* 🔹 Bouton Retour Carte */}
+      <div style={{ marginBottom: '1rem' }}>
+        <Link
+          href="/lieux" // ou la page de ta carte
+          style={{
+            display: 'inline-block',
+            padding: '8px 12px',
+            backgroundColor: '#1e88e5',
+            color: 'white',
+            borderRadius: '8px',
+            fontWeight: '600',
+            fontSize: '14px',
+            textDecoration: 'none',
+          }}
+        >
+          ← Retour à la carte
+        </Link>
+      </div>
+
+      {/* 🔹 Titre du lieu */}
       <h1 style={{ marginBottom: '1rem', fontSize: '2rem', color: '#003366' }}>{lieu.title}</h1>
 
       {/* Description */}
