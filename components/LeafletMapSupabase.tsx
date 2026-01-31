@@ -215,12 +215,12 @@ function getTypeLabel(
  
 
 <div style={{ position: 'relative', height: '500px', zIndex: 1, }}>
-<MapContainer
-  {...({
-    style: { height: '100%', width: '100%', zIndex: 1 },
-    center: [46.6, 2.5],
-    zoom: 6,
-  } as any)}
+  <MapContainer
+    {...({
+      style: { height: '100%', width: '100%', zIndex: 1 },
+      zoom: 5,
+      center: [48.8566, 2.3522],
+    } as any)}
   >
   
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
