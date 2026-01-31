@@ -3,7 +3,7 @@
 import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import Link from 'next/link';
 import MarkerClusterGroup from 'react-leaflet-cluster';
@@ -134,8 +134,7 @@ export default function LeafletMapSupabase() {
   const [selectedType, setSelectedType] = useState<number | 'all'>('all');
   const [loading, setLoading] = useState(true);
   const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
-  const mapRef = useRef<L.Map>(null);
-  
+
   // 🔹 Icônes par type de lieu selon ton table location_types
 const typeIcons: Record<number, string> = {
   7: '🪦',   // Tombe
@@ -218,12 +217,12 @@ function getTypeLabel(
 
 <div style={{ position: 'relative', height: '500px', zIndex: 1, }}>
   <MapContainer
-  ref={mapRef} // ← ici, directement
-  style={{ height: '100%', width: '100%', zIndex: 1 }}
-  zoom={5}
-  center={[48.8566, 2.3522]}
->
-
+    {...({
+      style: { height: '100%', width: '100%', zIndex: 1 },
+      zoom: 5,
+      center: [48.8566, 2.3522],
+    } as any)}
+  >
   
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
