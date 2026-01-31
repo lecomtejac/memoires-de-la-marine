@@ -73,7 +73,7 @@ export default async function LieuPage({ params }: LieuProps) {
       {/* 🔹 Bouton Retour Carte */}
       <div style={{ marginBottom: '1rem' }}>
         <Link
-          href="/lieux" // ou la page de ta carte
+          href="/lieux/test-carte-leaflet" // ou la page de ta carte
           style={{
             display: 'inline-block',
             padding: '8px 12px',
