@@ -131,25 +131,29 @@ export default function Page() {
 
     
       {/* Carte */}
-      <div
-        style={{
-          maxWidth: '1200px',
-          margin: '1.5rem auto',
-          padding: '0 1rem',
-        }}
-      >
-        <div
-          style={{
-            height: '75vh',
-            width: '100%',
-            borderRadius: '16px',
-            overflow: 'hidden',
-            boxShadow: '0 10px 30px rgba(0,0,0,0.12)',
-            backgroundColor: '#fff',
-          }}
-        >
-          <LeafletMapSupabase />
-        </div>
+<div
+  style={{
+    maxWidth: '1200px',
+    margin: '1.5rem auto',
+    padding: '0 1rem',
+  }}
+>
+  <div
+    style={{
+      height: '75vh',
+      width: '100%',
+      borderRadius: '16px',
+      overflow: 'hidden',
+      boxShadow: '0 10px 30px rgba(0,0,0,0.12)',
+      backgroundColor: '#fff',
+    }}
+  >
+    {/* Wrapper pour forcer la carte à remplir tout le parent */}
+    <div style={{ height: '100%', width: '100%' }}>
+      <LeafletMapSupabase />
+    </div>
+  </div>
+</div>
       {/* 🔹 Cadre Derniers lieux ajoutés sous la carte */}
         <div
           style={{
