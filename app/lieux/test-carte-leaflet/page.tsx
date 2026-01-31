@@ -129,35 +129,7 @@ export default function Page() {
         </div>
       </div>
 
-      {/* 🔹 Derniers lieux ajoutés */}
-      <div
-  style={{
-    maxWidth: '1200px',
-    margin: '1.5rem auto',
-    marginBottom: '1rem',
-    padding: '1rem', // fusionné
-    backgroundColor: '#ffffff',
-    borderRadius: '8px',
-    boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
-  }}
->
-  <h3 style={{ marginBottom: '0.5rem', color: '#0070f3' }}>📰 Derniers lieux ajoutés</h3>
-  <ul style={{ margin: 0, paddingLeft: '1rem' }}>
-    {latestLieux.map((lieu) => (
-      <li key={lieu.id}>
-        <Link
-          href={`/lieux/${lieu.id}`}
-          style={{ color: '#003366', textDecoration: 'underline' }}
-        >
-          {lieu.title}
-        </Link>
-      </li>
-    ))}
-    {latestLieux.length === 0 && <li>Aucun lieu récent</li>}
-  </ul>
-</div>
-
-
+    
       {/* Carte */}
       <div
         style={{
@@ -178,7 +150,39 @@ export default function Page() {
         >
           <LeafletMapSupabase />
         </div>
+      {/* 🔹 Cadre Derniers lieux ajoutés sous la carte */}
+        <div
+          style={{
+            marginTop: '1.5rem',
+            marginBottom: '2rem',
+            padding: '1rem',
+            backgroundColor: '#ffffff',
+            borderRadius: '8px',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+          }}
+        >
+          <h3 style={{ marginBottom: '0.5rem', color: '#0070f3' }}>📰 Derniers lieux ajoutés</h3>
+          <ul style={{ margin: 0, paddingLeft: '1rem' }}>
+            {latestLieux.map((lieu) => (
+              <li key={lieu.id}>
+                <Link
+                  href={`/lieux/${lieu.id}`}
+                  style={{ color: '#003366', textDecoration: 'underline' }}
+                >
+                  {lieu.title}
+                </Link>
+              </li>
+            ))}
+            {latestLieux.length === 0 && <li>Aucun lieu récent</li>}
+          </ul>
+        </div>
       </div>
     </div>
   );
 }
+
+
+
+
+
+
