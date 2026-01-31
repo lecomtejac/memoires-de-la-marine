@@ -1,0 +1,15 @@
+/* 🔵 Clusters Leaflet bleus */
+.cluster-blue {
+  background: radial-gradient(circle at 30% 30%, #64b5f6, #1565c0);
+  color: white;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  box-shadow: 0 0 0 4px rgba(21, 101, 192, 0.35);
+  border: 2px solid #0d47a1;
+}
