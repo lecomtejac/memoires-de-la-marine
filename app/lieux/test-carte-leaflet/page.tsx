@@ -2,13 +2,35 @@
 
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { supabase } from '../../../lib/supabaseClient';
 
 const LeafletMapSupabase = dynamic(
   () => import('../../../components/LeafletMapSupabase'),
   { ssr: false }
 );
 
+interface Lieu {
+  id: number;
+  title: string;
+}
+
 export default function Page() {
+  const [latestLieux, setLatestLieux] = useState<Lieu[]>([]);
+
+  useEffect(() => {
+    const fetchLatest = async () => {
+      const { data, error } = await supabase
+        .from('locations')
+        .select('id, title')
+        .order('created_at', { ascending: false })
+        .limit(5); // Les 5 derniers lieux
+      if (error) console.error(error);
+      else setLatestLieux(data || []);
+    };
+    fetchLatest();
+  }, []);
+
   return (
     <div
       style={{
@@ -105,6 +127,35 @@ export default function Page() {
             </Link>
           </div>
         </div>
+      </div>
+
+      {/* 🔹 Derniers lieux ajoutés */}
+      <div
+        style={{
+          maxWidth: '1200px',
+          margin: '1.5rem auto',
+          padding: '0 1rem',
+          marginBottom: '1rem',
+          backgroundColor: '#ffffff',
+          borderRadius: '8px',
+          boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+          padding: '1rem',
+        }}
+      >
+        <h3 style={{ marginBottom: '0.5rem', color: '#0070f3' }}>📰 Derniers lieux ajoutés</h3>
+        <ul style={{ margin: 0, paddingLeft: '1rem' }}>
+          {latestLieux.map((lieu) => (
+            <li key={lieu.id}>
+              <Link
+                href={`/lieux/${lieu.id}`}
+                style={{ color: '#003366', textDecoration: 'underline' }}
+              >
+                {lieu.title}
+              </Link>
+            </li>
+          ))}
+          {latestLieux.length === 0 && <li>Aucun lieu récent</li>}
+        </ul>
       </div>
 
       {/* Carte */}
