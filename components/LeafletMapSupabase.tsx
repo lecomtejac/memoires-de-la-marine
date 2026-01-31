@@ -57,11 +57,18 @@ function FitBounds({ lieux }: { lieux: Lieu[] }) {
   const map = useMap();
 
   useEffect(() => {
-    if (lieux.length === 0) return;
+    if (lieux.length === 0) {
+      // 🔹 Aucun lieu → vue France métropolitaine
+      map.setView([46.6, 2.5], 6);
+      return;
+    }
 
     const bounds = L.latLngBounds(
-      lieux.map((l) => [l.latitude, l.longitude] as [number, number])
+      lieux
+        .filter((l) => l.latitude && l.longitude)
+        .map((l) => [l.latitude!, l.longitude!] as [number, number])
     );
+
     map.fitBounds(bounds, { padding: [50, 50] });
   }, [lieux, map]);
 
