@@ -6,6 +6,7 @@ import L from 'leaflet';
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import Link from 'next/link';
+import MarkerClusterGroup from 'react-leaflet-cluster';
 
 
 // 🔹 Fix icônes Leaflet pour Next.js
@@ -229,7 +230,11 @@ function getTypeLabel(
         <LocateUserControl onLocate={(lat, lng) => setUserPosition([lat, lng])} />
 
         {/* 🔹 Lieux Supabase */}
-        {lieuxFiltres.map((lieu) => (
+    <MarkerClusterGroup
+  chunkedLoading
+  maxClusterRadius={60}
+>    
+    {lieuxFiltres.map((lieu) => (
           <Marker key={lieu.id} position={[lieu.latitude, lieu.longitude]}>
             <Tooltip
               {...({
@@ -334,7 +339,7 @@ function getTypeLabel(
             </Popup>
           </Marker>
         ))}
-
+</MarkerClusterGroup>
         {/* 🔹 Position utilisateur */}
         {userPosition && (
           <Marker
