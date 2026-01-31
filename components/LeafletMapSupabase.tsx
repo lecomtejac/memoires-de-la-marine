@@ -231,9 +231,11 @@ function getTypeLabel(
 
         {/* 🔹 Lieux Supabase */}
     <MarkerClusterGroup
- chunkedLoading
-  maxClusterRadius={70}
-  iconCreateFunction={(cluster) => {
+     showCoverageOnHover={false}
+     spiderfyOnEveryZoom={false}
+     chunkedLoading
+     maxClusterRadius={70}
+     iconCreateFunction={(cluster) => {
     const count = cluster.getChildCount();
 
     return L.divIcon({
