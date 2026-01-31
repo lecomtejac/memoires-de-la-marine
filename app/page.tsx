@@ -93,7 +93,7 @@ export default function HomePage() {
                 margin: '0 auto',
               }}
             >
-              Contribuez à enrichir cette mémoire collective en découvrant ou en ajoutant des lieux de mémoire.
+              Contribuez à enrichir cette mémoire collective en découvrant ou en ajoutant vous même des lieux de mémoire.
             </p>
           </header>
 
