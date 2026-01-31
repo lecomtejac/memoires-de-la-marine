@@ -231,9 +231,22 @@ function getTypeLabel(
 
         {/* 🔹 Lieux Supabase */}
     <MarkerClusterGroup
-  chunkedLoading
-  maxClusterRadius={60}
->    
+ chunkedLoading
+  maxClusterRadius={70}
+  iconCreateFunction={(cluster) => {
+    const count = cluster.getChildCount();
+
+    return L.divIcon({
+      html: `
+        <div class="cluster-blue">
+          ${count}
+        </div>
+      `,
+      className: '',
+      iconSize: L.point(44, 44, true),
+    });
+  }}
+>   
     {lieuxFiltres.map((lieu) => (
           <Marker key={lieu.id} position={[lieu.latitude, lieu.longitude]}>
             <Tooltip
