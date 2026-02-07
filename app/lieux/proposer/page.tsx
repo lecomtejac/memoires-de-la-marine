@@ -173,7 +173,7 @@ const [personRank, setPersonRank] = useState('');
             address_text: addressText || null,
             country: country || null,
             type_id: typeId,
-            period_start: periodStart ? parseInt(periodStart, 10) : null,
+            period_start: periodStart ? `${periodStart}-01-01` : null,
             status: 'pending',
             created_by: user.id,
           },
