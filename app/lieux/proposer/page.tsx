@@ -146,9 +146,9 @@ const [personRank, setPersonRank] = useState('');
   const trimmed = value.trim();
   if (!trimmed) return null;
 
-  // Cas 1 : année seule (ex : 1980)
+  // Cas 1 : année seule (ex : 1945)
   if (/^\d{4}$/.test(trimmed)) {
-    return new Date(Number(trimmed), 0, 1);
+    return new Date(Date.UTC(Number(trimmed), 0, 1));
   }
 
   // Cas 2 : date JJ/MM/AAAA ou J/M/AAAA
@@ -156,13 +156,14 @@ const [personRank, setPersonRank] = useState('');
   if (frDateMatch) {
     const [, day, month, year] = frDateMatch;
     return new Date(
-      Number(year),
-      Number(month) - 1,
-      Number(day)
+      Date.UTC(
+        Number(year),
+        Number(month) - 1,
+        Number(day)
+      )
     );
   }
 
-  // Format invalide
   return null;
 }
   /* =========================
