@@ -235,8 +235,8 @@ export default function AdminLocationPage({ params }: { params: { id: string } }
 
             // 🔹 Upload dans le bucket 'photos'
             const { error: uploadError } = await supabase.storage
-              .from('photos')
-              .upload(filePath, file);
+              .from('location-photos')
+              .upload(filePath, compressedFile);
 
             if (uploadError) {
               alert('Erreur lors de l\'upload : ' + uploadError.message);
@@ -244,7 +244,7 @@ export default function AdminLocationPage({ params }: { params: { id: string } }
             }
 
             // 🔹 Récupérer l'URL publique (corrigé)
-            const { data: publicData } = supabase.storage.from('photos').getPublicUrl(filePath);
+            const { data: publicData } = supabase.storage.from('location-photos').getPublicUrl(filePath);
             const publicUrl = publicData.publicUrl;
 
             if (!publicUrl) {
