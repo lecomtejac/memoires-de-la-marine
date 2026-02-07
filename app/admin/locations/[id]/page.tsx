@@ -243,8 +243,9 @@ export default function AdminLocationPage({ params }: { params: { id: string } }
               return;
             }
 
-            // 🔹 Récupérer l'URL publique
-            const { publicUrl } = supabase.storage.from('photos').getPublicUrl(filePath);
+            // 🔹 Récupérer l'URL publique (corrigé)
+            const { data: publicData } = supabase.storage.from('photos').getPublicUrl(filePath);
+            const publicUrl = publicData.publicUrl;
 
             if (!publicUrl) {
               alert('Erreur lors de la récupération de l\'URL publique');
