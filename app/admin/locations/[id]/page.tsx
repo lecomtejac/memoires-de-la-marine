@@ -219,6 +219,52 @@ export default function AdminLocationPage({ params }: { params: { id: string } }
         ))}
       </div>
 
+// Dans la partie Photos (juste après l'affichage des photos existantes)
+
+<div style={{ backgroundColor: '#eef6f9', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
+  <h3 style={{ color: '#0070f3' }}>📷 Ajouter une photo</h3>
+  <input
+    type="file"
+    accept="image/*"
+    onChange={async (e) => {
+      if (!e.target.files || e.target.files.length === 0) return;
+
+      const file = e.target.files[0];
+      const fileExt = file.name.split('.').pop();
+      const fileName = `location_${location.id}_${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      // Upload dans le bucket 'photos'
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('photos')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        alert('Erreur lors de l\'upload : ' + uploadError.message);
+        return;
+      }
+
+      // Récupérer l'URL publique
+      const { publicUrl } = supabase.storage.from('photos').getPublicUrl(filePath);
+
+      // Ajouter dans la table 'photos'
+      const { data: photoData, error: photoError } = await supabase
+        .from('photos')
+        .insert([{ location_id: location.id, url: publicUrl, description: '' }])
+        .select()
+        .single();
+
+      if (photoError) {
+        alert('Erreur lors de l\'ajout en base : ' + photoError.message);
+        return;
+      }
+
+      // Mettre à jour l'état pour affichage immédiat
+      setPhotos([...photos, photoData as Photo]);
+    }}
+  />
+</div>
+      
       <button
         onClick={handleSave}
         style={{ padding: '0.5rem 1rem', backgroundColor: '#0070f3', color: 'white', borderRadius: '6px', border: 'none' }}
