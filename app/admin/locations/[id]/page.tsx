@@ -219,8 +219,7 @@ export default function AdminLocationPage({ params }: { params: { id: string } }
         ))}
       </div>
 
-// Dans la partie Photos (juste après l'affichage des photos existantes)
-
+{/* 🔹 Ajouter une photo */}
 <div style={{ backgroundColor: '#eef6f9', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
   <h3 style={{ color: '#0070f3' }}>📷 Ajouter une photo</h3>
   <input
@@ -234,7 +233,7 @@ export default function AdminLocationPage({ params }: { params: { id: string } }
       const fileName = `location_${location.id}_${Date.now()}.${fileExt}`;
       const filePath = `${fileName}`;
 
-      // Upload dans le bucket 'photos'
+      // 🔹 Upload dans le bucket 'photos'
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('photos')
         .upload(filePath, file);
@@ -244,10 +243,19 @@ export default function AdminLocationPage({ params }: { params: { id: string } }
         return;
       }
 
-      // Récupérer l'URL publique
-      const { publicUrl } = supabase.storage.from('photos').getPublicUrl(filePath);
+      // 🔹 Récupérer l'URL publique
+      const { data: publicData, error: publicError } = supabase.storage
+        .from('photos')
+        .getPublicUrl(filePath);
 
-      // Ajouter dans la table 'photos'
+      if (publicError || !publicData?.publicUrl) {
+        alert('Erreur lors de la récupération de l\'URL publique');
+        return;
+      }
+
+      const publicUrl = publicData.publicUrl;
+
+      // 🔹 Ajouter dans la table 'photos'
       const { data: photoData, error: photoError } = await supabase
         .from('photos')
         .insert([{ location_id: location.id, url: publicUrl, description: '' }])
@@ -259,7 +267,7 @@ export default function AdminLocationPage({ params }: { params: { id: string } }
         return;
       }
 
-      // Mettre à jour l'état pour affichage immédiat
+      // 🔹 Mettre à jour l'état pour affichage immédiat
       setPhotos([...photos, photoData as Photo]);
     }}
   />
