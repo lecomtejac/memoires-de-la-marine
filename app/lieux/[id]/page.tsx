@@ -27,6 +27,25 @@ function getTypeLabel(typeId: number) {
   return types[typeId] || 'Inconnu';
 }
 
+function formatPeriodStart(periodStart: string | null) {
+  if (!periodStart) return 'Date inconnue';
+
+  const date = new Date(periodStart);
+
+  // Si c’est le 1er janvier → on affiche seulement l’année
+  if (
+    date.getUTCDate() === 1 &&
+    date.getUTCMonth() === 0
+  ) {
+    return date.getUTCFullYear().toString();
+  }
+
+  // Sinon date complète (JJ/MM/AAAA)
+  return date.toLocaleDateString('fr-FR', {
+    timeZone: 'UTC',
+  });
+}
+
 export default async function LieuPage({ params }: LieuProps) {
   const id = parseInt(params.id);
   if (isNaN(id)) return <p>ID invalide</p>;
@@ -130,6 +149,21 @@ export default async function LieuPage({ params }: LieuProps) {
         </div>
       </div>
 
+      {/* Date / période du lieu */}
+<div
+  style={{
+    backgroundColor: '#f5f7fa',
+    padding: '1rem',
+    borderRadius: '8px',
+    marginBottom: '1rem',
+    borderLeft: '4px solid #6366f1',
+  }}
+>
+  <h3 style={{ color: '#4f46e5' }}>🗓️ Date / période du lieu</h3>
+  <p style={{ fontSize: '1.1rem', fontWeight: '500' }}>
+    {formatPeriodStart(lieu.period_start)}
+  </p>
+</div>
       {/* Marins associés */}
       {marins.length > 0 && (
         <div style={{ backgroundColor: '#f9f9f9', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
