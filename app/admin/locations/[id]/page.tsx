@@ -55,9 +55,7 @@ export default function AdminLocationPage({ params }: { params: { id: string } }
   // ------------------------
   useEffect(() => {
     const checkAdmin = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) return router.push('/login');
 
@@ -198,7 +196,7 @@ export default function AdminLocationPage({ params }: { params: { id: string } }
         </div>
       </div>
 
-      {/* Photos */}
+      {/* Photos existantes */}
       <div style={{ backgroundColor: '#eef6f9', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
         <h3 style={{ color: '#0070f3' }}>📷 Photos</h3>
         {photos.map((p) => (
@@ -219,7 +217,7 @@ export default function AdminLocationPage({ params }: { params: { id: string } }
         ))}
       </div>
 
-      {/* 🔹 Ajouter une photo */}
+      {/* Ajouter une photo */}
       <div style={{ backgroundColor: '#eef6f9', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
         <h3 style={{ color: '#0070f3' }}>📷 Ajouter une photo</h3>
         <input
@@ -231,20 +229,21 @@ export default function AdminLocationPage({ params }: { params: { id: string } }
             const file = e.target.files[0];
             const fileExt = file.name.split('.').pop();
             const fileName = `location_${location.id}_${Date.now()}.${fileExt}`;
-            const filePath = `${fileName}`;
 
-            // 🔹 Upload dans le bucket 'photos'
+            // 🔹 Upload dans le bucket 'location-photos'
             const { error: uploadError } = await supabase.storage
               .from('location-photos')
-              .upload(filePath, compressedFile);
+              .upload(fileName, file); // <-- ici on met 'file', pas 'compressedFile'
 
             if (uploadError) {
               alert('Erreur lors de l\'upload : ' + uploadError.message);
               return;
             }
 
-            // 🔹 Récupérer l'URL publique (corrigé)
-            const { data: publicData } = supabase.storage.from('location-photos').getPublicUrl(filePath);
+            // 🔹 Récupérer l'URL publique
+            const { data: publicData } = supabase.storage
+              .from('location-photos')
+              .getPublicUrl(fileName);
             const publicUrl = publicData.publicUrl;
 
             if (!publicUrl) {
@@ -264,7 +263,6 @@ export default function AdminLocationPage({ params }: { params: { id: string } }
               return;
             }
 
-            // 🔹 Mettre à jour l'état pour affichage immédiat
             setPhotos([...photos, photoData as Photo]);
           }}
         />
