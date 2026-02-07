@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../../../lib/supabaseClient';
-import Link from 'next/link';
 
 // Typage
 interface Location {
@@ -14,179 +13,220 @@ interface Location {
   latitude: number;
   longitude: number;
   status: string;
+  period_start: string | null;
 }
 
-// Typage pour les photos
 interface Photo {
   id: number;
   url: string;
   description: string | null;
+  created_at: string | null;
 }
 
-export default function AdminEditLocationPage({ params }: { params: { id: string } }) {
+function getTypeLabel(typeId: number) {
+  const types: { [key: number]: string } = {
+    7: 'Tombe', 8: 'Monument', 9: 'Plaque commémorative', 10: 'Mémorial',
+    11: 'Lieu de bataille', 12: 'Lieu de débarquement', 13: 'Naufrage',
+    14: 'Épave', 15: 'Musée', 16: 'Trace de passage', 17: 'Base',
+    18: 'Port', 19: 'Autre lieu remarquable'
+  };
+  return types[typeId] || 'Inconnu';
+}
+
+function formatPhotoDate(dateString: string | null) {
+  if (!dateString) return null;
+  return new Date(dateString).toLocaleDateString('fr-FR', {
+    day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC',
+  });
+}
+
+export default function AdminLocationPage({ params }: { params: { id: string } }) {
   const id = parseInt(params.id);
   const router = useRouter();
 
   const [location, setLocation] = useState<Location | null>(null);
   const [photos, setPhotos] = useState<Photo[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [adminChecked, setAdminChecked] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  // Form state
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [latitude, setLatitude] = useState('');
-  const [longitude, setLongitude] = useState('');
-  const [status, setStatus] = useState('');
-  const [typeId, setTypeId] = useState<number | null>(null);
-  const [newPhotos, setNewPhotos] = useState<File[]>([]);
-
-  // Fetch du lieu
-  const fetchLocation = async () => {
-    setLoading(true);
-    const { data, error } = await supabase.from('locations').select('*').eq('id', id).single();
-    if (error || !data) console.error(error);
-    else {
-      setLocation(data);
-      setTitle(data.title);
-      setDescription(data.description || '');
-      setLatitude(data.latitude.toString());
-      setLongitude(data.longitude.toString());
-      setStatus(data.status);
-      setTypeId(data.type_id);
-    }
-
-    const { data: photosData, error: photosError } = await supabase.from('photos').select('*').eq('location_id', id);
-    if (photosError) console.error(photosError);
-    else setPhotos(photosData || []);
-
-    setLoading(false);
-  };
-
+  // ------------------------
+  // Vérification admin
+  // ------------------------
   useEffect(() => {
-    fetchLocation();
-  }, []);
+    const checkAdmin = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
+      if (!user) return router.push('/login');
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile || profile.role !== 'admin') return router.push('/');
+
+      setAdminChecked(true);
+    };
+    checkAdmin();
+  }, [router]);
+
+  // ------------------------
+  // Fetch location + photos
+  // ------------------------
+  useEffect(() => {
+    if (!adminChecked) return;
+
+    const fetchData = async () => {
+      const { data: loc } = await supabase
+        .from('locations')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      const { data: photosData } = await supabase
+        .from('photos')
+        .select('*')
+        .eq('location_id', id);
+
+      setLocation(loc as Location);
+      setPhotos(photosData as Photo[]);
+      setLoading(false);
+    };
+
+    fetchData();
+  }, [id, adminChecked]);
+
+  // ------------------------
   // Sauvegarde
+  // ------------------------
   const handleSave = async () => {
-    setLoading(true);
-    const { error } = await supabase
-      .from('locations')
-      .update({
-        title,
-        description,
-        latitude: parseFloat(latitude),
-        longitude: parseFloat(longitude),
-        status,
-        type_id: typeId,
-      })
-      .eq('id', id);
-    if (error) setMessage('Erreur lors de la mise à jour');
-    else setMessage('Lieu mis à jour avec succès');
-
-    // Upload nouvelles photos
-    for (const file of newPhotos) {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage.from('location-photos').upload(fileName, file);
-      if (uploadError) console.error(uploadError);
-      else {
-        const publicUrl = supabase.storage.from('location-photos').getPublicUrl(fileName).data.publicUrl;
-        await supabase.from('photos').insert({ location_id: id, url: publicUrl, description: null });
-      }
-    }
-
-    setNewPhotos([]);
-    fetchLocation();
-    setLoading(false);
+    if (!location) return;
+    const { error } = await supabase.from('locations').update(location).eq('id', id);
+    if (error) setMessage('Erreur lors de la sauvegarde');
+    else setMessage('Lieu mis à jour !');
   };
 
-  // Supprimer une photo
-  const handleDeletePhoto = async (photoId: number) => {
-    if (!confirm('Supprimer cette photo ?')) return;
-    const { error } = await supabase.from('photos').delete().eq('id', photoId);
-    if (error) console.error(error);
-    else setPhotos((prev) => prev.filter((p) => p.id !== photoId));
+  // ------------------------
+  // Update champs
+  // ------------------------
+  const handleChange = (field: keyof Location, value: any) => {
+    setLocation({ ...location!, [field]: value });
   };
 
-  if (loading || !location) return <p>Chargement…</p>;
+  if (!adminChecked) return <p>Vérification des droits…</p>;
+  if (loading || !location) return <p>Chargement...</p>;
 
   return (
     <div style={{ maxWidth: '900px', margin: '2rem auto', fontFamily: 'sans-serif' }}>
-      <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>Modifier le lieu</h1>
-      {message && <p style={{ color: 'green' }}>{message}</p>}
+      <button
+        onClick={() => router.push('/admin/locations')}
+        style={{ marginBottom: '1rem', color: '#1e88e5' }}
+      >
+        ← Retour à la liste
+      </button>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Titre" />
-        <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description" />
-        <input value={latitude} onChange={(e) => setLatitude(e.target.value)} placeholder="Latitude" />
-        <input value={longitude} onChange={(e) => setLongitude(e.target.value)} placeholder="Longitude" />
+      <h1 style={{ fontSize: '2rem', marginBottom: '1rem', color: '#003366' }}>
+        <input
+          type="text"
+          value={location.title}
+          onChange={(e) => handleChange('title', e.target.value)}
+          style={{ fontSize: '2rem', width: '100%', border: '1px solid #ccc', borderRadius: '4px' }}
+        />
+      </h1>
 
-        <select value={typeId ?? ''} onChange={(e) => setTypeId(parseInt(e.target.value))}>
-          <option value="" disabled>Type de lieu</option>
-          {Object.entries({
-            7: 'Tombe',
-            8: 'Monument',
-            9: 'Plaque commémorative',
-            10: 'Mémorial',
-            11: 'Lieu de bataille',
-            12: 'Lieu de débarquement',
-            13: 'Naufrage',
-            14: 'Épave',
-            15: 'Musée',
-            16: 'Trace de passage',
-            17: 'Base',
-            18: 'Port',
-            19: 'Autre lieu remarquable',
-          }).map(([key, label]) => (
-            <option key={key} value={key}>{label}</option>
-          ))}
-        </select>
+      {/* Description */}
+      <div style={{ backgroundColor: '#f9f9f9', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
+        <h3 style={{ color: '#0070f3' }}>ℹ️ Description</h3>
+        <textarea
+          value={location.description || ''}
+          onChange={(e) => handleChange('description', e.target.value)}
+          style={{ width: '100%', borderRadius: '6px', border: '1px solid #ccc', padding: '0.5rem' }}
+        />
+      </div>
 
-        <select value={status} onChange={(e) => setStatus(e.target.value)}>
-          <option value="pending">pending</option>
-          <option value="approved">approved</option>
-        </select>
+      {/* Localisation */}
+      <div style={{ backgroundColor: '#eef6f9', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
+        <h3 style={{ color: '#0070f3' }}>📍 Localisation</h3>
+        <input
+          type="text"
+          value={location.latitude}
+          onChange={(e) => handleChange('latitude', parseFloat(e.target.value))}
+          placeholder="Latitude"
+          style={{ marginRight: '0.5rem', width: '120px' }}
+        />
+        <input
+          type="text"
+          value={location.longitude}
+          onChange={(e) => handleChange('longitude', parseFloat(e.target.value))}
+          placeholder="Longitude"
+          style={{ width: '120px' }}
+        />
+      </div>
 
-        {/* Upload nouvelles photos */}
-        <input type="file" multiple onChange={(e) => e.target.files && setNewPhotos([...newPhotos, ...Array.from(e.target.files)])} />
-
-        {/* Liste des photos existantes */}
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-          {photos.map((p) => (
-            <div key={p.id} style={{ position: 'relative' }}>
-              <img src={p.url} style={{ width: '150px', height: '150px', objectFit: 'cover', borderRadius: '6px' }} />
-              <button
-                onClick={() => handleDeletePhoto(p.id)}
-                style={{
-                  position: 'absolute',
-                  top: '4px',
-                  right: '4px',
-                  backgroundColor: '#dc3545',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  padding: '2px 6px',
-                }}
-              >
-                🗑️
-              </button>
-            </div>
-          ))}
+      {/* Type et statut */}
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+        <div style={{ flex: 1, backgroundColor: '#fff3e6', padding: '1rem', borderRadius: '8px' }}>
+          <h3 style={{ color: '#d97706' }}>🏷️ Type de lieu</h3>
+          <select
+            value={location.type_id}
+            onChange={(e) => handleChange('type_id', parseInt(e.target.value))}
+          >
+            {Object.entries({
+              7: 'Tombe', 8: 'Monument', 9: 'Plaque commémorative', 10: 'Mémorial',
+              11: 'Lieu de bataille', 12: 'Lieu de débarquement', 13: 'Naufrage',
+              14: 'Épave', 15: 'Musée', 16: 'Trace de passage', 17: 'Base',
+              18: 'Port', 19: 'Autre lieu remarquable'
+            }).map(([id, label]) => (
+              <option key={id} value={id}>{label}</option>
+            ))}
+          </select>
         </div>
 
-        <button
-          onClick={handleSave}
-          style={{ padding: '0.75rem 1.5rem', backgroundColor: '#0070f3', color: 'white', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
-        >
-          Sauvegarder
-        </button>
-
-        <Link href="/admin/locations" style={{ color: '#1e88e5' }}>
-          ← Retour à la liste
-        </Link>
+        <div style={{ flex: 1, backgroundColor: '#f0f5ff', padding: '1rem', borderRadius: '8px' }}>
+          <h3 style={{ color: '#3b82f6' }}>📌 Statut</h3>
+          <select
+            value={location.status}
+            onChange={(e) => handleChange('status', e.target.value)}
+          >
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+          </select>
+        </div>
       </div>
+
+      {/* Photos */}
+      <div style={{ backgroundColor: '#eef6f9', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
+        <h3 style={{ color: '#0070f3' }}>📷 Photos</h3>
+        {photos.map((p) => (
+          <div key={p.id} style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
+            <img src={p.url} style={{ width: '100px', borderRadius: '6px', marginRight: '0.5rem' }} />
+            <input
+              type="text"
+              value={p.description || ''}
+              placeholder="Description"
+              onChange={async (e) => {
+                const newDesc = e.target.value;
+                setPhotos(photos.map(ph => ph.id === p.id ? { ...ph, description: newDesc } : ph));
+                await supabase.from('photos').update({ description: newDesc }).eq('id', p.id);
+              }}
+              style={{ flex: 1, padding: '0.3rem' }}
+            />
+          </div>
+        ))}
+      </div>
+
+      <button
+        onClick={handleSave}
+        style={{ padding: '0.5rem 1rem', backgroundColor: '#0070f3', color: 'white', borderRadius: '6px', border: 'none' }}
+      >
+        💾 Sauvegarder
+      </button>
+
+      {message && <p style={{ color: 'green', marginTop: '1rem' }}>{message}</p>}
     </div>
   );
 }
