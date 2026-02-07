@@ -19,6 +19,7 @@ const [personRank, setPersonRank] = useState('');
   const [photos, setPhotos] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [periodStart, setPeriodStart] = useState('');
 
   const router = useRouter();
   const RANKS = [
@@ -172,6 +173,7 @@ const [personRank, setPersonRank] = useState('');
             address_text: addressText || null,
             country: country || null,
             type_id: typeId,
+            period_start: periodStart ? parseInt(periodStart, 10) : null,
             status: 'pending',
             created_by: user.id,
           },
@@ -254,6 +256,7 @@ if (personName.trim()) {
       setPhotos([]);
       setPersonName('');
       setPersonRank('');
+      setPeriodStart('');
 
       setMessage(
         'Lieu proposé avec succès ! Il sera vérifié par un modérateur.'
@@ -387,6 +390,15 @@ if (personName.trim()) {
               required
             />
 
+            <input
+  type="number"
+  placeholder="Année à laquelle correspond ce lieu de mémoire (ex : 1942)"
+  value={periodStart}
+  onChange={(e) => setPeriodStart(e.target.value)}
+  min="0"
+  step="1"
+/>
+            
 <textarea
   placeholder="Description"
   value={description}
