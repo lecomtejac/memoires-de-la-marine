@@ -46,6 +46,17 @@ function formatPeriodStart(periodStart: string | null) {
   });
 }
 
+function formatPhotoDate(dateString: string | null) {
+  if (!dateString) return null;
+
+  return new Date(dateString).toLocaleDateString('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+}
+
 export default async function LieuPage({ params }: LieuProps) {
   const id = parseInt(params.id);
   if (isNaN(id)) return <p>ID invalide</p>;
@@ -185,13 +196,39 @@ export default async function LieuPage({ params }: LieuProps) {
           <h3 style={{ color: '#0070f3' }}>📷 Photos</h3>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
             {photos.map((p: any, idx: number) => (
-              <img
-                key={idx}
-                src={p.url}
-                alt={p.description || 'Photo du lieu'}
-                style={{ maxWidth: '250px', borderRadius: '6px', objectFit: 'cover' }}
-              />
-            ))}
+  <div
+    key={idx}
+    style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      maxWidth: '250px',
+    }}
+  >
+    <img
+      src={p.url}
+      alt={p.description || 'Photo du lieu'}
+      style={{
+        width: '100%',
+        borderRadius: '6px',
+        objectFit: 'cover',
+      }}
+    />
+
+    {p.created_at && (
+      <span
+        style={{
+          marginTop: '0.4rem',
+          fontSize: '0.8rem',
+          color: '#555',
+          fontStyle: 'italic',
+        }}
+      >
+        Prise le {formatPhotoDate(p.created_at)}
+      </span>
+    )}
+  </div>
+))}
           </div>
         </div>
       )}
