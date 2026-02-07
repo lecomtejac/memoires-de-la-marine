@@ -23,23 +23,6 @@ interface Photo {
   created_at: string | null;
 }
 
-function getTypeLabel(typeId: number) {
-  const types: { [key: number]: string } = {
-    7: 'Tombe', 8: 'Monument', 9: 'Plaque commémorative', 10: 'Mémorial',
-    11: 'Lieu de bataille', 12: 'Lieu de débarquement', 13: 'Naufrage',
-    14: 'Épave', 15: 'Musée', 16: 'Trace de passage', 17: 'Base',
-    18: 'Port', 19: 'Autre lieu remarquable'
-  };
-  return types[typeId] || 'Inconnu';
-}
-
-function formatPhotoDate(dateString: string | null) {
-  if (!dateString) return null;
-  return new Date(dateString).toLocaleDateString('fr-FR', {
-    day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC',
-  });
-}
-
 export default function AdminLocationPage({ params }: { params: { id: string } }) {
   const id = parseInt(params.id);
   const router = useRouter();
@@ -50,13 +33,10 @@ export default function AdminLocationPage({ params }: { params: { id: string } }
   const [adminChecked, setAdminChecked] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  // ------------------------
   // Vérification admin
-  // ------------------------
   useEffect(() => {
     const checkAdmin = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-
       if (!user) return router.push('/login');
 
       const { data: profile } = await supabase
@@ -66,15 +46,12 @@ export default function AdminLocationPage({ params }: { params: { id: string } }
         .single();
 
       if (!profile || profile.role !== 'admin') return router.push('/');
-
       setAdminChecked(true);
     };
     checkAdmin();
   }, [router]);
 
-  // ------------------------
   // Fetch location + photos
-  // ------------------------
   useEffect(() => {
     if (!adminChecked) return;
 
@@ -98,9 +75,7 @@ export default function AdminLocationPage({ params }: { params: { id: string } }
     fetchData();
   }, [id, adminChecked]);
 
-  // ------------------------
   // Sauvegarde
-  // ------------------------
   const handleSave = async () => {
     if (!location) return;
     const { error } = await supabase.from('locations').update(location).eq('id', id);
@@ -108,11 +83,34 @@ export default function AdminLocationPage({ params }: { params: { id: string } }
     else setMessage('Lieu mis à jour !');
   };
 
-  // ------------------------
   // Update champs
-  // ------------------------
   const handleChange = (field: keyof Location, value: any) => {
     setLocation({ ...location!, [field]: value });
+  };
+
+  // Supprimer photo
+  const handleDeletePhoto = async (photo: Photo) => {
+    if (!confirm('Voulez-vous vraiment supprimer cette photo ?')) return;
+
+    // 1️⃣ Supprimer dans Supabase Storage
+    try {
+      const fileName = photo.url.split('/').pop()!;
+      const { error: storageError } = await supabase.storage
+        .from('location-photos')
+        .remove([fileName]);
+
+      if (storageError) throw storageError;
+
+      // 2️⃣ Supprimer dans la table photos
+      const { error: dbError } = await supabase.from('photos').delete().eq('id', photo.id);
+      if (dbError) throw dbError;
+
+      // 3️⃣ Mettre à jour l'état
+      setPhotos(photos.filter(p => p.id !== photo.id));
+      setMessage('Photo supprimée !');
+    } catch (err: any) {
+      alert('Erreur lors de la suppression : ' + err.message);
+    }
   };
 
   if (!adminChecked) return <p>Vérification des droits…</p>;
@@ -120,10 +118,7 @@ export default function AdminLocationPage({ params }: { params: { id: string } }
 
   return (
     <div style={{ maxWidth: '900px', margin: '2rem auto', fontFamily: 'sans-serif' }}>
-      <button
-        onClick={() => router.push('/admin/locations')}
-        style={{ marginBottom: '1rem', color: '#1e88e5' }}
-      >
+      <button onClick={() => router.push('/admin/locations')} style={{ marginBottom: '1rem', color: '#1e88e5' }}>
         ← Retour à la liste
       </button>
 
@@ -211,8 +206,14 @@ export default function AdminLocationPage({ params }: { params: { id: string } }
                 setPhotos(photos.map(ph => ph.id === p.id ? { ...ph, description: newDesc } : ph));
                 await supabase.from('photos').update({ description: newDesc }).eq('id', p.id);
               }}
-              style={{ flex: 1, padding: '0.3rem' }}
+              style={{ flex: 1, padding: '0.3rem', marginRight: '0.5rem' }}
             />
+            <button
+              onClick={() => handleDeletePhoto(p)}
+              style={{ backgroundColor: '#f87171', border: 'none', color: 'white', borderRadius: '4px', padding: '0.3rem 0.5rem', cursor: 'pointer' }}
+            >
+              🗑️
+            </button>
           </div>
         ))}
       </div>
@@ -225,43 +226,25 @@ export default function AdminLocationPage({ params }: { params: { id: string } }
           accept="image/*"
           onChange={async (e) => {
             if (!e.target.files || e.target.files.length === 0) return;
-
             const file = e.target.files[0];
             const fileExt = file.name.split('.').pop();
             const fileName = `location_${location.id}_${Date.now()}.${fileExt}`;
 
-            // 🔹 Upload dans le bucket 'location-photos'
             const { error: uploadError } = await supabase.storage
               .from('location-photos')
-              .upload(fileName, file); // <-- ici on met 'file', pas 'compressedFile'
+              .upload(fileName, file);
+            if (uploadError) { alert('Erreur lors de l\'upload : ' + uploadError.message); return; }
 
-            if (uploadError) {
-              alert('Erreur lors de l\'upload : ' + uploadError.message);
-              return;
-            }
-
-            // 🔹 Récupérer l'URL publique
-            const { data: publicData } = supabase.storage
-              .from('location-photos')
-              .getPublicUrl(fileName);
+            const { data: publicData } = supabase.storage.from('location-photos').getPublicUrl(fileName);
             const publicUrl = publicData.publicUrl;
+            if (!publicUrl) { alert('Erreur lors de la récupération de l\'URL publique'); return; }
 
-            if (!publicUrl) {
-              alert('Erreur lors de la récupération de l\'URL publique');
-              return;
-            }
-
-            // 🔹 Ajouter dans la table 'photos'
             const { data: photoData, error: photoError } = await supabase
               .from('photos')
               .insert([{ location_id: location.id, url: publicUrl, description: '' }])
               .select()
               .single();
-
-            if (photoError) {
-              alert('Erreur lors de l\'ajout en base : ' + photoError.message);
-              return;
-            }
+            if (photoError) { alert('Erreur lors de l\'ajout en base : ' + photoError.message); return; }
 
             setPhotos([...photos, photoData as Photo]);
           }}
