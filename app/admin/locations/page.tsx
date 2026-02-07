@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../../../lib/supabaseClient';
+import { useRouter } from 'next/navigation';
 
 // Typage d'un lieu
 interface Location {
@@ -40,15 +41,49 @@ export default function AdminLocationsPage() {
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [message, setMessage] = useState<string | null>(null);
+  const [adminChecked, setAdminChecked] = useState(false);
 
+  const router = useRouter();
+
+  // ------------------------
+  // Vérification admin
+  // ------------------------
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        router.push('/login');
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile || profile.role !== 'admin') {
+        router.push('/');
+        return;
+      }
+
+      setAdminChecked(true);
+    };
+
+    checkAdmin();
+  }, [router]);
+
+  // ------------------------
   // Fetch des lieux
+  // ------------------------
   const fetchLocations = async () => {
     setLoading(true);
     let query = supabase.from('locations').select('*').order('created_at', { ascending: false });
-    
-    if (search) {
-      query = query.ilike('title', `%${search}%`);
-    }
+
+    if (search) query = query.ilike('title', `%${search}%`);
 
     const { data, error } = await query;
     if (error) console.error(error);
@@ -57,10 +92,12 @@ export default function AdminLocationsPage() {
   };
 
   useEffect(() => {
-    fetchLocations();
-  }, [search]);
+    if (adminChecked) fetchLocations();
+  }, [search, adminChecked]);
 
+  // ------------------------
   // Supprimer un lieu
+  // ------------------------
   const handleDelete = async (id: number) => {
     if (!confirm('Confirmer la suppression de ce lieu ?')) return;
     const { error } = await supabase.from('locations').delete().eq('id', id);
@@ -71,6 +108,11 @@ export default function AdminLocationsPage() {
     }
   };
 
+  if (!adminChecked) return <p>Vérification des droits…</p>;
+
+  // ------------------------
+  // Render
+  // ------------------------
   return (
     <div style={{ maxWidth: '1000px', margin: '2rem auto', fontFamily: 'sans-serif' }}>
       <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>Admin – Gestion des lieux</h1>
