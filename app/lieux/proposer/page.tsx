@@ -142,6 +142,29 @@ const [personRank, setPersonRank] = useState('');
     });
   }
 
+  function parsePeriodStart(value: string): Date | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+
+  // Cas 1 : année seule (ex : 1980)
+  if (/^\d{4}$/.test(trimmed)) {
+    return new Date(Number(trimmed), 0, 1);
+  }
+
+  // Cas 2 : date JJ/MM/AAAA ou J/M/AAAA
+  const frDateMatch = trimmed.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if (frDateMatch) {
+    const [, day, month, year] = frDateMatch;
+    return new Date(
+      Number(year),
+      Number(month) - 1,
+      Number(day)
+    );
+  }
+
+  // Format invalide
+  return null;
+}
   /* =========================
      SUBMIT
   ========================= */
@@ -173,9 +196,7 @@ const [personRank, setPersonRank] = useState('');
             address_text: addressText || null,
             country: country || null,
             type_id: typeId,
-            period_start: periodStart
-  ? new Date(Number(periodStart), 0, 1)
-  : null,
+period_start: parsePeriodStart(periodStart),
             status: 'pending',
             created_by: user.id,
           },
@@ -393,12 +414,10 @@ if (personName.trim()) {
             />
 
             <input
-  type="number"
-  placeholder="Année à laquelle correspond ce lieu de mémoire (ex : 1942)"
+  type="text"
+  placeholder="Année ou date précise (ex : 1942 ou 02/04/1945)"
   value={periodStart}
   onChange={(e) => setPeriodStart(e.target.value)}
-  min="0"
-  step="1"
 />
             
 <textarea
