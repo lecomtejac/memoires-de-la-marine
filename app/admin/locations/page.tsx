@@ -14,6 +14,11 @@ interface Location {
   latitude: number;
   longitude: number;
   status: string;
+  created_at: string;
+  created_by: string;
+  profiles?: {
+    username: string;
+  };
 }
 
 // Fonction pour obtenir un nom lisible du type
@@ -81,7 +86,15 @@ export default function AdminLocationsPage() {
   // ------------------------
   const fetchLocations = async () => {
     setLoading(true);
-    let query = supabase.from('locations').select('*').order('created_at', { ascending: false });
+   let query = supabase
+  .from('locations')
+  .select(`
+    *,
+    profiles (
+      username
+    )
+  `)
+  .order('created_at', { ascending: false });
 
     if (search) query = query.ilike('title', `%${search}%`);
 
@@ -155,6 +168,7 @@ export default function AdminLocationsPage() {
               <th style={{ padding: '8px', border: '1px solid #ddd' }}>Statut</th>
               <th style={{ padding: '8px', border: '1px solid #ddd' }}>Coordonnées</th>
               <th style={{ padding: '8px', border: '1px solid #ddd' }}>Actions</th>
+              <th style={{ padding: '8px', border: '1px solid #ddd' }}>Proposé par</th>
             </tr>
           </thead>
           <tbody>
@@ -184,6 +198,14 @@ export default function AdminLocationsPage() {
                     🗑️ Supprimer
                   </button>
                 </td>
+                <td style={{ padding: '8px', border: '1px solid #ddd' }}>
+  <div>
+    <strong>{loc.profiles?.username || '—'}</strong>
+  </div>
+  <div style={{ fontSize: '0.85rem', color: '#666' }}>
+    {new Date(loc.created_at).toLocaleDateString('fr-FR')}
+  </div>
+</td>
               </tr>
             ))}
           </tbody>
