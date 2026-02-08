@@ -78,7 +78,7 @@ export default function AdminLocationsPage() {
   }, [router]);
 
   // ------------------------
-  // Fetch lieux et utilisateurs
+  // Fetch combiné lieux + utilisateurs
   // ------------------------
   const fetchData = async () => {
     setLoading(true);
@@ -89,9 +89,7 @@ export default function AdminLocationsPage() {
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (search) {
-      query = query.ilike('title', `%${search}%`);
-    }
+    if (search) query = query.ilike('title', `%${search}%`);
 
     const { data: locationsData, error: locError } = await query;
     if (locError) console.error('Erreur fetch locations:', locError);
@@ -185,7 +183,9 @@ export default function AdminLocationsPage() {
                 <td style={td}>{loc.status}</td>
                 <td style={td}>{loc.latitude}, {loc.longitude}</td>
                 <td style={td}>
-                  {userMap[String(loc.created_by)] || '—'}
+                  {loc.created_by
+                    ? userMap[String(loc.created_by)] || 'ID inconnu'
+                    : '—'}
                 </td>
                 <td style={td}>
                   {new Date(loc.created_at).toLocaleDateString('fr-FR')}
