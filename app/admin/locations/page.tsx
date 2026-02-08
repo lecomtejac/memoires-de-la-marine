@@ -41,6 +41,9 @@ export default function AdminLocationsPage() {
   const [userMap, setUserMap] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [adminChecked, setAdminChecked] = useState(false);
+  const [search, setSearch] = useState('');
+  const [filterPending, setFilterPending] = useState(false);
+
   const router = useRouter();
 
   // Vérification admin
@@ -75,10 +78,15 @@ export default function AdminLocationsPage() {
   const fetchData = async () => {
     setLoading(true);
 
-    const { data: locationsData } = await supabase
+    let query = supabase
       .from('locations')
       .select('*')
       .order('created_at', { ascending: false });
+
+    if (search) query = query.ilike('title', `%${search}%`);
+    if (filterPending) query = query.eq('status', 'pending');
+
+    const { data: locationsData } = await query;
 
     const { data: usersData } = await supabase
       .from('profiles')
@@ -94,9 +102,10 @@ export default function AdminLocationsPage() {
     setLoading(false);
   };
 
+  // Refetch quand adminChecked, search ou filterPending change
   useEffect(() => {
     if (adminChecked) fetchData();
-  }, [adminChecked]);
+  }, [adminChecked, search, filterPending]);
 
   // Supprimer un lieu
   const handleDelete = async (id: number) => {
@@ -122,11 +131,30 @@ export default function AdminLocationsPage() {
         Admin – Gestion des lieux
       </h1>
 
+      {/* Filtres */}
+      <div style={{ marginBottom: '1.5rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+        <input
+          type="text"
+          placeholder="Rechercher par titre..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ padding: '0.5rem', flex: '1 1 200px' }}
+        />
+        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <input
+            type="checkbox"
+            checked={filterPending}
+            onChange={() => setFilterPending(!filterPending)}
+          />
+          Afficher uniquement les lieux pending
+        </label>
+      </div>
+
       {loading ? (
         <p>Chargement…</p>
       ) : (
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '800px' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '900px' }}>
             <thead>
               <tr style={{ backgroundColor: '#1f78d1', color: '#fff', textAlign: 'left' }}>
                 <th style={th}>Titre</th>
