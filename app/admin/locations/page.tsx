@@ -47,10 +47,32 @@ export default function AdminLocationsPage() {
   const router = useRouter();
 
   // 🔐 Vérification admin
-  useEffect(() => {
-    const checkAdmin = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return router.push('/login');
+useEffect(() => {
+  const checkAdmin = async () => {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const user = sessionData?.session?.user;
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+
+    // ⚡ Récupération correcte du profil
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)  // user.id est bien l'UUID
+      .single();
+
+    if (!profile || profile.role !== 'admin') {
+      router.push('/');
+      return;
+    }
+
+    setAdminChecked(true);
+  };
+
+  checkAdmin();
+}, [router]);
 
       const { data: profile } = await supabase
         .from('profiles')
