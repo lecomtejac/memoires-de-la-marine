@@ -41,7 +41,6 @@ export default function AdminLocationsPage() {
   const [userMap, setUserMap] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [adminChecked, setAdminChecked] = useState(false);
-
   const router = useRouter();
 
   // Vérification admin
@@ -72,34 +71,48 @@ export default function AdminLocationsPage() {
     checkAdmin();
   }, [router]);
 
-  // Fetch lieux + utilisateurs
+  // Fetch lieux + profils
+  const fetchData = async () => {
+    setLoading(true);
+
+    const { data: locationsData } = await supabase
+      .from('locations')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    const { data: usersData } = await supabase
+      .from('profiles')
+      .select('id, username, email');
+
+    const map: Record<string, string> = {};
+    usersData?.forEach((u) => {
+      map[u.id] = u.username || u.email || 'Utilisateur';
+    });
+
+    setUserMap(map);
+    setLocations(locationsData || []);
+    setLoading(false);
+  };
+
   useEffect(() => {
-    if (!adminChecked) return;
-
-    const fetchData = async () => {
-      setLoading(true);
-
-      const { data: locationsData } = await supabase
-        .from('locations')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      const { data: usersData } = await supabase
-        .from('profiles')
-        .select('id, username, email');
-
-      const map: Record<string, string> = {};
-      usersData?.forEach((u) => {
-        map[u.id] = u.username || u.email || 'Utilisateur';
-      });
-
-      setUserMap(map);
-      setLocations(locationsData || []);
-      setLoading(false);
-    };
-
-    fetchData();
+    if (adminChecked) fetchData();
   }, [adminChecked]);
+
+  // Supprimer un lieu
+  const handleDelete = async (id: number) => {
+    if (!confirm('Confirmer la suppression de ce lieu ?')) return;
+
+    const { error } = await supabase
+      .from('locations')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      alert('Erreur lors de la suppression');
+    } else {
+      fetchData();
+    }
+  };
 
   if (!adminChecked) return <p>Vérification des droits…</p>;
 
@@ -127,7 +140,7 @@ export default function AdminLocationsPage() {
             </thead>
             <tbody>
               {locations.map((loc) => (
-                <tr key={loc.id} style={{ borderBottom: '1px solid #ddd', transition: 'background 0.2s', cursor: 'default' }}
+                <tr key={loc.id} style={{ borderBottom: '1px solid #ddd', transition: 'background 0.2s' }}
                     onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f5f5f5')}
                     onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}>
                   <td style={td}>{loc.title}</td>
@@ -137,27 +150,27 @@ export default function AdminLocationsPage() {
                   <td style={td}>{loc.created_by ? userMap[loc.created_by] || 'Utilisateur inconnu' : '—'}</td>
                   <td style={td}>{new Date(loc.created_at).toLocaleDateString('fr-FR')}</td>
                   <td style={td}>
-  <Link 
-    href={`/admin/locations/${loc.id}`} 
-    style={{ marginRight: '0.5rem', color: '#1f78d1', fontWeight: 'bold', textDecoration: 'none' }}
-  >
-    ✏️ Modifier
-  </Link>
-  <button 
-    onClick={() => handleDelete(loc.id)} 
-    style={{
-      backgroundColor: '#e74c3c',
-      color: '#fff',
-      border: 'none',
-      padding: '4px 8px',
-      borderRadius: '4px',
-      cursor: 'pointer',
-      fontWeight: 'bold'
-    }}
-  >
-    🗑️ Supprimer
-  </button>
-</td>
+                    <Link 
+                      href={`/admin/locations/${loc.id}`} 
+                      style={{ marginRight: '0.5rem', color: '#1f78d1', fontWeight: 'bold', textDecoration: 'none' }}
+                    >
+                      ✏️ Modifier
+                    </Link>
+                    <button 
+                      onClick={() => handleDelete(loc.id)} 
+                      style={{
+                        backgroundColor: '#e74c3c',
+                        color: '#fff',
+                        border: 'none',
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      🗑️ Supprimer
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
