@@ -102,7 +102,6 @@ export default function AdminLocationsPage() {
     setLoading(false);
   };
 
-  // Refetch quand adminChecked, search ou filterPending change
   useEffect(() => {
     if (adminChecked) fetchData();
   }, [adminChecked, search, filterPending]);
@@ -124,6 +123,11 @@ export default function AdminLocationsPage() {
   };
 
   if (!adminChecked) return <p>Vérification des droits…</p>;
+
+  // Statistiques
+  const totalCount = locations.length;
+  const approvedCount = locations.filter(l => l.status === 'approved').length;
+  const pendingCount = locations.filter(l => l.status === 'pending').length;
 
   return (
     <div style={{ maxWidth: '1200px', margin: '2rem auto', fontFamily: 'Arial, sans-serif', padding: '0 1rem' }}>
@@ -150,59 +154,86 @@ export default function AdminLocationsPage() {
         </label>
       </div>
 
+      {/* Tableau + stats */}
       {loading ? (
         <p>Chargement…</p>
       ) : (
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '900px' }}>
-            <thead>
-              <tr style={{ backgroundColor: '#1f78d1', color: '#fff', textAlign: 'left' }}>
-                <th style={th}>Titre</th>
-                <th style={th}>Type</th>
-                <th style={th}>Statut</th>
-                <th style={th}>Coordonnées</th>
-                <th style={th}>Créé par</th>
-                <th style={th}>Date</th>
-                <th style={th}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {locations.map((loc) => (
-                <tr key={loc.id} style={{ borderBottom: '1px solid #ddd', transition: 'background 0.2s' }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f5f5f5')}
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}>
-                  <td style={td}>{loc.title}</td>
-                  <td style={td}>{getTypeLabel(loc.type_id)}</td>
-                  <td style={td}>{loc.status}</td>
-                  <td style={td}>{loc.latitude}, {loc.longitude}</td>
-                  <td style={td}>{loc.created_by ? userMap[loc.created_by] || 'Utilisateur inconnu' : '—'}</td>
-                  <td style={td}>{new Date(loc.created_at).toLocaleDateString('fr-FR')}</td>
-                  <td style={td}>
-                    <Link 
-                      href={`/admin/locations/${loc.id}`} 
-                      style={{ marginRight: '0.5rem', color: '#1f78d1', fontWeight: 'bold', textDecoration: 'none' }}
-                    >
-                      ✏️ Modifier
-                    </Link>
-                    <button 
-                      onClick={() => handleDelete(loc.id)} 
-                      style={{
-                        backgroundColor: '#e74c3c',
-                        color: '#fff',
-                        border: 'none',
-                        padding: '4px 8px',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        fontWeight: 'bold'
-                      }}
-                    >
-                      🗑️ Supprimer
-                    </button>
-                  </td>
+        <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
+          {/* Tableau principal */}
+          <div style={{ flex: '3 1 700px', overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '800px' }}>
+              <thead>
+                <tr style={{ backgroundColor: '#1f78d1', color: '#fff', textAlign: 'left' }}>
+                  <th style={th}>Titre</th>
+                  <th style={th}>Type</th>
+                  <th style={th}>Statut</th>
+                  <th style={th}>Coordonnées</th>
+                  <th style={th}>Créé par</th>
+                  <th style={th}>Date</th>
+                  <th style={th}>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {locations.map((loc) => (
+                  <tr key={loc.id} style={{ borderBottom: '1px solid #ddd', transition: 'background 0.2s' }}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f5f5f5')}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}>
+                    <td style={td}>{loc.title}</td>
+                    <td style={td}>{getTypeLabel(loc.type_id)}</td>
+                    <td style={{...td, fontWeight: loc.status === 'pending' ? 'bold' : 'normal', color: loc.status === 'pending' ? '#e67e22' : '#2ecc71'}}>
+                      {loc.status}
+                    </td>
+                    <td style={td}>{loc.latitude}, {loc.longitude}</td>
+                    <td style={td}>{loc.created_by ? userMap[loc.created_by] || 'Utilisateur inconnu' : '—'}</td>
+                    <td style={td}>{new Date(loc.created_at).toLocaleDateString('fr-FR')}</td>
+                    <td style={td}>
+                      <Link 
+                        href={`/admin/locations/${loc.id}`} 
+                        style={{ marginRight: '0.5rem', color: '#1f78d1', fontWeight: 'bold', textDecoration: 'none' }}
+                      >
+                        ✏️ Modifier
+                      </Link>
+                      <button 
+                        onClick={() => handleDelete(loc.id)} 
+                        style={{
+                          backgroundColor: '#e74c3c',
+                          color: '#fff',
+                          border: 'none',
+                          padding: '4px 8px',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        🗑️ Supprimer
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Tableau stats */}
+          <div style={{ flex: '1 1 200px', border: '1px solid #ddd', borderRadius: '8px', padding: '1rem', height: 'fit-content' }}>
+            <h3 style={{ marginBottom: '1rem', color: '#1f78d1' }}>Résumé</h3>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <tbody>
+                <tr>
+                  <td style={td}><strong>Total</strong></td>
+                  <td style={td}>{totalCount}</td>
+                </tr>
+                <tr>
+                  <td style={td}><strong>Approved</strong></td>
+                  <td style={{...td, color: '#2ecc71'}}>{approvedCount}</td>
+                </tr>
+                <tr>
+                  <td style={td}><strong>Pending</strong></td>
+                  <td style={{...td, color: '#e67e22'}}>{pendingCount}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>
@@ -211,4 +242,4 @@ export default function AdminLocationsPage() {
 
 // Styles simples
 const th = { padding: '10px', border: '1px solid #ddd' };
-const td = { padding: '10px', border: '1px solid #ddd' };
+const td = { padding: '8px', border: '1px solid #ddd' };
