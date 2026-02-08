@@ -137,8 +137,27 @@ export default function AdminLocationsPage() {
                   <td style={td}>{loc.created_by ? userMap[loc.created_by] || 'Utilisateur inconnu' : '—'}</td>
                   <td style={td}>{new Date(loc.created_at).toLocaleDateString('fr-FR')}</td>
                   <td style={td}>
-                    <Link href={`/admin/locations/${loc.id}`} style={{ marginRight: '0.5rem', color: '#1f78d1', fontWeight: 'bold' }}>✏️ Modifier</Link>
-                  </td>
+  <Link 
+    href={`/admin/locations/${loc.id}`} 
+    style={{ marginRight: '0.5rem', color: '#1f78d1', fontWeight: 'bold', textDecoration: 'none' }}
+  >
+    ✏️ Modifier
+  </Link>
+  <button 
+    onClick={() => handleDelete(loc.id)} 
+    style={{
+      backgroundColor: '#e74c3c',
+      color: '#fff',
+      border: 'none',
+      padding: '4px 8px',
+      borderRadius: '4px',
+      cursor: 'pointer',
+      fontWeight: 'bold'
+    }}
+  >
+    🗑️ Supprimer
+  </button>
+</td>
                 </tr>
               ))}
             </tbody>
