@@ -14,7 +14,6 @@ export default function ResetPasswordForm() {
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  // 🔹 On récupère le token côté client seulement
   const token = searchParams.get('access_token')
 
   useEffect(() => {
@@ -40,8 +39,7 @@ export default function ResetPasswordForm() {
 
     setLoading(true)
 
-    // 🔹 Supabase updateUser avec le token côté client
-    // ⚠️ Le paramètre `accessToken` n'existe plus dans la nouvelle API Supabase
+    // 🔹 Supabase updateUser
     const { error } = await supabase.auth.updateUser({ password })
 
     setLoading(false)
@@ -53,7 +51,6 @@ export default function ResetPasswordForm() {
       setPassword('')
       setConfirmPassword('')
 
-      // Redirection automatique après 3 secondes
       setTimeout(() => router.push('/login'), 3000)
     }
   }
