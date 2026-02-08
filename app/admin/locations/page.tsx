@@ -216,7 +216,7 @@ export default function AdminLocationsPage() {
 
           {/* Tableau stats */}
           <div style={{ flex: '1 1 200px', border: '1px solid #ddd', borderRadius: '8px', padding: '1rem', height: 'fit-content' }}>
-            <h3 style={{ marginBottom: '1rem', color: '#1f78d1' }}>Résumé</h3>
+            <h3 style={{ marginBottom: '1rem', color: '#1f78d1' }}>Nd de lieux de mémoire en base</h3>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <tbody>
                 <tr>
