@@ -56,11 +56,10 @@ useEffect(() => {
       return;
     }
 
-    // ⚡ Récupération correcte du profil
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
-      .eq('id', user.id)  // user.id est bien l'UUID
+      .eq('id', user.id)
       .single();
 
     if (!profile || profile.role !== 'admin') {
