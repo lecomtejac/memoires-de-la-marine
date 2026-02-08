@@ -47,43 +47,33 @@ export default function AdminLocationsPage() {
   const router = useRouter();
 
   // 🔐 Vérification admin
-useEffect(() => {
-  const checkAdmin = async () => {
-    const { data: sessionData } = await supabase.auth.getSession();
-    const user = sessionData?.session?.user;
-    if (!user) {
-      router.push('/login');
-      return;
-    }
+  useEffect(() => {
+    const checkAdmin = async () => {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const user = sessionData?.session?.user;
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
+        if (!user) {
+          router.push('/login');
+          return;
+        }
 
-    if (!profile || profile.role !== 'admin') {
-      router.push('/');
-      return;
-    }
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
 
-    setAdminChecked(true);
-  };
+        if (error || !profile || profile.role !== 'admin') {
+          router.push('/');
+          return;
+        }
 
-  checkAdmin();
-}, [router]);
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-
-      if (!profile || profile.role !== 'admin') {
-        return router.push('/');
+        setAdminChecked(true);
+      } catch (err) {
+        console.error('Erreur checkAdmin:', err);
+        router.push('/');
       }
-
-      setAdminChecked(true);
     };
 
     checkAdmin();
@@ -96,23 +86,33 @@ useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
 
-      const { data: locationsData } = await supabase
-        .from('locations')
-        .select('*')
-        .ilike('title', `%${search}%`)
-        .order('created_at', { ascending: false });
+      try {
+        const { data: locationsData, error: locError } = await supabase
+          .from('locations')
+          .select('*')
+          .ilike('title', `%${search}%`)
+          .order('created_at', { ascending: false });
 
-      const { data: usersData } = await supabase
-        .from('profiles')
-        .select('id, username, email');
+        if (locError) throw locError;
 
-      const map: Record<string, string> = {};
-      usersData?.forEach((u) => {
-        map[u.id] = u.username || u.email || 'Utilisateur';
-      });
+        const { data: usersData, error: usersError } = await supabase
+          .from('profiles')
+          .select('id, username, email');
 
-      setUserMap(map);
-      setLocations(locationsData || []);
+        if (usersError) throw usersError;
+
+        const map: Record<string, string> = {};
+        usersData.forEach((u) => {
+          map[u.id] = u.username || u.email || 'Utilisateur';
+        });
+
+        setUserMap(map);
+        setLocations(locationsData || []);
+      } catch (err) {
+        console.error('Erreur fetchData:', err);
+        setMessage('Erreur lors du chargement des données');
+      }
+
       setLoading(false);
     };
 
@@ -129,7 +129,10 @@ useEffect(() => {
       .eq('id', id);
 
     if (error) setMessage('Erreur lors de la suppression');
-    else setMessage('Lieu supprimé');
+    else {
+      setMessage('Lieu supprimé');
+      setLocations((prev) => prev.filter((loc) => loc.id !== id));
+    }
   };
 
   if (!adminChecked) return <p>Vérification des droits…</p>;
@@ -168,11 +171,7 @@ useEffect(() => {
                 <td>{getTypeLabel(loc.type_id)}</td>
                 <td>{loc.status}</td>
                 <td>{loc.latitude}, {loc.longitude}</td>
-                <td>
-                  {loc.created_by
-                    ? userMap[loc.created_by] || 'Utilisateur inconnu'
-                    : '—'}
-                </td>
+                <td>{loc.created_by ? userMap[loc.created_by] || 'Utilisateur inconnu' : '—'}</td>
                 <td>{new Date(loc.created_at).toLocaleDateString('fr-FR')}</td>
                 <td>
                   <Link href={`/admin/locations/${loc.id}`}>✏️</Link>{' '}
