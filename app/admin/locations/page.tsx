@@ -46,6 +46,7 @@ export default function AdminLocationsPage() {
   const [adminChecked, setAdminChecked] = useState(false);
 
   const router = useRouter();
+  const [userMap, setUserMap] = useState<Record<string, string>>({});
 
   // ------------------------
   // Vérification admin
@@ -106,6 +107,30 @@ export default function AdminLocationsPage() {
     if (adminChecked) fetchLocations();
   }, [search, adminChecked]);
 
+  const fetchUsers = async () => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, username, email');
+
+  if (error) {
+    console.error('Erreur chargement profils', error);
+    return;
+  }
+
+  const map: Record<string, string> = {};
+  data.forEach((u) => {
+    map[u.id] = u.username || u.email || u.id;
+  });
+
+  setUserMap(map);
+};
+
+  useEffect(() => {
+  if (adminChecked) {
+    fetchLocations();
+    fetchUsers();
+  }
+}, [search, adminChecked]);
   // ------------------------
   // Supprimer un lieu
   // ------------------------
@@ -171,7 +196,9 @@ export default function AdminLocationsPage() {
                 <td style={td}>{getTypeLabel(loc.type_id)}</td>
                 <td style={td}>{loc.status}</td>
                 <td style={td}>{loc.latitude}, {loc.longitude}</td>
-                <td style={td}>{loc.created_by}</td>
+               <td style={td}>
+  {userMap[loc.created_by] || '—'}
+</td>
                 <td style={td}>
                   {new Date(loc.created_at).toLocaleDateString('fr-FR')}
                 </td>
