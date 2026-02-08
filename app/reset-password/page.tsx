@@ -1,4 +1,5 @@
-// Wrapper de page
+'use client'
+
 import ResetPasswordForm from './ResetPasswordForm'
 
 export default function ResetPasswordPage() {
