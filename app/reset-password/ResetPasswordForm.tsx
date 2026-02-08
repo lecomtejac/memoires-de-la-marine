@@ -14,7 +14,7 @@ export default function ResetPasswordForm() {
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  // 🔹 Récupération du token depuis l'URL
+  // 🔹 On récupère le token côté client seulement
   const token = searchParams.get('access_token')
 
   useEffect(() => {
@@ -40,7 +40,8 @@ export default function ResetPasswordForm() {
 
     setLoading(true)
 
-    // 🔹 Mise à jour du mot de passe côté Supabase
+    // 🔹 Supabase updateUser avec le token côté client
+    // ⚠️ Le paramètre `accessToken` n'existe plus dans la nouvelle API Supabase
     const { error } = await supabase.auth.updateUser({ password })
 
     setLoading(false)
@@ -48,9 +49,12 @@ export default function ResetPasswordForm() {
     if (error) {
       setError(`Erreur : ${error.message}`)
     } else {
-      setMessage('Mot de passe mis à jour avec succès !')
+      setMessage('Mot de passe mis à jour avec succès ! Redirection vers la connexion…')
       setPassword('')
       setConfirmPassword('')
+
+      // Redirection automatique après 3 secondes
+      setTimeout(() => router.push('/login'), 3000)
     }
   }
 
@@ -59,26 +63,7 @@ export default function ResetPasswordForm() {
       <h1 style={{ textAlign: 'center', marginBottom: '2rem' }}>Réinitialiser le mot de passe</h1>
 
       {error && <p style={{ color: '#d63333', fontWeight: 'bold' }}>{error}</p>}
-      {message && (
-        <>
-          <p style={{ color: 'green', fontWeight: 'bold' }}>{message}</p>
-          <button
-            onClick={() => router.push('/login')}
-            style={{
-              marginTop: '1rem',
-              padding: '0.75rem 1rem',
-              backgroundColor: '#0070f3',
-              color: '#fff',
-              fontWeight: 'bold',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-            }}
-          >
-            Se connecter maintenant
-          </button>
-        </>
-      )}
+      {message && <p style={{ color: 'green', fontWeight: 'bold' }}>{message}</p>}
 
       {!error && !message && (
         <form onSubmit={handleReset} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
