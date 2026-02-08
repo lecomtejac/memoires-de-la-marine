@@ -14,7 +14,7 @@ export default function ResetPasswordPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // 🔹 On récupère le token depuis l'URL
+  // 🔹 Vérifie si un token est présent dans l'URL
   const token = searchParams.get('access_token');
 
   useEffect(() => {
@@ -40,12 +40,10 @@ export default function ResetPasswordPage() {
 
     setLoading(true);
 
-    // 🔹 Supabase updateUser avec le token depuis l'URL
+    // 🔹 Mise à jour du mot de passe
     const { error } = await supabase.auth.updateUser({
       password,
-      // Si tu veux rediriger après la mise à jour :
-      // emailRedirectTo: 'https://memoires-de-la-marine-i8gy.vercel.app/login'
-    }, token ? { accessToken: token } : undefined);
+    });
 
     setLoading(false);
 
@@ -55,7 +53,6 @@ export default function ResetPasswordPage() {
       setMessage('Mot de passe mis à jour avec succès ! Vous pouvez maintenant vous connecter.');
       setPassword('');
       setConfirmPassword('');
-      // Optionnel : redirection automatique après 3s
       setTimeout(() => router.push('/login'), 3000);
     }
   };
