@@ -5,7 +5,9 @@ import Link from 'next/link';
 import { supabase } from '../../../lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 
+// ------------------------
 // Typage d'un lieu
+// ------------------------
 interface Location {
   id: number;
   title: string;
@@ -15,15 +17,17 @@ interface Location {
   longitude: number;
   status: string;
   created_at: string;
-  created_by: string;
+  created_by: string | null;
   profiles?: {
-    username: string;
+    username: string | null;
   };
 }
 
-// Fonction pour obtenir un nom lisible du type
+// ------------------------
+// Libellé des types
+// ------------------------
 function getTypeLabel(typeId: number) {
-  const types: { [key: number]: string } = {
+  const types: Record<number, string> = {
     7: 'Tombe',
     8: 'Monument',
     9: 'Plaque commémorative',
@@ -64,13 +68,13 @@ export default function AdminLocationsPage() {
         return;
       }
 
-      const { data: profile } = await supabase
+      const { data: profile, error } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', user.id)
         .single();
 
-      if (!profile || profile.role !== 'admin') {
+      if (error || profile?.role !== 'admin') {
         router.push('/');
         return;
       }
@@ -86,21 +90,29 @@ export default function AdminLocationsPage() {
   // ------------------------
   const fetchLocations = async () => {
     setLoading(true);
-   let query = supabase
-  .from('locations')
-  .select(`
-    *,
-    profiles (
-      username
-    )
-  `)
-  .order('created_at', { ascending: false });
 
-    if (search) query = query.ilike('title', `%${search}%`);
+    let query = supabase
+      .from('locations')
+      .select(`
+        *,
+        profiles:profiles!locations_created_by_fkey (
+          username
+        )
+      `)
+      .order('created_at', { ascending: false });
+
+    if (search) {
+      query = query.ilike('title', `%${search}%`);
+    }
 
     const { data, error } = await query;
-    if (error) console.error(error);
-    else setLocations(data as Location[]);
+
+    if (error) {
+      console.error('Erreur fetch locations:', error);
+    } else {
+      setLocations(data as Location[]);
+    }
+
     setLoading(false);
   };
 
@@ -113,9 +125,15 @@ export default function AdminLocationsPage() {
   // ------------------------
   const handleDelete = async (id: number) => {
     if (!confirm('Confirmer la suppression de ce lieu ?')) return;
-    const { error } = await supabase.from('locations').delete().eq('id', id);
-    if (error) setMessage('Erreur lors de la suppression');
-    else {
+
+    const { error } = await supabase
+      .from('locations')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      setMessage('Erreur lors de la suppression');
+    } else {
       setMessage('Lieu supprimé');
       fetchLocations();
     }
@@ -127,17 +145,24 @@ export default function AdminLocationsPage() {
   // Render
   // ------------------------
   return (
-    <div style={{ maxWidth: '1000px', margin: '2rem auto', fontFamily: 'sans-serif' }}>
-      <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>Admin – Gestion des lieux</h1>
+    <div style={{ maxWidth: '1100px', margin: '2rem auto', fontFamily: 'sans-serif' }}>
+      <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>
+        Admin – Gestion des lieux
+      </h1>
 
-      {/* Barre de recherche */}
+      {/* Recherche */}
       <div style={{ marginBottom: '1rem' }}>
         <input
           type="text"
           placeholder="Rechercher par titre..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          style={{ padding: '0.5rem', width: '300px', borderRadius: '6px', border: '1px solid #ccc' }}
+          style={{
+            padding: '0.5rem',
+            width: '300px',
+            borderRadius: '6px',
+            border: '1px solid #ccc',
+          }}
         />
         <button
           onClick={fetchLocations}
@@ -162,26 +187,35 @@ export default function AdminLocationsPage() {
       ) : (
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ backgroundColor: '#f0f0f0', textAlign: 'left' }}>
-              <th style={{ padding: '8px', border: '1px solid #ddd' }}>Titre</th>
-              <th style={{ padding: '8px', border: '1px solid #ddd' }}>Type</th>
-              <th style={{ padding: '8px', border: '1px solid #ddd' }}>Statut</th>
-              <th style={{ padding: '8px', border: '1px solid #ddd' }}>Coordonnées</th>
-              <th style={{ padding: '8px', border: '1px solid #ddd' }}>Actions</th>
-              <th style={{ padding: '8px', border: '1px solid #ddd' }}>Proposé par</th>
+            <tr style={{ backgroundColor: '#f0f0f0' }}>
+              <th style={th}>Titre</th>
+              <th style={th}>Type</th>
+              <th style={th}>Statut</th>
+              <th style={th}>Proposé par</th>
+              <th style={th}>Coordonnées</th>
+              <th style={th}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {locations.map((loc) => (
               <tr key={loc.id}>
-                <td style={{ padding: '8px', border: '1px solid #ddd' }}>{loc.title}</td>
-                <td style={{ padding: '8px', border: '1px solid #ddd' }}>{getTypeLabel(loc.type_id)}</td>
-                <td style={{ padding: '8px', border: '1px solid #ddd' }}>{loc.status}</td>
-                <td style={{ padding: '8px', border: '1px solid #ddd' }}>
+                <td style={td}>{loc.title}</td>
+                <td style={td}>{getTypeLabel(loc.type_id)}</td>
+                <td style={td}>{loc.status}</td>
+                <td style={td}>
+                  <strong>{loc.profiles?.username ?? '—'}</strong>
+                  <div style={{ fontSize: '0.8rem', color: '#666' }}>
+                    {new Date(loc.created_at).toLocaleDateString('fr-FR')}
+                  </div>
+                </td>
+                <td style={td}>
                   {loc.latitude}, {loc.longitude}
                 </td>
-                <td style={{ padding: '8px', border: '1px solid #ddd' }}>
-                  <Link href={`/admin/locations/${loc.id}`} style={{ marginRight: '0.5rem', color: '#1e88e5' }}>
+                <td style={td}>
+                  <Link
+                    href={`/admin/locations/${loc.id}`}
+                    style={{ marginRight: '0.5rem', color: '#1e88e5' }}
+                  >
                     ✏️ Modifier
                   </Link>
                   <button
@@ -195,17 +229,9 @@ export default function AdminLocationsPage() {
                       cursor: 'pointer',
                     }}
                   >
-                    🗑️ Supprimer
+                    🗑️
                   </button>
                 </td>
-                <td style={{ padding: '8px', border: '1px solid #ddd' }}>
-  <div>
-    <strong>{loc.profiles?.username || '—'}</strong>
-  </div>
-  <div style={{ fontSize: '0.85rem', color: '#666' }}>
-    {new Date(loc.created_at).toLocaleDateString('fr-FR')}
-  </div>
-</td>
               </tr>
             ))}
           </tbody>
@@ -214,3 +240,7 @@ export default function AdminLocationsPage() {
     </div>
   );
 }
+
+// Styles simples
+const th = { padding: '8px', border: '1px solid #ddd', textAlign: 'left' };
+const td = { padding: '8px', border: '1px solid #ddd' };
