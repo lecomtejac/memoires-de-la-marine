@@ -78,11 +78,12 @@ export default function AdminLocationsPage() {
   }, [router]);
 
   // ------------------------
-  // Fetch des lieux (SIMPLE)
+  // Fetch lieux et utilisateurs
   // ------------------------
-  const fetchLocations = async () => {
+  const fetchData = async () => {
     setLoading(true);
 
+    // 🔹 Fetch lieux
     let query = supabase
       .from('locations')
       .select('*')
@@ -92,45 +93,32 @@ export default function AdminLocationsPage() {
       query = query.ilike('title', `%${search}%`);
     }
 
-    const { data, error } = await query;
+    const { data: locationsData, error: locError } = await query;
+    if (locError) console.error('Erreur fetch locations:', locError);
+    else setLocations(locationsData as Location[]);
 
-    if (error) {
-      console.error(error);
+    // 🔹 Fetch users
+    const { data: usersData, error: usersError } = await supabase
+      .from('profiles')
+      .select('id, username, email');
+
+    if (usersError) {
+      console.error('Erreur fetch users:', usersError);
     } else {
-      setLocations(data as Location[]);
+      const map: Record<string, string> = {};
+      usersData.forEach((u) => {
+        map[u.id] = u.username || u.email || u.id;
+      });
+      setUserMap(map);
     }
 
     setLoading(false);
   };
 
   useEffect(() => {
-    if (adminChecked) fetchLocations();
+    if (adminChecked) fetchData();
   }, [search, adminChecked]);
 
-  const fetchUsers = async () => {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('id, username, email');
-
-  if (error) {
-    console.error('Erreur chargement profils', error);
-    return;
-  }
-
-  const map: Record<string, string> = {};
-  data.forEach((u) => {
-    map[u.id] = u.username || u.email || u.id;
-  });
-
-  setUserMap(map);
-};
-
-  useEffect(() => {
-  if (adminChecked) {
-    fetchLocations();
-    fetchUsers();
-  }
-}, [search, adminChecked]);
   // ------------------------
   // Supprimer un lieu
   // ------------------------
@@ -146,7 +134,7 @@ export default function AdminLocationsPage() {
       setMessage('Erreur lors de la suppression');
     } else {
       setMessage('Lieu supprimé');
-      fetchLocations();
+      fetchData();
     }
   };
 
@@ -196,9 +184,9 @@ export default function AdminLocationsPage() {
                 <td style={td}>{getTypeLabel(loc.type_id)}</td>
                 <td style={td}>{loc.status}</td>
                 <td style={td}>{loc.latitude}, {loc.longitude}</td>
-               <td style={td}>
-  {userMap[loc.created_by] || '—'}
-</td>
+                <td style={td}>
+                  {userMap[String(loc.created_by)] || '—'}
+                </td>
                 <td style={td}>
                   {new Date(loc.created_at).toLocaleDateString('fr-FR')}
                 </td>
