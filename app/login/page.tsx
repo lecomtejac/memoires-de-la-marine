@@ -11,10 +11,12 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [infoMessage, setInfoMessage] = useState<string | null>(null)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrorMessage(null)
+    setInfoMessage(null)
     setLoading(true)
 
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -27,8 +29,30 @@ export default function LoginPage() {
     if (error) {
       setErrorMessage(error.message)
     } else if (data.session) {
-      // 🔹 Redirection vers la page proposer lieu
       router.push('/lieux/proposer')
+    }
+  }
+
+  const handleResetPassword = async () => {
+    if (!email) {
+      setErrorMessage('Veuillez entrer votre email pour réinitialiser le mot de passe.')
+      return
+    }
+
+    setErrorMessage(null)
+    setInfoMessage(null)
+    setLoading(true)
+
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`
+    })
+
+    setLoading(false)
+
+    if (error) {
+      setErrorMessage(error.message)
+    } else {
+      setInfoMessage('Un email de réinitialisation a été envoyé si l’adresse existe.')
     }
   }
 
@@ -41,7 +65,6 @@ export default function LoginPage() {
         padding: '2rem',
       }}
     >
-      {/* Bouton retour */}
       <Link
         href="/lieux/test-carte-leaflet"
         style={{
@@ -107,6 +130,24 @@ export default function LoginPage() {
         </button>
       </form>
 
+      {/* Mot de passe oublié */}
+      <div style={{ marginTop: '1rem', textAlign: 'right' }}>
+        <button
+          onClick={handleResetPassword}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: '#0070f3',
+            cursor: 'pointer',
+            textDecoration: 'underline',
+            fontSize: '0.9rem',
+            padding: 0,
+          }}
+        >
+          Mot de passe oublié ?
+        </button>
+      </div>
+
       {errorMessage && (
         <p
           style={{
@@ -116,6 +157,18 @@ export default function LoginPage() {
           }}
         >
           {errorMessage}
+        </p>
+      )}
+
+      {infoMessage && (
+        <p
+          style={{
+            color: '#2ecc71',
+            marginTop: '1rem',
+            fontWeight: 'bold',
+          }}
+        >
+          {infoMessage}
         </p>
       )}
     </div>
