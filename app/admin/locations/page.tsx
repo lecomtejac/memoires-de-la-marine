@@ -14,9 +14,9 @@ interface Location {
   status: string;
   created_at: string;
   created_by: string;
-  profiles?: {
-    username: string;
-  };
+  profiles: {
+    username: string | null;
+  }[];
 }
 
 function getTypeLabel(typeId: number) {
@@ -108,7 +108,7 @@ export default function AdminLocationsPage() {
     if (error) {
       console.error('Erreur Supabase:', error);
     } else {
-      setLocations(data as Location[]);
+      setLocations(data ?? []);
     }
 
     setLoading(false);
@@ -152,7 +152,7 @@ export default function AdminLocationsPage() {
                 <td style={td}>{loc.status}</td>
                 <td style={td}>{loc.latitude}, {loc.longitude}</td>
                 <td style={td}>
-                  <strong>{loc.profiles?.username ?? '—'}</strong><br />
+                  <strong>{loc.profiles?.[0]?.username ?? '—'}</strong><br />
                   <small>{new Date(loc.created_at).toLocaleDateString('fr-FR')}</small>
                 </td>
                 <td style={td}>
