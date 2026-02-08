@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../../../lib/supabaseClient';
 import { useRouter } from 'next/navigation';
+import type { CSSProperties } from 'react';
 
 // ------------------------
 // Typage d'un lieu
@@ -242,5 +243,13 @@ export default function AdminLocationsPage() {
 }
 
 // Styles simples
-const th = { padding: '8px', border: '1px solid #ddd', textAlign: 'left' };
-const td = { padding: '8px', border: '1px solid #ddd' };
+const th: CSSProperties = {
+  padding: '8px',
+  border: '1px solid #ddd',
+  textAlign: 'left',
+};
+
+const td: CSSProperties = {
+  padding: '8px',
+  border: '1px solid #ddd',
+};
