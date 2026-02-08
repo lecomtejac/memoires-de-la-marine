@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { supabase } from '../../../lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 
+// Typage d'un lieu
 interface Location {
   id: number;
   title: string;
@@ -14,11 +15,12 @@ interface Location {
   longitude: number;
   status: string;
   created_at: string;
-  created_by: string | null;
+  created_by: string;
 }
 
+// Fonction pour obtenir un nom lisible du type
 function getTypeLabel(typeId: number) {
-  const types: Record<number, string> = {
+  const types: { [key: number]: string } = {
     7: 'Tombe',
     8: 'Monument',
     9: 'Plaque commémorative',
@@ -38,143 +40,158 @@ function getTypeLabel(typeId: number) {
 
 export default function AdminLocationsPage() {
   const [locations, setLocations] = useState<Location[]>([]);
-  const [userMap, setUserMap] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const [adminChecked, setAdminChecked] = useState(false);
 
   const router = useRouter();
+  const [userMap, setUserMap] = useState<Record<string, string>>({});
 
-  // 🔐 Vérification admin
+  // ------------------------
+  // Vérification admin
+  // ------------------------
   useEffect(() => {
     const checkAdmin = async () => {
-      try {
-        const { data: sessionData } = await supabase.auth.getSession();
-        const user = sessionData?.session?.user;
+      const { data: { user } } = await supabase.auth.getUser();
 
-        if (!user) {
-          router.push('/login');
-          return;
-        }
-
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', user.id)
-          .single();
-
-        if (error || !profile || profile.role !== 'admin') {
-          router.push('/');
-          return;
-        }
-
-        setAdminChecked(true);
-      } catch (err) {
-        console.error('Erreur checkAdmin:', err);
-        router.push('/');
+      if (!user) {
+        router.push('/login');
+        return;
       }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile || profile.role !== 'admin') {
+        router.push('/');
+        return;
+      }
+
+      setAdminChecked(true);
     };
 
     checkAdmin();
   }, [router]);
 
-  // 📥 Fetch lieux + profils
+  // ------------------------
+  // Fetch combiné lieux + utilisateurs
+  // ------------------------
+  const fetchData = async () => {
+    setLoading(true);
+
+    // 🔹 Fetch lieux
+    let query = supabase
+      .from('locations')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (search) query = query.ilike('title', `%${search}%`);
+
+    const { data: locationsData, error: locError } = await query;
+    if (locError) console.error('Erreur fetch locations:', locError);
+    else setLocations(locationsData as Location[]);
+
+    // 🔹 Fetch users
+    const { data: usersData, error: usersError } = await supabase
+      .from('profiles')
+      .select('id, username, email');
+
+    if (usersError) {
+      console.error('Erreur fetch users:', usersError);
+    } else {
+      const map: Record<string, string> = {};
+      usersData.forEach((u) => {
+        map[u.id] = u.username || u.email || u.id;
+      });
+      setUserMap(map);
+    }
+
+    setLoading(false);
+  };
+
   useEffect(() => {
-    if (!adminChecked) return;
+    if (adminChecked) fetchData();
+  }, [search, adminChecked]);
 
-    const fetchData = async () => {
-      setLoading(true);
-
-      try {
-        const { data: locationsData, error: locError } = await supabase
-          .from('locations')
-          .select('*')
-          .ilike('title', `%${search}%`)
-          .order('created_at', { ascending: false });
-
-        if (locError) throw locError;
-
-        const { data: usersData, error: usersError } = await supabase
-          .from('profiles')
-          .select('id, username, email');
-
-        if (usersError) throw usersError;
-
-        const map: Record<string, string> = {};
-        usersData.forEach((u) => {
-          map[u.id] = u.username || u.email || 'Utilisateur';
-        });
-
-        setUserMap(map);
-        setLocations(locationsData || []);
-      } catch (err) {
-        console.error('Erreur fetchData:', err);
-        setMessage('Erreur lors du chargement des données');
-      }
-
-      setLoading(false);
-    };
-
-    fetchData();
-  }, [adminChecked, search]);
-
-  // 🗑️ Suppression
+  // ------------------------
+  // Supprimer un lieu
+  // ------------------------
   const handleDelete = async (id: number) => {
-    if (!confirm('Confirmer la suppression ?')) return;
+    if (!confirm('Confirmer la suppression de ce lieu ?')) return;
 
     const { error } = await supabase
       .from('locations')
       .delete()
       .eq('id', id);
 
-    if (error) setMessage('Erreur lors de la suppression');
-    else {
+    if (error) {
+      setMessage('Erreur lors de la suppression');
+    } else {
       setMessage('Lieu supprimé');
-      setLocations((prev) => prev.filter((loc) => loc.id !== id));
+      fetchData();
     }
   };
 
   if (!adminChecked) return <p>Vérification des droits…</p>;
 
+  // ------------------------
+  // Render
+  // ------------------------
   return (
-    <div style={{ maxWidth: '1100px', margin: '2rem auto' }}>
-      <h1>Admin – Gestion des lieux</h1>
+    <div style={{ maxWidth: '1100px', margin: '2rem auto', fontFamily: 'sans-serif' }}>
+      <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>
+        Admin – Gestion des lieux
+      </h1>
 
-      <input
-        type="text"
-        placeholder="Recherche par titre"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        style={{ marginBottom: '1rem', padding: '0.5rem' }}
-      />
+      {/* Recherche */}
+      <div style={{ marginBottom: '1rem' }}>
+        <input
+          type="text"
+          placeholder="Rechercher par titre..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ padding: '0.5rem', width: '300px' }}
+        />
+      </div>
+
+      {message && <p style={{ color: 'green' }}>{message}</p>}
 
       {loading ? (
-        <p>Chargement…</p>
+        <p>Chargement...</p>
       ) : (
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr>
-              <th>Titre</th>
-              <th>Type</th>
-              <th>Statut</th>
-              <th>Coordonnées</th>
-              <th>Créé par</th>
-              <th>Date</th>
-              <th>Actions</th>
+            <tr style={{ backgroundColor: '#f0f0f0' }}>
+              <th style={th}>Titre</th>
+              <th style={th}>Type</th>
+              <th style={th}>Statut</th>
+              <th style={th}>Coordonnées</th>
+              <th style={th}>Créé par</th>
+              <th style={th}>Date</th>
+              <th style={th}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {locations.map((loc) => (
               <tr key={loc.id}>
-                <td>{loc.title}</td>
-                <td>{getTypeLabel(loc.type_id)}</td>
-                <td>{loc.status}</td>
-                <td>{loc.latitude}, {loc.longitude}</td>
-                <td>{loc.created_by ? userMap[loc.created_by] || 'Utilisateur inconnu' : '—'}</td>
-                <td>{new Date(loc.created_at).toLocaleDateString('fr-FR')}</td>
-                <td>
-                  <Link href={`/admin/locations/${loc.id}`}>✏️</Link>{' '}
+                <td style={td}>{loc.title}</td>
+                <td style={td}>{getTypeLabel(loc.type_id)}</td>
+                <td style={td}>{loc.status}</td>
+                <td style={td}>{loc.latitude}, {loc.longitude}</td>
+                <td style={td}>
+                  {loc.created_by
+                    ? userMap[String(loc.created_by)] || 'ID inconnu'
+                    : '—'}
+                </td>
+                <td style={td}>
+                  {new Date(loc.created_at).toLocaleDateString('fr-FR')}
+                </td>
+                <td style={td}>
+                  <Link href={`/admin/locations/${loc.id}`}>✏️ Modifier</Link>{' '}
                   <button onClick={() => handleDelete(loc.id)}>🗑️</button>
                 </td>
               </tr>
@@ -182,8 +199,10 @@ export default function AdminLocationsPage() {
           </tbody>
         </table>
       )}
-
-      {message && <p>{message}</p>}
     </div>
   );
 }
+
+// Styles simples
+const th = { padding: '8px', border: '1px solid #ddd', textAlign: 'left' as const };
+const td = { padding: '8px', border: '1px solid #ddd' };
