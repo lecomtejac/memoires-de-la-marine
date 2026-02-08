@@ -1,26 +1,26 @@
 'use client';
 
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../../../lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 
+// Typage d'un lieu
 interface Location {
   id: number;
   title: string;
   type_id: number;
+  description: string | null;
   latitude: number;
   longitude: number;
   status: string;
   created_at: string;
   created_by: string;
-  profiles: {
-    username: string | null;
-  }[];
 }
 
+// Fonction pour obtenir un nom lisible du type
 function getTypeLabel(typeId: number) {
-  const types: Record<number, string> = {
+  const types: { [key: number]: string } = {
     7: 'Tombe',
     8: 'Monument',
     9: 'Plaque commémorative',
@@ -38,29 +38,26 @@ function getTypeLabel(typeId: number) {
   return types[typeId] || 'Inconnu';
 }
 
-const th: CSSProperties = {
-  padding: '8px',
-  border: '1px solid #ddd',
-  textAlign: 'left',
-};
-
-const td: CSSProperties = {
-  padding: '8px',
-  border: '1px solid #ddd',
-};
-
 export default function AdminLocationsPage() {
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
+  const [message, setMessage] = useState<string | null>(null);
   const [adminChecked, setAdminChecked] = useState(false);
 
   const router = useRouter();
 
+  // ------------------------
+  // Vérification admin
+  // ------------------------
   useEffect(() => {
     const checkAdmin = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return router.push('/login');
+
+      if (!user) {
+        router.push('/login');
+        return;
+      }
 
       const { data: profile } = await supabase
         .from('profiles')
@@ -79,24 +76,15 @@ export default function AdminLocationsPage() {
     checkAdmin();
   }, [router]);
 
+  // ------------------------
+  // Fetch des lieux (SIMPLE)
+  // ------------------------
   const fetchLocations = async () => {
     setLoading(true);
 
     let query = supabase
       .from('locations')
-      .select(`
-        id,
-        title,
-        type_id,
-        latitude,
-        longitude,
-        status,
-        created_at,
-        created_by,
-        profiles!locations_created_by_fkey (
-          username
-        )
-      `)
+      .select('*')
       .order('created_at', { ascending: false });
 
     if (search) {
@@ -106,9 +94,9 @@ export default function AdminLocationsPage() {
     const { data, error } = await query;
 
     if (error) {
-      console.error('Erreur Supabase:', error);
+      console.error(error);
     } else {
-      setLocations(data ?? []);
+      setLocations(data as Location[]);
     }
 
     setLoading(false);
@@ -116,31 +104,63 @@ export default function AdminLocationsPage() {
 
   useEffect(() => {
     if (adminChecked) fetchLocations();
-  }, [adminChecked, search]);
+  }, [search, adminChecked]);
+
+  // ------------------------
+  // Supprimer un lieu
+  // ------------------------
+  const handleDelete = async (id: number) => {
+    if (!confirm('Confirmer la suppression de ce lieu ?')) return;
+
+    const { error } = await supabase
+      .from('locations')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      setMessage('Erreur lors de la suppression');
+    } else {
+      setMessage('Lieu supprimé');
+      fetchLocations();
+    }
+  };
 
   if (!adminChecked) return <p>Vérification des droits…</p>;
 
+  // ------------------------
+  // Render
+  // ------------------------
   return (
-    <div style={{ maxWidth: '1100px', margin: '2rem auto' }}>
-      <h1>Admin – Gestion des lieux</h1>
+    <div style={{ maxWidth: '1100px', margin: '2rem auto', fontFamily: 'sans-serif' }}>
+      <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>
+        Admin – Gestion des lieux
+      </h1>
 
-      <input
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder="Rechercher un titre"
-      />
+      {/* Recherche */}
+      <div style={{ marginBottom: '1rem' }}>
+        <input
+          type="text"
+          placeholder="Rechercher par titre..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ padding: '0.5rem', width: '300px' }}
+        />
+      </div>
+
+      {message && <p style={{ color: 'green' }}>{message}</p>}
 
       {loading ? (
-        <p>Chargement…</p>
+        <p>Chargement...</p>
       ) : (
-        <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '1rem' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ backgroundColor: '#f0f0f0' }}>
               <th style={th}>Titre</th>
               <th style={th}>Type</th>
               <th style={th}>Statut</th>
               <th style={th}>Coordonnées</th>
-              <th style={th}>Proposé par</th>
+              <th style={th}>Créé par</th>
+              <th style={th}>Date</th>
               <th style={th}>Actions</th>
             </tr>
           </thead>
@@ -151,12 +171,13 @@ export default function AdminLocationsPage() {
                 <td style={td}>{getTypeLabel(loc.type_id)}</td>
                 <td style={td}>{loc.status}</td>
                 <td style={td}>{loc.latitude}, {loc.longitude}</td>
+                <td style={td}>{loc.created_by}</td>
                 <td style={td}>
-                  <strong>{loc.profiles?.[0]?.username ?? '—'}</strong><br />
-                  <small>{new Date(loc.created_at).toLocaleDateString('fr-FR')}</small>
+                  {new Date(loc.created_at).toLocaleDateString('fr-FR')}
                 </td>
                 <td style={td}>
-                  <Link href={`/admin/locations/${loc.id}`}>✏️ Modifier</Link>
+                  <Link href={`/admin/locations/${loc.id}`}>✏️ Modifier</Link>{' '}
+                  <button onClick={() => handleDelete(loc.id)}>🗑️</button>
                 </td>
               </tr>
             ))}
@@ -166,3 +187,7 @@ export default function AdminLocationsPage() {
     </div>
   );
 }
+
+// Styles simples
+const th = { padding: '8px', border: '1px solid #ddd', textAlign: 'left' as const };
+const td = { padding: '8px', border: '1px solid #ddd' };
