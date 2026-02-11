@@ -130,24 +130,26 @@ export default function Page() {
       </div>
 
     
-      {/* Carte */}
-    {/* Carte */}
+  {/* Carte */}
 <div
   style={{
     width: '100%',
     margin: '1.5rem 0',
   }}
 >
-        <div
-          style={{
-            height: '75vh',
-            width: '100%',
-            borderRadius: '16px',
-            overflow: 'hidden',
-            boxShadow: '0 10px 30px rgba(0,0,0,0.12)',
-            backgroundColor: '#fff',
-          }}
-        >
+  <div
+    style={{
+      height: '80vh',
+      minHeight: '500px',
+      width: '100%',
+      borderRadius: '16px',
+      overflow: 'hidden',
+      boxShadow: '0 10px 30px rgba(0,0,0,0.12)',
+      backgroundColor: '#fff',
+    }}
+  >
+    <LeafletMapSupabase />
+  </div>
           <LeafletMapSupabase />
         </div>
       {/* 🔹 Cadre Derniers lieux ajoutés sous la carte */}
