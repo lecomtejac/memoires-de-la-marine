@@ -131,13 +131,13 @@ export default function Page() {
 
     
       {/* Carte */}
-      <div
-        style={{
-          maxWidth: '1200px',
-          margin: '1.5rem auto',
-          padding: '0 1rem',
-        }}
-      >
+    {/* Carte */}
+<div
+  style={{
+    width: '100%',
+    margin: '1.5rem 0',
+  }}
+>
         <div
           style={{
             height: '75vh',
