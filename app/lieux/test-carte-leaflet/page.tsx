@@ -156,7 +156,7 @@ export default function Page() {
 <div
   style={{
     maxWidth: '1200px',
-    margin: '1.5rem auto 2rem auto',
+    margin: '0 auto 2rem auto',
     padding: '1rem',
     backgroundColor: '#ffffff',
     borderRadius: '8px',
