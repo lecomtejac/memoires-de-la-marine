@@ -180,4 +180,8 @@ export default function Page() {
     ))}
     {latestLieux.length === 0 && <li>Aucun lieu récent</li>}
   </ul>
-</div>
+
+      </div>
+    </div>
+  );
+}
