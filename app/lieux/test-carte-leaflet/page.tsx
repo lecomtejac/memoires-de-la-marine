@@ -134,7 +134,7 @@ export default function Page() {
 <div
   style={{
     width: '100%',
-    margin: '1.5rem 0',
+    margin: '1.5rem 0 0 0',
   }}
 >
   <div
