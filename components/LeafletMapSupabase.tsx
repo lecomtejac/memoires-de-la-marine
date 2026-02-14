@@ -2,7 +2,7 @@
 
 import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
+import L, { LatLngExpression } from 'leaflet';
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import Link from 'next/link';
@@ -10,6 +10,7 @@ import MarkerClusterGroup from 'react-leaflet-cluster';
 
 // 🔹 Fix icônes Leaflet pour Next.js
 delete (L.Icon.Default.prototype as any)._getIconUrl;
+
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
     'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
@@ -27,6 +28,7 @@ const userIcon = new L.Icon({
   iconAnchor: [12, 41],
 });
 
+// 🔹 Type des lieux
 export type Lieu = {
   id: number;
   title: string;
@@ -35,18 +37,30 @@ export type Lieu = {
   longitude: number | null;
   status: string | null;
   description: string | null;
+  address_text: string | null;
+  country: string | null;
+  period_start: string | null;
+  period_end: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  created_by: string | null;
   photos?: { url: string }[];
 };
 
-// 🔹 Props : type sélectionné
+// 🔹 Props composant
 type LeafletMapSupabaseProps = {
-  selectedType: number | 'all';
+  typeFilter: number | 'all';
 };
 
+// 🔹 Ajuste automatiquement la carte aux lieux
 function FitBounds({ lieux }: { lieux: Lieu[] }) {
   const map = useMap();
+
   useEffect(() => {
-    if (lieux.length === 0) return map.setView([46.6, 2.5], 6);
+    if (lieux.length === 0) {
+      map.setView([46.6, 2.5], 6); // France par défaut
+      return;
+    }
     const bounds = L.latLngBounds(
       lieux
         .filter((l) => l.latitude && l.longitude)
@@ -54,11 +68,14 @@ function FitBounds({ lieux }: { lieux: Lieu[] }) {
     );
     map.fitBounds(bounds, { padding: [50, 50] });
   }, [lieux, map]);
+
   return null;
 }
 
+// 🔹 Bouton Leaflet : géolocalisation utilisateur
 function LocateUserControl({ onLocate }: { onLocate: (lat: number, lng: number) => void }) {
   const map = useMap();
+
   useEffect(() => {
     const control = L.control({ position: 'topleft' });
     control.onAdd = () => {
@@ -73,12 +90,14 @@ function LocateUserControl({ onLocate }: { onLocate: (lat: number, lng: number) 
         fontWeight: 'bold',
       });
       L.DomEvent.disableClickPropagation(button);
+
       button.onclick = () => {
         if (!navigator.geolocation) return alert('La géolocalisation n’est pas supportée.');
         navigator.geolocation.getCurrentPosition(
-          ({ coords }) => {
-            onLocate(coords.latitude, coords.longitude);
-            map.setView([coords.latitude, coords.longitude], 14);
+          (pos) => {
+            const { latitude, longitude } = pos.coords;
+            onLocate(latitude, longitude);
+            map.setView([latitude, longitude], 14);
           },
           () => alert('Impossible de récupérer votre position.')
         );
@@ -88,65 +107,76 @@ function LocateUserControl({ onLocate }: { onLocate: (lat: number, lng: number) 
     control.addTo(map);
     return () => control.remove();
   }, [map, onLocate]);
+
   return null;
 }
 
-// 🔹 Icônes par type
+// 🔹 Icônes par type de lieu
 const typeIcons: Record<number, string> = {
-  7: '🪦',
-  8: '🏛️',
-  9: '📜',
-  10: '🏛️',
-  11: '⚔️',
-  12: '⛴️',
-  13: '💥',
-  14: '🛳️',
-  15: '🏛️',
-  16: '👣',
-  17: '🪖',
-  18: '⚓',
-  19: '⭐',
+  7: '🪦',   // Tombe
+  8: '🏛️',  // Monument
+  9: '📜',  // Plaque commémorative
+  10: '🏛️', // Mémorial
+  11: '⚔️', // Lieu de bataille
+  12: '⛴️', // Lieu de débarquement
+  13: '💥', // Naufrage
+  14: '🛳️', // Épave
+  15: '🏛️', // Musée
+  16: '👣', // Trace de passage
+  17: '🪖', // Base
+  18: '⚓',  // Port
+  19: '⭐',  // Autre lieu remarquable
 };
+
 function getTypeIcon(typeId: number | null) {
   if (!typeId) return '❓';
   return typeIcons[typeId] || '❓';
 }
 
-export default function LeafletMapSupabase({ selectedType }: LeafletMapSupabaseProps) {
+// 🔹 Composant principal
+export default function LeafletMapSupabase({ typeFilter }: LeafletMapSupabaseProps) {
   const [lieux, setLieux] = useState<Lieu[]>([]);
   const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // 🔹 Récupérer tous les lieux
+  // 🔹 Récupération des lieux
   useEffect(() => {
     async function fetchLieux() {
       const { data, error } = await supabase
         .from('locations')
-        .select('id,title,type_id,latitude,longitude,status,description,photos(url)');
-      if (error) console.error(error);
+        .select(`id,title,description,latitude,longitude,status,type_id,photos(url)`);
+      if (error) console.error('Erreur Supabase Leaflet:', error);
       else setLieux(data as Lieu[]);
       setLoading(false);
     }
     fetchLieux();
   }, []);
 
-  // 🔹 Filtrage
+  // 🔹 Lieux filtrés par type
   const lieuxFiltres = lieux.filter(
-    (l) => selectedType === 'all' || l.type_id === selectedType
+    (l) => typeFilter === 'all' || l.type_id === typeFilter
   );
 
   return (
     <div style={{ width: '100%', position: 'relative' }}>
-      <MapContainer
-        style={{ height: '100%', width: '100%' }}
-        center={[48.8566, 2.3522]}
-        zoom={5}
-        scrollWheelZoom={true}
-      >
+      <MapContainer style={{ height: '100%', width: '100%' }} zoom={5} center={[48.8566, 2.3522]} scrollWheelZoom>
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         <LocateUserControl onLocate={(lat, lng) => setUserPosition([lat, lng])} />
 
-        <MarkerClusterGroup>
+        <MarkerClusterGroup
+          showCoverageOnHover={false}
+          spiderfyOnEveryZoom={false}
+          chunkedLoading
+          maxClusterRadius={70}
+          iconCreateFunction={(cluster) => {
+            const count = cluster.getChildCount();
+            return L.divIcon({
+              html: `<div class="cluster-blue">${count}</div>`,
+              className: '',
+              iconSize: L.point(44, 44, true),
+            });
+          }}
+        >
           {lieuxFiltres.map(
             (lieu) =>
               lieu.latitude &&
@@ -154,14 +184,30 @@ export default function LeafletMapSupabase({ selectedType }: LeafletMapSupabaseP
                 <Marker key={lieu.id} position={[lieu.latitude, lieu.longitude]}>
                   <Tooltip>{lieu.title} {getTypeIcon(lieu.type_id)}</Tooltip>
                   <Popup>
-                    <div style={{ width: '260px' }}>
-                      <strong>{lieu.title}</strong>
-                      {lieu.description && <p>{lieu.description}</p>}
-                      {lieu.photos?.[0]?.url && (
-                        <img src={lieu.photos[0].url} alt={lieu.title} style={{ width: '100%', height: '150px', objectFit: 'cover' }} />
+                    <div style={{ width: '260px', padding: '16px', borderRadius: '12px', backgroundColor: '#fff', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
+                      {lieu.status && (
+                        <div style={{
+                          backgroundColor: lieu.status === 'approved' ? '#2e7d32' : '#c62828',
+                          color: '#fff',
+                          padding: '2px 6px',
+                          fontSize: '10px',
+                          fontWeight: 600,
+                          borderRadius: '12px',
+                          marginBottom: '6px',
+                          display: 'inline-block',
+                        }}>
+                          {lieu.status === 'approved' ? '✔ Vérifié' : '⏳ Non vérifié'}
+                        </div>
                       )}
+                      {lieu.photos?.[0]?.url && (
+                        <img src={lieu.photos[0].url} alt={lieu.title} style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '12px', marginBottom: '12px' }} />
+                      )}
+                      <strong>{lieu.title}</strong>
+                      {lieu.description && <p style={{ fontSize: '13px', color: '#333' }}>{lieu.description}</p>}
                       <div style={{ textAlign: 'right', marginTop: '8px' }}>
-                        <Link href={`/lieux/${lieu.id}`}>Voir la fiche complète →</Link>
+                        <Link href={`/lieux/${lieu.id}`} style={{ fontSize: '13px', fontWeight: 600, color: '#1e88e5' }}>
+                          Voir la fiche complète →
+                        </Link>
                       </div>
                     </div>
                   </Popup>
@@ -170,7 +216,11 @@ export default function LeafletMapSupabase({ selectedType }: LeafletMapSupabaseP
           )}
         </MarkerClusterGroup>
 
-        {userPosition && <Marker position={userPosition} icon={userIcon}><Popup>Vous êtes ici</Popup></Marker>}
+        {userPosition && (
+          <Marker position={userPosition} icon={userIcon}>
+            <Popup>Vous êtes ici</Popup>
+          </Marker>
+        )}
 
         <FitBounds lieux={lieuxFiltres} />
       </MapContainer>
