@@ -16,7 +16,7 @@ export default function Page() {
   const [selectedType, setSelectedType] = useState<number | 'all'>('all');
   const [latestLieux, setLatestLieux] = useState<Pick<Lieu, 'id' | 'title'>[]>([]);
 
-  // 🔹 Récupération des types
+  // 🔹 Récupération des types de lieux
   useEffect(() => {
     async function fetchTypes() {
       const { data, error } = await supabase
@@ -29,15 +29,14 @@ export default function Page() {
     fetchTypes();
   }, []);
 
-  // 🔹 Récupération des 5 derniers lieux (pour la liste sous la carte)
+  // 🔹 Récupération des 5 derniers lieux ajoutés
   useEffect(() => {
     async function fetchLatest() {
       const { data, error } = await supabase
         .from('locations')
-        .select('id, title')
+        .select('id,title')
         .order('created_at', { ascending: false })
         .limit(5);
-
       if (error) console.error(error);
       else setLatestLieux(data || []);
     }
@@ -91,14 +90,13 @@ export default function Page() {
       <div style={{ maxWidth: '1200px', margin: '2rem auto', padding: '1rem', backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>
         <h3 style={{ marginBottom: '0.5rem', color: '#0070f3' }}>📰 Derniers lieux ajoutés</h3>
         <ul style={{ margin: 0, paddingLeft: '1rem' }}>
-          {latestLieux.map((lieu) => (
+          {latestLieux.length > 0 ? latestLieux.map((lieu) => (
             <li key={lieu.id}>
               <Link href={`/lieux/${lieu.id}`} style={{ color: '#003366', textDecoration: 'underline' }}>
                 {lieu.title}
               </Link>
             </li>
-          ))}
-          {latestLieux.length === 0 && <li>Aucun lieu récent</li>}
+          )) : <li>Aucun lieu récent</li>}
         </ul>
       </div>
     </div>
