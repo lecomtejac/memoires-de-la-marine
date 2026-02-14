@@ -159,7 +159,14 @@ export default function LeafletMapSupabase({ typeFilter }: LeafletMapSupabasePro
 
   return (
     <div style={{ width: '100%', position: 'relative' }}>
-      <MapContainer style={{ height: '100%', width: '100%' }} zoom={5} center={[48.8566, 2.3522]} scrollWheelZoom>
+      <MapContainer
+  style={{ height: '100%', width: '100%' }}
+  {...({
+    center: [48.8566, 2.3522],
+    zoom: 5,
+    scrollWheelZoom: true,
+  } as any)}
+>
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         <LocateUserControl onLocate={(lat, lng) => setUserPosition([lat, lng])} />
 
