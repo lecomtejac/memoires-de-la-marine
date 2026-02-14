@@ -1,27 +1,16 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '../../lib/supabaseClient'
 
 export default function ResetPasswordPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
-
-  const [accessToken, setAccessToken] = useState<string | null>(null)
-
-  // Récupérer le token de l'URL
-  useEffect(() => {
-    const token = searchParams.get('access_token')
-    if (token) {
-      setAccessToken(token)
-    }
-  }, [searchParams])
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -38,20 +27,11 @@ export default function ResetPasswordPage() {
       return
     }
 
-    if (!accessToken) {
-      setErrorMessage("Token invalide ou manquant.")
-      return
-    }
-
     setLoading(true)
 
+    // Mise à jour du mot de passe : Supabase gère le token automatiquement via l'URL
     const { error } = await supabase.auth.updateUser({
       password,
-    }, {
-      // Supabase utilise le token dans l'URL pour identifier l'utilisateur
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
     })
 
     setLoading(false)
@@ -60,6 +40,7 @@ export default function ResetPasswordPage() {
       setErrorMessage(error.message)
     } else {
       setSuccessMessage('Votre mot de passe a été réinitialisé avec succès !')
+      // Redirection vers la page de login après 3 secondes
       setTimeout(() => {
         router.push('/login')
       }, 3000)
@@ -67,17 +48,34 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div style={{ fontFamily: 'sans-serif', maxWidth: '500px', margin: '0 auto', padding: '2rem' }}>
-      <h1 style={{ textAlign: 'center', marginBottom: '2rem' }}>Réinitialiser le mot de passe</h1>
+    <div
+      style={{
+        fontFamily: 'sans-serif',
+        maxWidth: '500px',
+        margin: '0 auto',
+        padding: '2rem',
+      }}
+    >
+      <h1 style={{ textAlign: 'center', marginBottom: '2rem' }}>
+        Réinitialiser le mot de passe
+      </h1>
 
-      <form onSubmit={handleReset} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <form
+        onSubmit={handleReset}
+        style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
+      >
         <input
           type="password"
           placeholder="Nouveau mot de passe"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }}
+          style={{
+            padding: '0.5rem',
+            fontSize: '1rem',
+            borderRadius: '5px',
+            border: '1px solid #ccc',
+          }}
         />
 
         <input
@@ -86,7 +84,12 @@ export default function ResetPasswordPage() {
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           required
-          style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc' }}
+          style={{
+            padding: '0.5rem',
+            fontSize: '1rem',
+            borderRadius: '5px',
+            border: '1px solid #ccc',
+          }}
         />
 
         <button
@@ -107,8 +110,29 @@ export default function ResetPasswordPage() {
         </button>
       </form>
 
-      {errorMessage && <p style={{ color: '#d63333', marginTop: '1rem', fontWeight: 'bold' }}>{errorMessage}</p>}
-      {successMessage && <p style={{ color: '#2ecc71', marginTop: '1rem', fontWeight: 'bold' }}>{successMessage}</p>}
+      {errorMessage && (
+        <p
+          style={{
+            color: '#d63333',
+            marginTop: '1rem',
+            fontWeight: 'bold',
+          }}
+        >
+          {errorMessage}
+        </p>
+      )}
+
+      {successMessage && (
+        <p
+          style={{
+            color: '#2ecc71',
+            marginTop: '1rem',
+            fontWeight: 'bold',
+          }}
+        >
+          {successMessage}
+        </p>
+      )}
     </div>
   )
 }
