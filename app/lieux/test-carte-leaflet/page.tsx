@@ -15,6 +15,7 @@ export default function Page() {
   const [types, setTypes] = useState<{ id: number; label: string; slug: string }[]>([]);
   const [selectedType, setSelectedType] = useState<number | 'all'>('all');
   const [latestLieux, setLatestLieux] = useState<Pick<Lieu, 'id' | 'title'>[]>([]);
+  const [loadingTypes, setLoadingTypes] = useState(true);
 
   // 🔹 Récupération des types
   useEffect(() => {
@@ -24,17 +25,19 @@ export default function Page() {
         .select('id,label,slug')
         .order('id', { ascending: true });
 
+      console.log('Types récupérés :', data, error); // 🔹 Pour debug
+
       if (error) {
         console.error('Erreur types:', error);
-        setTypes([]);
-      } else if (data) {
-        setTypes(data);
+      } else {
+        setTypes(data ?? []);
       }
+      setLoadingTypes(false);
     }
     fetchTypes();
   }, []);
 
-  // 🔹 Récupération des 5 derniers lieux
+  // 🔹 Récupération des 5 derniers lieux (pour la liste sous la carte)
   useEffect(() => {
     async function fetchLatest() {
       const { data, error } = await supabase
@@ -62,11 +65,28 @@ export default function Page() {
           zIndex: 10,
         }}
       >
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <h1 style={{ margin: 0, fontSize: '1.6rem', textAlign: 'center' }}>Carte des lieux de mémoire</h1>
+        <div
+          style={{
+            maxWidth: '1200px',
+            margin: '0 auto',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem',
+          }}
+        >
+          <h1 style={{ margin: 0, fontSize: '1.6rem', textAlign: 'center' }}>
+            Carte des lieux de mémoire
+          </h1>
 
           {/* Boutons principaux */}
-          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: '0.75rem',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+            }}
+          >
             <Link
               href="/"
               style={{
@@ -114,18 +134,29 @@ export default function Page() {
           {/* 🔹 Filtre type */}
           <div style={{ display: 'flex', justifyContent: 'center', marginTop: '0.5rem' }}>
             <select
-              value={selectedType.toString()}
+              value={selectedType}
               onChange={(e) =>
                 setSelectedType(e.target.value === 'all' ? 'all' : Number(e.target.value))
               }
-              style={{ padding: '0.6rem 1rem', borderRadius: '8px', border: '1px solid #ccc', fontSize: '0.95rem' }}
+              style={{
+                padding: '0.6rem 1rem',
+                borderRadius: '8px',
+                border: '1px solid #ccc',
+                fontSize: '0.95rem',
+              }}
             >
               <option value="all">Tous les types</option>
-              {types.map((t) => (
-                <option key={t.id} value={t.id.toString()}>
-                  {t.label}
-                </option>
-              ))}
+              {loadingTypes ? (
+                <option value="loading">Chargement…</option>
+              ) : types.length === 0 ? (
+                <option value="none">Aucun type disponible</option>
+              ) : (
+                types.map((t) => (
+                  <option key={t.id} value={t.id.toString()}>
+                    {t.label}
+                  </option>
+                ))
+              )}
             </select>
           </div>
         </div>
@@ -149,14 +180,17 @@ export default function Page() {
       >
         <h3 style={{ marginBottom: '0.5rem', color: '#0070f3' }}>📰 Derniers lieux ajoutés</h3>
         <ul style={{ margin: 0, paddingLeft: '1rem' }}>
+          {latestLieux.length === 0 && <li>Aucun lieu récent</li>}
           {latestLieux.map((lieu) => (
             <li key={lieu.id}>
-              <Link href={`/lieux/${lieu.id}`} style={{ color: '#003366', textDecoration: 'underline' }}>
+              <Link
+                href={`/lieux/${lieu.id}`}
+                style={{ color: '#003366', textDecoration: 'underline' }}
+              >
                 {lieu.title}
               </Link>
             </li>
           ))}
-          {latestLieux.length === 0 && <li>Aucun lieu récent</li>}
         </ul>
       </div>
     </div>
