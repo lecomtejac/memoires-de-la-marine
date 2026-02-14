@@ -6,7 +6,6 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 import { Lieu } from '../../../components/LeafletMapSupabase';
 
-// 🔹 Import dynamique pour éviter SSR
 const LeafletMapSupabase = dynamic(
   () => import('../../../components/LeafletMapSupabase'),
   { ssr: false }
@@ -16,7 +15,6 @@ export default function Page() {
   const [types, setTypes] = useState<{ id: number; label: string; slug: string }[]>([]);
   const [selectedType, setSelectedType] = useState<number | 'all'>('all');
   const [latestLieux, setLatestLieux] = useState<Pick<Lieu, 'id' | 'title'>[]>([]);
-  const [loadingTypes, setLoadingTypes] = useState(true);
 
   // 🔹 Récupération des types
   useEffect(() => {
@@ -29,10 +27,9 @@ export default function Page() {
       if (error) {
         console.error('Erreur types:', error);
         setTypes([]);
-      } else {
-        setTypes(data ?? []);
+      } else if (data) {
+        setTypes(data);
       }
-      setLoadingTypes(false);
     }
     fetchTypes();
   }, []);
@@ -117,17 +114,18 @@ export default function Page() {
           {/* 🔹 Filtre type */}
           <div style={{ display: 'flex', justifyContent: 'center', marginTop: '0.5rem' }}>
             <select
-              value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+              value={selectedType.toString()}
+              onChange={(e) =>
+                setSelectedType(e.target.value === 'all' ? 'all' : Number(e.target.value))
+              }
               style={{ padding: '0.6rem 1rem', borderRadius: '8px', border: '1px solid #ccc', fontSize: '0.95rem' }}
             >
               <option value="all">Tous les types</option>
-              {!loadingTypes &&
-                types.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.label}
-                  </option>
-                ))}
+              {types.map((t) => (
+                <option key={t.id} value={t.id.toString()}>
+                  {t.label}
+                </option>
+              ))}
             </select>
           </div>
         </div>
