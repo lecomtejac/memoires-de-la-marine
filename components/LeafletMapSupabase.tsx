@@ -223,11 +223,16 @@ export default function LeafletMapSupabase({ typeFilter }: LeafletMapSupabasePro
           )}
         </MarkerClusterGroup>
 
-        {userPosition && (
-          <Marker position={userPosition} icon={userIcon}>
-            <Popup>Vous êtes ici</Popup>
-          </Marker>
-        )}
+      {userPosition && (
+  <Marker
+    {...({
+      position: userPosition,
+      icon: userIcon,
+    } as any)}
+  >
+    <Popup>Vous êtes ici</Popup>
+  </Marker>
+)}
 
         <FitBounds lieux={lieuxFiltres} />
       </MapContainer>
