@@ -13,47 +13,32 @@ const LeafletMapSupabase = dynamic(
 interface Lieu {
   id: number;
   title: string;
-  type_id: number;
-}
-
-interface TypeLieu {
-  id: number;
-  name: string;
 }
 
 export default function Page() {
   const [latestLieux, setLatestLieux] = useState<Lieu[]>([]);
-  const [types, setTypes] = useState<TypeLieu[]>([]);
-  const [selectedType, setSelectedType] = useState<number | null>(null);
 
-  // Récupérer tous les types de lieux
-  useEffect(() => {
-    const fetchTypes = async () => {
-      const { data, error } = await supabase.from('location_types').select('id, name');
-      if (error) console.error(error);
-      else setTypes(data || []);
-    };
-    fetchTypes();
-  }, []);
-
-  // Récupérer les lieux, éventuellement filtrés par type
   useEffect(() => {
     const fetchLatest = async () => {
-      let query = supabase.from('locations').select('id, title, type_id').order('created_at', { ascending: false }).limit(5);
-
-      if (selectedType) {
-        query = query.eq('type_id', selectedType);
-      }
-
-      const { data, error } = await query;
+      const { data, error } = await supabase
+        .from('locations')
+        .select('id, title')
+        .order('created_at', { ascending: false })
+        .limit(5); // Les 5 derniers lieux
       if (error) console.error(error);
       else setLatestLieux(data || []);
     };
     fetchLatest();
-  }, [selectedType]);
+  }, []);
 
   return (
-    <div style={{ fontFamily: 'sans-serif', backgroundColor: '#f5f7fa', minHeight: '100vh' }}>
+    <div
+      style={{
+        fontFamily: 'sans-serif',
+        backgroundColor: '#f5f7fa',
+        minHeight: '100vh',
+      }}
+    >
       {/* En-tête */}
       <div
         style={{
@@ -65,64 +50,137 @@ export default function Page() {
           zIndex: 10,
         }}
       >
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <h1 style={{ margin: 0, fontSize: '1.6rem', textAlign: 'center' }}>
+        <div
+          style={{
+            maxWidth: '1200px',
+            margin: '0 auto',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem',
+          }}
+        >
+          <h1
+            style={{
+              margin: 0,
+              fontSize: '1.6rem',
+              textAlign: 'center',
+            }}
+          >
             Carte des lieux de mémoire
           </h1>
 
           {/* Boutons */}
-          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-            <Link href="/" style={{ padding: '0.7rem 1.4rem', backgroundColor: '#e9edf3', color: '#333', borderRadius: '999px', textDecoration: 'none', fontWeight: 600, fontSize: '0.95rem', whiteSpace: 'nowrap' }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: '0.75rem',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+            }}
+          >
+            <Link
+              href="/"
+              style={{
+                padding: '0.7rem 1.4rem',
+                backgroundColor: '#e9edf3',
+                color: '#333',
+                borderRadius: '999px',
+                textDecoration: 'none',
+                fontWeight: 600,
+                fontSize: '0.95rem',
+                whiteSpace: 'nowrap',
+              }}
+            >
               ⬅ Retour accueil
             </Link>
 
-            <Link href="/lieux/proposer" style={{ padding: '0.7rem 1.4rem', backgroundColor: '#0070f3', color: '#fff', borderRadius: '999px', textDecoration: 'none', fontWeight: 600, fontSize: '0.95rem', whiteSpace: 'nowrap' }}>
+            <Link
+              href="/lieux/proposer"
+              style={{
+                padding: '0.7rem 1.4rem',
+                backgroundColor: '#0070f3',
+                color: '#fff',
+                borderRadius: '999px',
+                textDecoration: 'none',
+                fontWeight: 600,
+                fontSize: '0.95rem',
+                whiteSpace: 'nowrap',
+              }}
+            >
               ➕ Proposer un nouveau lieu en me connectant
             </Link>
 
-            <Link href="/register" style={{ padding: '0.7rem 1.4rem', backgroundColor: '#28a745', color: '#fff', borderRadius: '999px', textDecoration: 'none', fontWeight: 600, fontSize: '0.95rem', whiteSpace: 'nowrap' }}>
+            <Link
+              href="/register"
+              style={{
+                padding: '0.7rem 1.4rem',
+                backgroundColor: '#28a745',
+                color: '#fff',
+                borderRadius: '999px',
+                textDecoration: 'none',
+                fontWeight: 600,
+                fontSize: '0.95rem',
+                whiteSpace: 'nowrap',
+              }}
+            >
               📝 Créer un compte
             </Link>
           </div>
-
-          {/* Filtre par type */}
-          <div style={{ textAlign: 'center', marginTop: '0.5rem' }}>
-            <select
-              value={selectedType || ''}
-              onChange={(e) => setSelectedType(e.target.value ? parseInt(e.target.value) : null)}
-              style={{ padding: '0.6rem 1rem', borderRadius: '8px', border: '1px solid #ccc', fontSize: '1rem' }}
-            >
-              <option value="">Tous les types</option>
-              {types.map((type) => (
-                <option key={type.id} value={type.id}>
-                  {type.name}
-                </option>
-              ))}
-            </select>
-          </div>
         </div>
       </div>
 
-      {/* Carte */}
-      <div style={{ width: '100%', margin: '1.5rem 0 0 0' }}>
-        <div style={{ height: '80vh', minHeight: '500px', width: '100%', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.12)', backgroundColor: '#fff' }}>
-          <LeafletMapSupabase selectedType={selectedType} />
-        </div>
-      </div>
+    
+{/* Carte */}
+<div
+  style={{
+    width: '100%',
+    margin: '1.5rem 0 0 0',
+  }}
+>
+  <div
+    style={{
+      height: '80vh',
+      minHeight: '500px',
+      width: '100%',
+      borderRadius: '16px',
+      overflow: 'hidden',
+      boxShadow: '0 10px 30px rgba(0,0,0,0.12)',
+      backgroundColor: '#fff',
+    }}
+  >
+    <LeafletMapSupabase />
+  </div>
+</div>
 
-      {/* Derniers lieux ajoutés */}
-      <div style={{ maxWidth: '1200px', margin: '0 auto 2rem auto', padding: '1rem', backgroundColor: '#ffffff', borderRadius: '8px', boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>
-        <h3 style={{ marginBottom: '0.5rem', color: '#0070f3' }}>📰 Derniers lieux ajoutés</h3>
-        <ul style={{ margin: 0, paddingLeft: '1rem' }}>
-          {latestLieux.map((lieu) => (
-            <li key={lieu.id}>
-              <Link href={`/lieux/${lieu.id}`} style={{ color: '#003366', textDecoration: 'underline' }}>
-                {lieu.title}
-              </Link>
-            </li>
-          ))}
-          {latestLieux.length === 0 && <li>Aucun lieu récent</li>}
-        </ul>
+{/* 🔹 Cadre Derniers lieux ajoutés sous la carte */}
+<div
+  style={{
+    maxWidth: '1200px',
+    margin: '0 auto 2rem auto',
+    padding: '1rem',
+    backgroundColor: '#ffffff',
+    borderRadius: '8px',
+    boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+  }}
+>
+  <h3 style={{ marginBottom: '0.5rem', color: '#0070f3' }}>
+    📰 Derniers lieux ajoutés
+  </h3>
+
+  <ul style={{ margin: 0, paddingLeft: '1rem' }}>
+    {latestLieux.map((lieu) => (
+      <li key={lieu.id}>
+        <Link
+          href={`/lieux/${lieu.id}`}
+          style={{ color: '#003366', textDecoration: 'underline' }}
+        >
+          {lieu.title}
+        </Link>
+      </li>
+    ))}
+    {latestLieux.length === 0 && <li>Aucun lieu récent</li>}
+  </ul>
+
       </div>
     </div>
   );
