@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation'
 export default function RegisterPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [username, setUsername] = useState('') // ✅ pseudo ajouté
+  const [username, setUsername] = useState('')
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -20,11 +20,14 @@ export default function RegisterPage() {
     setLoading(true)
 
     try {
-      // 1️⃣ création du compte auth
-      const { data, error } = await supabase.auth.signUp({
+      // ✅ création du compte + envoi du pseudo au trigger
+      const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
+          data: {
+            username, // 👈 envoyé au trigger SQL
+          },
           emailRedirectTo:
             'https://memoires-de-la-marine-i8gy.vercel.app/compte-active',
         },
@@ -35,27 +38,7 @@ export default function RegisterPage() {
         return
       }
 
-      // 2️⃣ récupérer l'utilisateur créé
-      const userId = data?.user?.id
-
-      if (!userId) {
-        setMessage("Compte créé mais impossible d'enregistrer le pseudo.")
-        return
-      }
-
-      // 3️⃣ enregistrer le pseudo dans profiles
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ username }) // 👈 on remplit username
-        .eq('id', userId)
-
-      if (profileError) {
-        setMessage("Compte créé mais erreur d'enregistrement du pseudo.")
-        console.error(profileError)
-        return
-      }
-
-      setMessage('✅ Compte créé avec succès.')
+      setMessage('✅ Compte créé avec succès. Vérifiez votre email.')
 
       setEmail('')
       setPassword('')
@@ -122,7 +105,7 @@ export default function RegisterPage() {
           style={inputStyle}
         />
 
-        {/* ✅ PSEUDO */}
+        {/* Pseudo */}
         <input
           type="text"
           placeholder="Pseudo (visible publiquement)"
