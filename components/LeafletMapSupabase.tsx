@@ -2,7 +2,7 @@
 
 import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import L, { LatLngExpression } from 'leaflet';
+import L from 'leaflet';
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import Link from 'next/link';
@@ -10,7 +10,6 @@ import MarkerClusterGroup from 'react-leaflet-cluster';
 
 // 🔹 Fix icônes Leaflet pour Next.js
 delete (L.Icon.Default.prototype as any)._getIconUrl;
-
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
     'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
@@ -113,19 +112,10 @@ function LocateUserControl({ onLocate }: { onLocate: (lat: number, lng: number) 
 
 // 🔹 Icônes par type de lieu
 const typeIcons: Record<number, string> = {
-  7: '🪦',   // Tombe
-  8: '🏛️',  // Monument
-  9: '📜',  // Plaque commémorative
-  10: '🏛️', // Mémorial
-  11: '⚔️', // Lieu de bataille
-  12: '⛴️', // Lieu de débarquement
-  13: '💥', // Naufrage
-  14: '🛳️', // Épave
-  15: '🏛️', // Musée
-  16: '👣', // Trace de passage
-  17: '🪖', // Base
-  18: '⚓',  // Port
-  19: '⭐',  // Autre lieu remarquable
+  7: '🪦', 8: '🏛️', 9: '📜', 10: '🏛️',
+  11: '⚔️', 12: '⛴️', 13: '💥', 14: '🛳️',
+  15: '🏛️', 16: '👣', 17: '🪖', 18: '⚓',
+  19: '⭐',
 };
 
 function getTypeIcon(typeId: number | null) {
@@ -158,15 +148,11 @@ export default function LeafletMapSupabase({ typeFilter }: LeafletMapSupabasePro
   );
 
   return (
-    <div style={{ width: '100%', position: 'relative' }}>
+    <div style={{ width: '100%', position: 'relative', height: '80vh' }}>
       <MapContainer
-  style={{ height: '100%', width: '100%' }}
-  {...({
-    center: [48.8566, 2.3522],
-    zoom: 5,
-    scrollWheelZoom: true,
-  } as any)}
->
+        style={{ height: '100%', width: '100%' }}
+        {...({ center: [48.8566, 2.3522], zoom: 5, scrollWheelZoom: true } as any)}
+      >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         <LocateUserControl onLocate={(lat, lng) => setUserPosition([lat, lng])} />
 
@@ -188,7 +174,7 @@ export default function LeafletMapSupabase({ typeFilter }: LeafletMapSupabasePro
             (lieu) =>
               lieu.latitude &&
               lieu.longitude && (
-                <Marker key={lieu.id} position={[lieu.latitude, lieu.longitude]}>
+                <Marker key={lieu.id} {...({ position: [lieu.latitude, lieu.longitude] } as any)}>
                   <Tooltip>{lieu.title} {getTypeIcon(lieu.type_id)}</Tooltip>
                   <Popup>
                     <div style={{ width: '260px', padding: '16px', borderRadius: '12px', backgroundColor: '#fff', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
@@ -223,16 +209,11 @@ export default function LeafletMapSupabase({ typeFilter }: LeafletMapSupabasePro
           )}
         </MarkerClusterGroup>
 
-      {userPosition && (
-  <Marker
-    {...({
-      position: userPosition,
-      icon: userIcon,
-    } as any)}
-  >
-    <Popup>Vous êtes ici</Popup>
-  </Marker>
-)}
+        {userPosition && (
+          <Marker {...({ position: userPosition, icon: userIcon } as any)}>
+            <Popup>Vous êtes ici</Popup>
+          </Marker>
+        )}
 
         <FitBounds lieux={lieuxFiltres} />
       </MapContainer>
