@@ -8,10 +8,8 @@ import { supabase } from '../lib/supabaseClient';
 import Link from 'next/link';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 
-
 // 🔹 Fix icônes Leaflet pour Next.js
 delete (L.Icon.Default.prototype as any)._getIconUrl;
-
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
     'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
@@ -29,28 +27,28 @@ const userIcon = new L.Icon({
   iconAnchor: [12, 41],
 });
 
+// 🔹 Type des lieux
 export type Lieu = {
   id: number;
   title: string;
   type_id: number | null;
-
   latitude: number | null;
   longitude: number | null;
-
   status: string | null;
-
   description: string | null;
   address_text: string | null;
   country: string | null;
-
   period_start: string | null;
   period_end: string | null;
-
   created_at: string | null;
   updated_at: string | null;
   created_by: string | null;
-
   photos?: { url: string }[];
+};
+
+// 🔹 Props composant
+type LeafletMapSupabaseProps = {
+  typeFilter: number | 'all';
 };
 
 // 🔹 Ajuste automatiquement la carte aux lieux
@@ -59,17 +57,14 @@ function FitBounds({ lieux }: { lieux: Lieu[] }) {
 
   useEffect(() => {
     if (lieux.length === 0) {
-      // 🔹 Aucun lieu → vue France métropolitaine
-      map.setView([46.6, 2.5], 6);
+      map.setView([46.6, 2.5], 6); // France par défaut
       return;
     }
-
     const bounds = L.latLngBounds(
       lieux
         .filter((l) => l.latitude && l.longitude)
         .map((l) => [l.latitude!, l.longitude!] as [number, number])
     );
-
     map.fitBounds(bounds, { padding: [50, 50] });
   }, [lieux, map]);
 
@@ -77,50 +72,37 @@ function FitBounds({ lieux }: { lieux: Lieu[] }) {
 }
 
 // 🔹 Bouton Leaflet : géolocalisation utilisateur
-function LocateUserControl({
-  onLocate,
-}: {
-  onLocate: (lat: number, lng: number) => void;
-}) {
+function LocateUserControl({ onLocate }: { onLocate: (lat: number, lng: number) => void }) {
   const map = useMap();
 
   useEffect(() => {
     const control = L.control({ position: 'topleft' });
-
     control.onAdd = () => {
       const button = L.DomUtil.create('button');
       button.innerHTML = '📍 Ma position';
-
-      button.style.background = '#fff';
-      button.style.padding = '6px 10px';
-      button.style.borderRadius = '6px';
-      button.style.border = '1px solid #ccc';
-      button.style.cursor = 'pointer';
-      button.style.fontWeight = 'bold';
-
+      Object.assign(button.style, {
+        background: '#fff',
+        padding: '6px 10px',
+        borderRadius: '6px',
+        border: '1px solid #ccc',
+        cursor: 'pointer',
+        fontWeight: 'bold',
+      });
       L.DomEvent.disableClickPropagation(button);
 
       button.onclick = () => {
-        if (!navigator.geolocation) {
-          alert('La géolocalisation n’est pas supportée.');
-          return;
-        }
-
+        if (!navigator.geolocation) return alert('La géolocalisation n’est pas supportée.');
         navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const { latitude, longitude } = position.coords;
+          (pos) => {
+            const { latitude, longitude } = pos.coords;
             onLocate(latitude, longitude);
             map.setView([latitude, longitude], 14);
           },
-          () => {
-            alert('Impossible de récupérer votre position.');
-          }
+          () => alert('Impossible de récupérer votre position.')
         );
       };
-
       return button;
     };
-
     control.addTo(map);
     return () => control.remove();
   }, [map, onLocate]);
@@ -128,282 +110,130 @@ function LocateUserControl({
   return null;
 }
 
-export default function LeafletMapSupabase() {
-  const [lieux, setLieux] = useState<Lieu[]>([]);
-  const [types, setTypes] = useState<{ id: number; label: string; slug: string }[]>([]);
-  const [selectedType, setSelectedType] = useState<number | 'all'>('all');
-  const [loading, setLoading] = useState(true);
-  const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
-
-  // 🔹 Icônes par type de lieu selon ton table location_types
+// 🔹 Icônes par type de lieu
 const typeIcons: Record<number, string> = {
-  7: '🪦',   // Tombe
-  8: '🏛️',  // Monument
-  9: '📜',  // Plaque commémorative
-  10: '🏛️', // Mémorial
-  11: '⚔️', // Lieu de bataille
-  12: '⛴️', // Lieu de débarquement
-  13: '💥', // Naufrage
-  14: '🛳️', // Épave
-  15: '🏛️', // Musée
-  16: '👣', // Trace de passage
-  17: '🪖', // Base
-  18: '⚓',  // Port
-  19: '⭐',  // Autre lieu remarquable
+  7: '🪦', 8: '🏛️', 9: '📜', 10: '🏛️',
+  11: '⚔️', 12: '⛴️', 13: '💥', 14: '🛳️',
+  15: '🏛️', 16: '👣', 17: '🪖', 18: '⚓',
+  19: '⭐',
 };
 
-  function getTypeIcon(typeId: number | null) {
-  if (!typeId) return '❓'; // inconnu
+function getTypeIcon(typeId: number | null) {
+  if (!typeId) return '❓';
   return typeIcons[typeId] || '❓';
 }
- 
+
+// 🔹 Composant principal
+export default function LeafletMapSupabase({ typeFilter }: LeafletMapSupabaseProps) {
+  const [lieux, setLieux] = useState<Lieu[]>([]);
+  const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
+  const [loading, setLoading] = useState(true);
+
   // 🔹 Récupération des lieux
   useEffect(() => {
     async function fetchLieux() {
       const { data, error } = await supabase
         .from('locations')
-        .select(`
-          id,
-          title,
-          description,
-          latitude,
-          longitude,
-          status,
-          type_id,
-          photos(url)
-        `);
-
+        .select(`id,title,description,latitude,longitude,status,type_id,photos(url)`);
       if (error) console.error('Erreur Supabase Leaflet:', error);
       else setLieux(data as Lieu[]);
-
       setLoading(false);
     }
-
     fetchLieux();
   }, []);
 
-  // 🔹 Récupération des types
-  useEffect(() => {
-    async function fetchTypes() {
-      const { data, error } = await supabase
-        .from('location_types')
-        .select('id,label,slug');
-      if (error) console.error('Erreur types:', error);
-      else setTypes(data ?? []);
-    }
-
-    fetchTypes();
-  }, []);
-  
-
-// 🔹 Fonction utilitaire pour récupérer le label d'un type
-function getTypeLabel(
-  typeId: number | null,
-  types: { id: number | string; label: string }[]
-) {
-  if (!typeId) return 'Catégorie inconnue';
-  const type = types.find((t) => Number(t.id) === typeId);
-  return type ? type.label : 'Catégorie inconnue';
-}
-  
-  // 🔹 Filtrer les lieux par type sélectionné
+  // 🔹 Lieux filtrés par type
   const lieuxFiltres = lieux.filter(
-    (l) => selectedType === 'all' || l.type_id === selectedType
+    (l) => typeFilter === 'all' || l.type_id === typeFilter
   );
 
- return (
-  <div style={{ width: '100%' }}>
- 
-
-<div style={{ position: 'relative', height: '500px', zIndex: 1, }}>
-  <MapContainer
-    {...({
-      style: { height: '100%', width: '100%', zIndex: 1 },
-      zoom: 5,
-      center: [48.8566, 2.3522],
-    } as any)}
-  >
-  
+  return (
+    <div style={{ width: '100%', position: 'relative', height: '80vh' }}>
+      <MapContainer
+        style={{ height: '100%', width: '100%' }}
+        {...({ center: [48.8566, 2.3522], zoom: 5, scrollWheelZoom: true } as any)}
+      >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-
-        {/* 🔹 Bouton géolocalisation */}
         <LocateUserControl onLocate={(lat, lng) => setUserPosition([lat, lng])} />
 
-        {/* 🔹 Lieux Supabase */}
-    <MarkerClusterGroup
-     showCoverageOnHover={false}
-     spiderfyOnEveryZoom={false}
-     chunkedLoading
-     maxClusterRadius={70}
-     iconCreateFunction={(cluster) => {
-    const count = cluster.getChildCount();
+        <MarkerClusterGroup
+          showCoverageOnHover={false}
+          spiderfyOnEveryZoom={false}
+          chunkedLoading
+          maxClusterRadius={70}
+          iconCreateFunction={(cluster) => {
+            const count = cluster.getChildCount();
+            return L.divIcon({
+              html: `<div class="cluster-blue">${count}</div>`,
+              className: '',
+              iconSize: L.point(44, 44, true),
+            });
+          }}
+        >
+          {lieuxFiltres.map(
+            (lieu) =>
+              lieu.latitude &&
+              lieu.longitude && (
+                <Marker key={lieu.id} {...({ position: [lieu.latitude, lieu.longitude] } as any)}>
+                  <Tooltip>{lieu.title} {getTypeIcon(lieu.type_id)}</Tooltip>
+                  <Popup>
+                    <div style={{ width: '260px', padding: '16px', borderRadius: '12px', backgroundColor: '#fff', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
+                      {lieu.status && (
+                        <div style={{
+                          backgroundColor: lieu.status === 'approved' ? '#2e7d32' : '#c62828',
+                          color: '#fff',
+                          padding: '2px 6px',
+                          fontSize: '10px',
+                          fontWeight: 600,
+                          borderRadius: '12px',
+                          marginBottom: '6px',
+                          display: 'inline-block',
+                        }}>
+                          {lieu.status === 'approved' ? '✔ Vérifié' : '⏳ Non vérifié'}
+                        </div>
+                      )}
+                      {lieu.photos?.[0]?.url && (
+                        <img src={lieu.photos[0].url} alt={lieu.title} style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '12px', marginBottom: '12px' }} />
+                      )}
+                      <strong>{lieu.title}</strong>
+                      {lieu.description && <p style={{ fontSize: '13px', color: '#333' }}>{lieu.description}</p>}
+                      <div style={{ textAlign: 'right', marginTop: '8px' }}>
+                        <Link href={`/lieux/${lieu.id}`} style={{ fontSize: '13px', fontWeight: 600, color: '#1e88e5' }}>
+                          Voir la fiche complète →
+                        </Link>
+                      </div>
+                    </div>
+                  </Popup>
+                </Marker>
+              )
+          )}
+        </MarkerClusterGroup>
 
-    return L.divIcon({
-      html: `
-        <div class="cluster-blue">
-          ${count}
-        </div>
-      `,
-      className: '',
-      iconSize: L.point(44, 44, true),
-    });
-  }}
->   
-    {lieuxFiltres.map((lieu) => (
-          <Marker key={lieu.id} position={[lieu.latitude, lieu.longitude]}>
-            <Tooltip
-              {...({
-                direction: 'top',
-                offset: [0, -10],
-                opacity: 1,
-                permanent: false,
-              } as any)}
-            >
-             {lieu.title} {getTypeIcon(lieu.type_id)}
-            </Tooltip>
-            <Popup>
-              <div
-                style={{
-                  position: 'relative',
-                  width: '260px',
-                  padding: '16px',
-                  boxSizing: 'border-box',
-                  fontFamily: 'inherit',
-                  borderRadius: '16px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                  backgroundColor: '#fff',
-                }}
-              >
-                {/* Badge */}
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: '6px',
-                    right: '6px',
-                    backgroundColor: lieu.status === 'approved' ? '#2e7d32' : '#c62828',
-                    color: '#fff',
-                    padding: '2px 6px',
-                    fontSize: '10px',
-                    fontWeight: 600,
-                    borderRadius: '12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    zIndex: 1,
-                  }}
-                >
-                  {lieu.status === 'approved' ? '✔ Vérifié' : '⏳ Non vérifié'}
-                </div>
-
-                {/* Image */}
-                {lieu.photos?.[0]?.url && (
-                  <img
-                    src={lieu.photos[0].url}
-                    alt={lieu.title}
-                    style={{
-                      width: '100%',
-                      height: '150px',
-                      objectFit: 'cover',
-                      borderRadius: '12px',
-                      marginBottom: '12px',
-                    }}
-                  />
-                )}
-
-                {/* Titre */}
-                <strong
-                  style={{
-                    display: 'block',
-                    fontSize: '16px',
-                    marginBottom: '6px',
-                    lineHeight: 1.3,
-                  }}
-                >
-                  {lieu.title}
-                </strong>
-
-                {/* Description */}
-                {lieu.description && (
-                  <p
-                    style={{
-                      fontSize: '13px',
-                      margin: 0,
-                      lineHeight: '1.5',
-                      color: '#333',
-                    }}
-                  >
-                    {lieu.description}
-                  </p>
-                )}
-
-                {/* 🔹 Lien vers la fiche lieu */}
-<div style={{ marginTop: '12px', textAlign: 'right' }}>
-  <Link
-    href={`/lieux/${lieu.id}`}
-    style={{
-      fontSize: '13px',
-      fontWeight: 600,
-      color: '#1e88e5',
-      textDecoration: 'none',
-    }}
-  >
-    Voir la fiche complète →
-  </Link>
-</div>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
-</MarkerClusterGroup>
-        {/* 🔹 Position utilisateur */}
         {userPosition && (
-          <Marker
-            {...({
-              position: userPosition,
-              icon: userIcon,
-            } as any)}
-          >
+          <Marker {...({ position: userPosition, icon: userIcon } as any)}>
             <Popup>Vous êtes ici</Popup>
           </Marker>
         )}
 
         <FitBounds lieux={lieuxFiltres} />
       </MapContainer>
-  </div>
-      {/* 🔹 Overlay chargement */}
+
       {loading && (
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            backgroundColor: 'rgba(255,255,255,0.8)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            fontSize: '1.2rem',
-            fontWeight: 'bold',
-            zIndex: 1000,
-          }}
-        >
+        <div style={{
+          position: 'absolute', inset: 0, backgroundColor: 'rgba(255,255,255,0.8)',
+          display: 'flex', justifyContent: 'center', alignItems: 'center',
+          fontSize: '1.2rem', fontWeight: 'bold', zIndex: 1000
+        }}>
           Chargement des lieux…
         </div>
       )}
 
-      {/* 🔹 Aucun lieu */}
       {!loading && lieuxFiltres.length === 0 && (
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            backgroundColor: 'rgba(255,255,255,0.8)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            fontSize: '1.2rem',
-            fontWeight: 'bold',
-            zIndex: 1000,
-          }}
-        >
+        <div style={{
+          position: 'absolute', inset: 0, backgroundColor: 'rgba(255,255,255,0.8)',
+          display: 'flex', justifyContent: 'center', alignItems: 'center',
+          fontSize: '1.2rem', fontWeight: 'bold', zIndex: 1000
+        }}>
           Aucun lieu trouvé.
         </div>
       )}
