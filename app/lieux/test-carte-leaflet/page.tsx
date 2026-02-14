@@ -24,17 +24,8 @@ export default function Page() {
         .select('id,label,slug')
         .order('id', { ascending: true });
 
-      console.log('Supabase types:', { data, error }); // 🔹 debug
-
-      if (error) {
-        console.error('Erreur types:', error);
-        setTypes([]);
-      } else if (!data || data.length === 0) {
-        console.warn('Aucun type renvoyé par Supabase');
-        setTypes([]);
-      } else {
-        setTypes(data);
-      }
+      if (error) console.error('Erreur types:', error);
+      else setTypes(data ?? []);
     }
     fetchTypes();
   }, []);
@@ -60,7 +51,7 @@ export default function Page() {
       <div
         style={{
           backgroundColor: '#fff',
-          padding: '1.5rem',
+          padding: '1rem 1.5rem',
           boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
           position: 'sticky',
           top: 0,
@@ -76,7 +67,7 @@ export default function Page() {
             gap: '1rem',
           }}
         >
-          <h1 style={{ margin: 0, fontSize: '1.6rem', textAlign: 'center' }}>
+          <h1 style={{ margin: 0, fontSize: '1.5rem', textAlign: 'center' }}>
             Carte des lieux de mémoire
           </h1>
 
@@ -84,14 +75,53 @@ export default function Page() {
           <div
             style={{
               display: 'flex',
-              gap: '0.75rem',
+              gap: '0.5rem',
               flexWrap: 'wrap',
               justifyContent: 'center',
             }}
           >
-            <Link href="/" style={{ padding: '0.7rem 1.4rem', backgroundColor: '#e9edf3', color: '#333', borderRadius: '999px', textDecoration: 'none', fontWeight: 600, fontSize: '0.95rem' }}>⬅ Retour accueil</Link>
-            <Link href="/lieux/proposer" style={{ padding: '0.7rem 1.4rem', backgroundColor: '#0070f3', color: '#fff', borderRadius: '999px', textDecoration: 'none', fontWeight: 600, fontSize: '0.95rem' }}>➕ Proposer un nouveau lieu en me connectant</Link>
-            <Link href="/register" style={{ padding: '0.7rem 1.4rem', backgroundColor: '#28a745', color: '#fff', borderRadius: '999px', textDecoration: 'none', fontWeight: 600, fontSize: '0.95rem' }}>📝 Créer un compte</Link>
+            <Link
+              href="/"
+              style={{
+                padding: '0.6rem 1rem',
+                backgroundColor: '#e9edf3',
+                color: '#333',
+                borderRadius: '999px',
+                textDecoration: 'none',
+                fontWeight: 600,
+                fontSize: '0.9rem',
+              }}
+            >
+              ⬅ Retour accueil
+            </Link>
+            <Link
+              href="/lieux/proposer"
+              style={{
+                padding: '0.6rem 1rem',
+                backgroundColor: '#0070f3',
+                color: '#fff',
+                borderRadius: '999px',
+                textDecoration: 'none',
+                fontWeight: 600,
+                fontSize: '0.9rem',
+              }}
+            >
+              ➕ Proposer un nouveau lieu
+            </Link>
+            <Link
+              href="/register"
+              style={{
+                padding: '0.6rem 1rem',
+                backgroundColor: '#28a745',
+                color: '#fff',
+                borderRadius: '999px',
+                textDecoration: 'none',
+                fontWeight: 600,
+                fontSize: '0.9rem',
+              }}
+            >
+              📝 Créer un compte
+            </Link>
           </div>
 
           {/* 🔹 Filtre type */}
@@ -101,30 +131,41 @@ export default function Page() {
               onChange={(e) =>
                 setSelectedType(e.target.value === 'all' ? 'all' : Number(e.target.value))
               }
-              style={{ padding: '0.6rem 1rem', borderRadius: '8px', border: '1px solid #ccc', fontSize: '0.95rem' }}
+              style={{
+                padding: '0.5rem 0.8rem',
+                borderRadius: '8px',
+                border: '1px solid #ccc',
+                fontSize: '0.9rem',
+                minWidth: '180px',
+              }}
             >
               <option value="all">Tous les types</option>
-              {types.length > 0 ? (
-                types.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.label}
-                  </option>
-                ))
-              ) : (
-                <option value="none">Aucun type disponible</option>
-              )}
+              {types.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.label}
+                </option>
+              ))}
             </select>
           </div>
         </div>
       </div>
 
       {/* Carte */}
-      <div style={{ width: '100%', margin: '1.5rem 0 0 0', height: '80vh', minHeight: '500px' }}>
+      <div style={{ width: '100%', margin: '1.5rem 0 0 0', height: '75vh', minHeight: '400px' }}>
         <LeafletMapSupabase typeFilter={selectedType} />
       </div>
 
       {/* Derniers lieux ajoutés */}
-      <div style={{ maxWidth: '1200px', margin: '2rem auto', padding: '1rem', backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>
+      <div
+        style={{
+          maxWidth: '1200px',
+          margin: '2rem auto',
+          padding: '1rem',
+          backgroundColor: '#fff',
+          borderRadius: '8px',
+          boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+        }}
+      >
         <h3 style={{ marginBottom: '0.5rem', color: '#0070f3' }}>📰 Derniers lieux ajoutés</h3>
         <ul style={{ margin: 0, paddingLeft: '1rem' }}>
           {latestLieux.length === 0 && <li>Aucun lieu récent</li>}
