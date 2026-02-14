@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation'
 export default function RegisterPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [username, setUsername] = useState('')
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -19,13 +20,17 @@ export default function RegisterPage() {
     setLoading(true)
 
     try {
+      // ✅ création du compte + envoi du pseudo au trigger
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-    emailRedirectTo:
-      'https://memoires-de-la-marine-i8gy.vercel.app/compte-active',
-  },
+          data: {
+            username, // 👈 envoyé au trigger SQL
+          },
+          emailRedirectTo:
+            'https://memoires-de-la-marine-i8gy.vercel.app/compte-active',
+        },
       })
 
       if (error) {
@@ -33,10 +38,11 @@ export default function RegisterPage() {
         return
       }
 
-      setMessage('✅ Compte créé avec succès. Vous pouvez maintenant vous connecter.')
+      setMessage('✅ Compte créé avec succès. Vérifiez votre email.')
 
       setEmail('')
       setPassword('')
+      setUsername('')
 
       setTimeout(() => {
         router.push('/login')
@@ -78,7 +84,7 @@ export default function RegisterPage() {
         onSubmit={handleSignup}
         style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
       >
-        {/* Champ Login : email */}
+        {/* Email */}
         <input
           type="email"
           placeholder="Login : email"
@@ -96,6 +102,16 @@ export default function RegisterPage() {
           onChange={(e) => setPassword(e.target.value)}
           required
           minLength={6}
+          style={inputStyle}
+        />
+
+        {/* Pseudo */}
+        <input
+          type="text"
+          placeholder="Pseudo (visible publiquement)"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          required
           style={inputStyle}
         />
 
