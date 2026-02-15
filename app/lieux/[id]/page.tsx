@@ -33,10 +33,7 @@ function formatPeriodStart(periodStart: string | null) {
   const date = new Date(periodStart);
 
   // Si c’est le 1er janvier → on affiche seulement l’année
-  if (
-    date.getUTCDate() === 1 &&
-    date.getUTCMonth() === 0
-  ) {
+  if (date.getUTCDate() === 1 && date.getUTCMonth() === 0) {
     return date.getUTCFullYear().toString();
   }
 
@@ -48,6 +45,18 @@ function formatPeriodStart(periodStart: string | null) {
 
 function formatPhotoDate(dateString: string | null) {
   if (!dateString) return null;
+
+  return new Date(dateString).toLocaleDateString('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+}
+
+// ⭐ NOUVEAU — format date création lieu
+function formatCreatedDate(dateString: string | null) {
+  if (!dateString) return 'Date inconnue';
 
   return new Date(dateString).toLocaleDateString('fr-FR', {
     day: '2-digit',
@@ -69,9 +78,23 @@ export default async function LieuPage({ params }: LieuProps) {
     .select('*')
     .eq('id', id)
     .single();
+
   if (lieuError || !lieu) {
     console.error(lieuError);
     return <p>Lieu non trouvé.</p>;
+  }
+
+  // ⭐ NOUVEAU — récupérer le pseudo du créateur
+  let creatorUsername = 'inconnu';
+
+  if (lieu.created_by) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('username')
+      .eq('id', lieu.created_by)
+      .single();
+
+    if (profile?.username) creatorUsername = profile.username;
   }
 
   // ------------------------
@@ -131,7 +154,22 @@ export default async function LieuPage({ params }: LieuProps) {
 </div>
 
       {/* 🔹 Titre du lieu */}
-      <h1 style={{ marginBottom: '1rem', fontSize: '2rem', color: '#003366' }}>{lieu.title}</h1>
+      <h1 style={{ marginBottom: '1rem', fontSize: '2rem', color: '#003366' }}>
+        {lieu.title}
+      </h1>
+
+      {/* ⭐ NOUVEAU — Création du lieu */}
+      <div
+        style={{
+          marginTop: '-0.5rem',
+          marginBottom: '1.5rem',
+          fontSize: '0.9rem',
+          color: '#666',
+          fontStyle: 'italic',
+        }}
+      >
+        Lieu créé par <strong>{creatorUsername}</strong> le {formatCreatedDate(lieu.created_at)}
+      </div>
 
       {/* Description */}
       <div style={{ backgroundColor: '#f9f9f9', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
@@ -175,6 +213,7 @@ export default async function LieuPage({ params }: LieuProps) {
     {formatPeriodStart(lieu.period_start)}
   </p>
 </div>
+
       {/* Marins associés */}
       {marins.length > 0 && (
         <div style={{ backgroundColor: '#f9f9f9', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
