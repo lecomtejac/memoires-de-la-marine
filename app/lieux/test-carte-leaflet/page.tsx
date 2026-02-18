@@ -132,7 +132,7 @@ export default function Page() {
         }}
       >
         <h1 style={{ margin: 0, fontSize: '1.1rem', textAlign: 'center' }}>
-          Carte mémoire marine
+          Lieux de mémoire de la marine
         </h1>
 
         {/* ACTIONS */}
