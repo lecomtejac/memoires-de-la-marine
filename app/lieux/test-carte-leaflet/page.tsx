@@ -80,7 +80,7 @@ export default function Page() {
   }, []);
 
   /* ===============================
-     REALTIME
+     REALTIME (FIX TS + REACT CLEANUP)
   =============================== */
 
   useEffect(() => {
@@ -96,7 +96,9 @@ export default function Page() {
       )
       .subscribe();
 
-    return () => supabase.removeChannel(channel);
+    return () => {
+      void supabase.removeChannel(channel); // ✅ FIX TypeScript
+    };
   }, []);
 
   /* ===============================
@@ -129,7 +131,6 @@ export default function Page() {
           zIndex: 10,
         }}
       >
-        {/* TITRE */}
         <h1 style={{ margin: 0, fontSize: '1.1rem', textAlign: 'center' }}>
           Carte mémoire marine
         </h1>
@@ -149,7 +150,7 @@ export default function Page() {
           <Link href="/register" style={actionBtn('#28a745', '#fff')}>Compte</Link>
         </div>
 
-        {/* FILTRES — SCROLL HORIZONTAL MOBILE */}
+        {/* FILTRES */}
         <div
           style={{
             display: 'flex',
@@ -178,7 +179,7 @@ export default function Page() {
         </div>
       </div>
 
-      {/* CARTE — MAX ÉCRAN MOBILE */}
+      {/* CARTE */}
       <div
         style={{
           width: '100%',
@@ -189,7 +190,7 @@ export default function Page() {
         <LeafletMapSupabase typeFilter={selectedType} />
       </div>
 
-      {/* DERNIERS LIEUX COMPACT */}
+      {/* DERNIERS LIEUX */}
       <div
         style={{
           margin: '0.8rem',
