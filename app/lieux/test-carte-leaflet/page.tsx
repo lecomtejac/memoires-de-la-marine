@@ -16,6 +16,10 @@ export default function Page() {
   const [selectedType, setSelectedType] = useState<number | 'all'>('all');
   const [latestLieux, setLatestLieux] = useState<Pick<Lieu, 'id' | 'title'>[]>([]);
 
+  // ✅ nouveaux states pour les counts
+  const [typeCounts, setTypeCounts] = useState<Record<number, number>>({});
+  const [totalCount, setTotalCount] = useState<number>(0);
+
   // 🔹 Récupération des types
   useEffect(() => {
     async function fetchTypes() {
@@ -28,6 +32,34 @@ export default function Page() {
       else setTypes(data ?? []);
     }
     fetchTypes();
+  }, []);
+
+  // 🔹 Récupération du nombre de lieux par type
+  useEffect(() => {
+    async function fetchCounts() {
+      const { data, error } = await supabase
+        .from('locations')
+        .select('type_id');
+
+      if (error) {
+        console.error('Erreur counts:', error);
+        return;
+      }
+
+      const counts: Record<number, number> = {};
+      let total = 0;
+
+      data?.forEach((row) => {
+        if (!row.type_id) return;
+        counts[row.type_id] = (counts[row.type_id] || 0) + 1;
+        total++;
+      });
+
+      setTypeCounts(counts);
+      setTotalCount(total);
+    }
+
+    fetchCounts();
   }, []);
 
   // 🔹 Récupération des 5 derniers lieux
@@ -94,6 +126,7 @@ export default function Page() {
             >
               ⬅ Retour accueil
             </Link>
+
             <Link
               href="/lieux/proposer"
               style={{
@@ -108,6 +141,7 @@ export default function Page() {
             >
               ➕ Proposer un nouveau lieu
             </Link>
+
             <Link
               href="/register"
               style={{
@@ -124,7 +158,7 @@ export default function Page() {
             </Link>
           </div>
 
-          {/* 🔹 Filtre type */}
+          {/* 🔹 Filtre type avec compte */}
           <div style={{ display: 'flex', justifyContent: 'center', marginTop: '0.5rem' }}>
             <select
               value={selectedType}
@@ -139,10 +173,11 @@ export default function Page() {
                 minWidth: '180px',
               }}
             >
-              <option value="all">Tous les types</option>
+              <option value="all">Tous les types ({totalCount})</option>
+
               {types.map((t) => (
                 <option key={t.id} value={t.id}>
-                  {t.label}
+                  {t.label} ({typeCounts[t.id] || 0})
                 </option>
               ))}
             </select>
@@ -167,11 +202,16 @@ export default function Page() {
         }}
       >
         <h3 style={{ marginBottom: '0.5rem', color: '#0070f3' }}>📰 Derniers lieux ajoutés</h3>
+
         <ul style={{ margin: 0, paddingLeft: '1rem' }}>
           {latestLieux.length === 0 && <li>Aucun lieu récent</li>}
+
           {latestLieux.map((lieu) => (
             <li key={lieu.id}>
-              <Link href={`/lieux/${lieu.id}`} style={{ color: '#003366', textDecoration: 'underline' }}>
+              <Link
+                href={`/lieux/${lieu.id}`}
+                style={{ color: '#003366', textDecoration: 'underline' }}
+              >
                 {lieu.title}
               </Link>
             </li>
