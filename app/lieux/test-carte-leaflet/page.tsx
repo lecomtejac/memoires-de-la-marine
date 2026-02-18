@@ -15,8 +15,51 @@ export default function Page() {
   const [types, setTypes] = useState<{ id: number; label: string; slug: string }[]>([]);
   const [selectedType, setSelectedType] = useState<number | 'all'>('all');
   const [latestLieux, setLatestLieux] = useState<Pick<Lieu, 'id' | 'title'>[]>([]);
+  const [typeCounts, setTypeCounts] = useState<Record<number, number>>({});
+  const [totalCount, setTotalCount] = useState<number>(0);
 
-  // 🔹 Récupération des types
+  /* ===============================
+     FETCH FUNCTIONS
+  =============================== */
+
+  async function fetchCounts() {
+    const { data, error } = await supabase
+      .from('locations')
+      .select('type_id');
+
+    if (error) {
+      console.error('Erreur counts:', error);
+      return;
+    }
+
+    const counts: Record<number, number> = {};
+    let total = 0;
+
+    data?.forEach((row) => {
+      if (!row.type_id) return;
+      counts[row.type_id] = (counts[row.type_id] || 0) + 1;
+      total++;
+    });
+
+    setTypeCounts(counts);
+    setTotalCount(total);
+  }
+
+  async function fetchLatest() {
+    const { data, error } = await supabase
+      .from('locations')
+      .select('id, title')
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    if (error) console.error(error);
+    else setLatestLieux(data || []);
+  }
+
+  /* ===============================
+     TYPES
+  =============================== */
+
   useEffect(() => {
     async function fetchTypes() {
       const { data, error } = await supabase
@@ -27,27 +70,64 @@ export default function Page() {
       if (error) console.error('Erreur types:', error);
       else setTypes(data ?? []);
     }
+
     fetchTypes();
   }, []);
 
-  // 🔹 Récupération des 5 derniers lieux
-  useEffect(() => {
-    async function fetchLatest() {
-      const { data, error } = await supabase
-        .from('locations')
-        .select('id, title')
-        .order('created_at', { ascending: false })
-        .limit(5);
+  /* ===============================
+     LOAD INITIAL DATA
+  =============================== */
 
-      if (error) console.error(error);
-      else setLatestLieux(data || []);
-    }
+  useEffect(() => {
+    fetchCounts();
     fetchLatest();
   }, []);
 
+  /* ===============================
+     REALTIME UPDATE
+  =============================== */
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('locations-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'locations',
+        },
+        () => {
+          fetchCounts();
+          fetchLatest();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  /* ===============================
+     STYLE BADGES
+  =============================== */
+
+  const badgeStyle = (active: boolean): React.CSSProperties => ({
+    padding: '0.5rem 0.9rem',
+    borderRadius: '999px',
+    border: active ? '2px solid #0070f3' : '1px solid #ccc',
+    backgroundColor: active ? '#0070f3' : '#fff',
+    color: active ? '#fff' : '#333',
+    fontSize: '0.85rem',
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'all 0.15s ease',
+  });
+
   return (
     <div style={{ fontFamily: 'sans-serif', backgroundColor: '#f5f7fa', minHeight: '100vh' }}>
-      {/* En-tête */}
+      {/* HEADER */}
       <div
         style={{
           backgroundColor: '#fff',
@@ -71,91 +151,59 @@ export default function Page() {
             Carte des lieux de mémoire
           </h1>
 
-          {/* Boutons principaux */}
+          {/* BOUTONS */}
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <Link href="/" style={{ padding: '0.6rem 1rem', backgroundColor: '#e9edf3', color: '#333', borderRadius: '999px', textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem' }}>
+              ⬅ Retour accueil
+            </Link>
+
+            <Link href="/lieux/proposer" style={{ padding: '0.6rem 1rem', backgroundColor: '#0070f3', color: '#fff', borderRadius: '999px', textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem' }}>
+              ➕ Proposer un nouveau lieu
+            </Link>
+
+            <Link href="/register" style={{ padding: '0.6rem 1rem', backgroundColor: '#28a745', color: '#fff', borderRadius: '999px', textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem' }}>
+              📝 Créer un compte
+            </Link>
+          </div>
+
+          {/* BADGES FILTRE */}
           <div
             style={{
               display: 'flex',
               gap: '0.5rem',
               flexWrap: 'wrap',
               justifyContent: 'center',
+              marginTop: '0.5rem',
             }}
           >
-            <Link
-              href="/"
-              style={{
-                padding: '0.6rem 1rem',
-                backgroundColor: '#e9edf3',
-                color: '#333',
-                borderRadius: '999px',
-                textDecoration: 'none',
-                fontWeight: 600,
-                fontSize: '0.9rem',
-              }}
+            {/* Tous */}
+            <button
+              onClick={() => setSelectedType('all')}
+              style={badgeStyle(selectedType === 'all')}
             >
-              ⬅ Retour accueil
-            </Link>
-            <Link
-              href="/lieux/proposer"
-              style={{
-                padding: '0.6rem 1rem',
-                backgroundColor: '#0070f3',
-                color: '#fff',
-                borderRadius: '999px',
-                textDecoration: 'none',
-                fontWeight: 600,
-                fontSize: '0.9rem',
-              }}
-            >
-              ➕ Proposer un nouveau lieu
-            </Link>
-            <Link
-              href="/register"
-              style={{
-                padding: '0.6rem 1rem',
-                backgroundColor: '#28a745',
-                color: '#fff',
-                borderRadius: '999px',
-                textDecoration: 'none',
-                fontWeight: 600,
-                fontSize: '0.9rem',
-              }}
-            >
-              📝 Créer un compte
-            </Link>
-          </div>
+              Tous ({totalCount})
+            </button>
 
-          {/* 🔹 Filtre type */}
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '0.5rem' }}>
-            <select
-              value={selectedType}
-              onChange={(e) =>
-                setSelectedType(e.target.value === 'all' ? 'all' : Number(e.target.value))
-              }
-              style={{
-                padding: '0.5rem 0.8rem',
-                borderRadius: '8px',
-                border: '1px solid #ccc',
-                fontSize: '0.9rem',
-                minWidth: '180px',
-              }}
-            >
-              <option value="all">Tous les types</option>
-              {types.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.label}
-                </option>
-              ))}
-            </select>
+            {/* Types */}
+            {types.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setSelectedType(t.id)}
+                style={badgeStyle(selectedType === t.id)}
+              >
+                {t.label} ({typeCounts[t.id] || 0})
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Carte */}
+      {/* CARTE */}
       <div style={{ width: '100%', margin: '1.5rem 0 0 0', height: '75vh', minHeight: '400px' }}>
         <LeafletMapSupabase typeFilter={selectedType} />
       </div>
 
-      {/* Derniers lieux ajoutés */}
+      {/* DERNIERS LIEUX */}
       <div
         style={{
           maxWidth: '1200px',
@@ -166,12 +214,19 @@ export default function Page() {
           boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
         }}
       >
-        <h3 style={{ marginBottom: '0.5rem', color: '#0070f3' }}>📰 Derniers lieux ajoutés</h3>
+        <h3 style={{ marginBottom: '0.5rem', color: '#0070f3' }}>
+          📰 Derniers lieux ajoutés
+        </h3>
+
         <ul style={{ margin: 0, paddingLeft: '1rem' }}>
           {latestLieux.length === 0 && <li>Aucun lieu récent</li>}
+
           {latestLieux.map((lieu) => (
             <li key={lieu.id}>
-              <Link href={`/lieux/${lieu.id}`} style={{ color: '#003366', textDecoration: 'underline' }}>
+              <Link
+                href={`/lieux/${lieu.id}`}
+                style={{ color: '#003366', textDecoration: 'underline' }}
+              >
                 {lieu.title}
               </Link>
             </li>
