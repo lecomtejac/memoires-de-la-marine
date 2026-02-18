@@ -14,6 +14,7 @@ const LeafletMapSupabase = dynamic(
 export default function Page() {
   const [types, setTypes] = useState<{ id: number; label: string; slug: string }[]>([]);
   const [selectedType, setSelectedType] = useState<number | 'all'>('all');
+  const [searchQuery, setSearchQuery] = useState(''); // barre de recherche
   const [latestLieux, setLatestLieux] = useState<Pick<Lieu, 'id' | 'title'>[]>([]);
   const [typeCounts, setTypeCounts] = useState<Record<number, number>>({});
   const [totalCount, setTotalCount] = useState<number>(0);
@@ -23,7 +24,11 @@ export default function Page() {
   =============================== */
 
   async function fetchCounts() {
-    const { data, error } = await supabase.from('locations').select('type_id');
+    let query = supabase.from('locations').select('type_id');
+
+    if (searchQuery) query = query.ilike('title', `%${searchQuery}%`);
+
+    const { data, error } = await query;
 
     if (error) {
       console.error(error);
@@ -44,11 +49,15 @@ export default function Page() {
   }
 
   async function fetchLatest() {
-    const { data, error } = await supabase
+    let query = supabase
       .from('locations')
       .select('id,title')
       .order('created_at', { ascending: false })
       .limit(5);
+
+    if (searchQuery) query = query.ilike('title', `%${searchQuery}%`);
+
+    const { data, error } = await query;
 
     if (!error) setLatestLieux(data || []);
   }
@@ -77,10 +86,10 @@ export default function Page() {
   useEffect(() => {
     fetchCounts();
     fetchLatest();
-  }, []);
+  }, [searchQuery]); // 🔹 se recharge à chaque recherche
 
   /* ===============================
-     REALTIME (FIX TS + REACT CLEANUP)
+     REALTIME
   =============================== */
 
   useEffect(() => {
@@ -96,10 +105,8 @@ export default function Page() {
       )
       .subscribe();
 
-    return () => {
-      void supabase.removeChannel(channel); // ✅ FIX TypeScript
-    };
-  }, []);
+    return () => void supabase.removeChannel(channel);
+  }, [searchQuery]);
 
   /* ===============================
      STYLE BADGES ULTRA COMPACT
@@ -119,8 +126,7 @@ export default function Page() {
 
   return (
     <div style={{ fontFamily: 'system-ui, sans-serif', background: '#f5f7fa', minHeight: '100vh' }}>
-
-      {/* HEADER COMPACT */}
+      {/* HEADER */}
       <div
         style={{
           background: '#fff',
@@ -177,17 +183,37 @@ export default function Page() {
             </button>
           ))}
         </div>
+
+        {/* BARRE DE RECHERCHE COMME ADMIN */}
+        <input
+          type="text"
+          placeholder="Rechercher par titre..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          style={{
+            marginTop: 6,
+            width: '100%',
+            padding: '6px 10px',
+            fontSize: '0.8rem',
+            borderRadius: 8,
+            border: '1px solid #ddd',
+            outline: 'none',
+          }}
+        />
       </div>
 
       {/* CARTE */}
       <div
         style={{
           width: '100%',
-          height: 'calc(100vh - 120px)',
+          height: 'calc(100vh - 160px)',
           minHeight: 350,
         }}
       >
-        <LeafletMapSupabase typeFilter={selectedType} />
+        <LeafletMapSupabase
+          typeFilter={selectedType}
+          searchQuery={searchQuery} // passe la recherche à la carte
+        />
       </div>
 
       {/* DERNIERS LIEUX */}
@@ -220,10 +246,7 @@ export default function Page() {
   );
 }
 
-/* ===============================
-   BOUTONS HEADER
-=============================== */
-
+/* BOUTONS HEADER */
 function actionBtn(bg: string, color: string): React.CSSProperties {
   return {
     padding: '6px 10px',

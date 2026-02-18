@@ -49,6 +49,7 @@ export type Lieu = {
 // 🔹 Props composant
 type LeafletMapSupabaseProps = {
   typeFilter: number | 'all';
+  searchQuery?: string; // on peut garder la prop si la page parente l'utilise
 };
 
 // 🔹 Ajuste automatiquement la carte aux lieux
@@ -124,7 +125,7 @@ function getTypeIcon(typeId: number | null) {
 }
 
 // 🔹 Composant principal
-export default function LeafletMapSupabase({ typeFilter }: LeafletMapSupabaseProps) {
+export default function LeafletMapSupabase({ typeFilter, searchQuery = '' }: LeafletMapSupabaseProps) {
   const [lieux, setLieux] = useState<Lieu[]>([]);
   const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -142,13 +143,16 @@ export default function LeafletMapSupabase({ typeFilter }: LeafletMapSupabasePro
     fetchLieux();
   }, []);
 
-  // 🔹 Lieux filtrés par type
-  const lieuxFiltres = lieux.filter(
-    (l) => typeFilter === 'all' || l.type_id === typeFilter
-  );
+  // 🔹 Lieux filtrés par type ET recherche (si searchQuery fourni)
+  const lieuxFiltres = lieux.filter((l) => {
+    const matchType = typeFilter === 'all' || l.type_id === typeFilter;
+    const matchSearch = l.title.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchType && matchSearch;
+  });
 
   return (
     <div style={{ width: '100%', position: 'relative', height: '80vh' }}>
+      {/* Carte */}
       <MapContainer
         style={{ height: '100%', width: '100%' }}
         {...({ center: [48.8566, 2.3522], zoom: 5, scrollWheelZoom: true } as any)}
