@@ -15,12 +15,11 @@ export default function Page() {
   const [types, setTypes] = useState<{ id: number; label: string; slug: string }[]>([]);
   const [selectedType, setSelectedType] = useState<number | 'all'>('all');
   const [latestLieux, setLatestLieux] = useState<Pick<Lieu, 'id' | 'title'>[]>([]);
-
   const [typeCounts, setTypeCounts] = useState<Record<number, number>>({});
   const [totalCount, setTotalCount] = useState<number>(0);
 
   /* ===============================
-     FETCH FUNCTIONS (réutilisables)
+     FETCH FUNCTIONS
   =============================== */
 
   async function fetchCounts() {
@@ -85,7 +84,7 @@ export default function Page() {
   }, []);
 
   /* ===============================
-     REALTIME AUTO UPDATE
+     REALTIME UPDATE
   =============================== */
 
   useEffect(() => {
@@ -94,13 +93,11 @@ export default function Page() {
       .on(
         'postgres_changes',
         {
-          event: '*', // INSERT, UPDATE, DELETE
+          event: '*',
           schema: 'public',
           table: 'locations',
         },
         () => {
-          console.log('🔄 Changement détecté → refresh');
-
           fetchCounts();
           fetchLatest();
         }
@@ -112,9 +109,25 @@ export default function Page() {
     };
   }, []);
 
+  /* ===============================
+     STYLE BADGES
+  =============================== */
+
+  const badgeStyle = (active: boolean): React.CSSProperties => ({
+    padding: '0.5rem 0.9rem',
+    borderRadius: '999px',
+    border: active ? '2px solid #0070f3' : '1px solid #ccc',
+    backgroundColor: active ? '#0070f3' : '#fff',
+    color: active ? '#fff' : '#333',
+    fontSize: '0.85rem',
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'all 0.15s ease',
+  });
+
   return (
     <div style={{ fontFamily: 'sans-serif', backgroundColor: '#f5f7fa', minHeight: '100vh' }}>
-      {/* En-tête */}
+      {/* HEADER */}
       <div
         style={{
           backgroundColor: '#fff',
@@ -138,15 +151,8 @@ export default function Page() {
             Carte des lieux de mémoire
           </h1>
 
-          {/* Boutons */}
-          <div
-            style={{
-              display: 'flex',
-              gap: '0.5rem',
-              flexWrap: 'wrap',
-              justifyContent: 'center',
-            }}
-          >
+          {/* BOUTONS */}
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
             <Link href="/" style={{ padding: '0.6rem 1rem', backgroundColor: '#e9edf3', color: '#333', borderRadius: '999px', textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem' }}>
               ⬅ Retour accueil
             </Link>
@@ -160,39 +166,44 @@ export default function Page() {
             </Link>
           </div>
 
-          {/* Filtre type avec compte */}
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '0.5rem' }}>
-            <select
-              value={selectedType}
-              onChange={(e) =>
-                setSelectedType(e.target.value === 'all' ? 'all' : Number(e.target.value))
-              }
-              style={{
-                padding: '0.5rem 0.8rem',
-                borderRadius: '8px',
-                border: '1px solid #ccc',
-                fontSize: '0.9rem',
-                minWidth: '180px',
-              }}
+          {/* BADGES FILTRE */}
+          <div
+            style={{
+              display: 'flex',
+              gap: '0.5rem',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+              marginTop: '0.5rem',
+            }}
+          >
+            {/* Tous */}
+            <button
+              onClick={() => setSelectedType('all')}
+              style={badgeStyle(selectedType === 'all')}
             >
-              <option value="all">Tous les types ({totalCount})</option>
+              Tous ({totalCount})
+            </button>
 
-              {types.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.label} ({typeCounts[t.id] || 0})
-                </option>
-              ))}
-            </select>
+            {/* Types */}
+            {types.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setSelectedType(t.id)}
+                style={badgeStyle(selectedType === t.id)}
+              >
+                {t.label} ({typeCounts[t.id] || 0})
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Carte */}
+      {/* CARTE */}
       <div style={{ width: '100%', margin: '1.5rem 0 0 0', height: '75vh', minHeight: '400px' }}>
         <LeafletMapSupabase typeFilter={selectedType} />
       </div>
 
-      {/* Derniers lieux */}
+      {/* DERNIERS LIEUX */}
       <div
         style={{
           maxWidth: '1200px',
