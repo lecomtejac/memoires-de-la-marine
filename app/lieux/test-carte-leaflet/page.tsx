@@ -23,12 +23,10 @@ export default function Page() {
   =============================== */
 
   async function fetchCounts() {
-    const { data, error } = await supabase
-      .from('locations')
-      .select('type_id');
+    const { data, error } = await supabase.from('locations').select('type_id');
 
     if (error) {
-      console.error('Erreur counts:', error);
+      console.error(error);
       return;
     }
 
@@ -48,16 +46,15 @@ export default function Page() {
   async function fetchLatest() {
     const { data, error } = await supabase
       .from('locations')
-      .select('id, title')
+      .select('id,title')
       .order('created_at', { ascending: false })
       .limit(5);
 
-    if (error) console.error(error);
-    else setLatestLieux(data || []);
+    if (!error) setLatestLieux(data || []);
   }
 
   /* ===============================
-     TYPES
+     LOAD TYPES
   =============================== */
 
   useEffect(() => {
@@ -67,15 +64,14 @@ export default function Page() {
         .select('id,label,slug')
         .order('id', { ascending: true });
 
-      if (error) console.error('Erreur types:', error);
-      else setTypes(data ?? []);
+      if (!error) setTypes(data ?? []);
     }
 
     fetchTypes();
   }, []);
 
   /* ===============================
-     LOAD INITIAL DATA
+     INITIAL LOAD
   =============================== */
 
   useEffect(() => {
@@ -84,7 +80,7 @@ export default function Page() {
   }, []);
 
   /* ===============================
-     REALTIME UPDATE
+     REALTIME (FIX TS + REACT CLEANUP)
   =============================== */
 
   useEffect(() => {
@@ -92,11 +88,7 @@ export default function Page() {
       .channel('locations-changes')
       .on(
         'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'locations',
-        },
+        { event: '*', schema: 'public', table: 'locations' },
         () => {
           fetchCounts();
           fetchLatest();
@@ -105,128 +97,119 @@ export default function Page() {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      void supabase.removeChannel(channel); // ✅ FIX TypeScript
     };
   }, []);
 
   /* ===============================
-     STYLE BADGES
+     STYLE BADGES ULTRA COMPACT
   =============================== */
 
   const badgeStyle = (active: boolean): React.CSSProperties => ({
-    padding: '0.5rem 0.9rem',
+    padding: '6px 10px',
     borderRadius: '999px',
-    border: active ? '2px solid #0070f3' : '1px solid #ccc',
+    border: active ? '2px solid #0070f3' : '1px solid #ddd',
     backgroundColor: active ? '#0070f3' : '#fff',
     color: active ? '#fff' : '#333',
-    fontSize: '0.85rem',
+    fontSize: '0.75rem',
     fontWeight: 600,
+    whiteSpace: 'nowrap',
     cursor: 'pointer',
-    transition: 'all 0.15s ease',
   });
 
   return (
-    <div style={{ fontFamily: 'sans-serif', backgroundColor: '#f5f7fa', minHeight: '100vh' }}>
-      {/* HEADER */}
+    <div style={{ fontFamily: 'system-ui, sans-serif', background: '#f5f7fa', minHeight: '100vh' }}>
+
+      {/* HEADER COMPACT */}
       <div
         style={{
-          backgroundColor: '#fff',
-          padding: '1rem 1.5rem',
-          boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
+          background: '#fff',
+          padding: '0.6rem',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
           position: 'sticky',
           top: 0,
           zIndex: 10,
         }}
       >
+        <h1 style={{ margin: 0, fontSize: '1.1rem', textAlign: 'center' }}>
+          Lieux de mémoire de la marine
+        </h1>
+
+        {/* ACTIONS */}
         <div
           style={{
-            maxWidth: '1200px',
-            margin: '0 auto',
             display: 'flex',
-            flexDirection: 'column',
-            gap: '1rem',
+            gap: 6,
+            overflowX: 'auto',
+            marginTop: 6,
+            paddingBottom: 4,
           }}
         >
-          <h1 style={{ margin: 0, fontSize: '1.5rem', textAlign: 'center' }}>
-            Carte des lieux de mémoire
-          </h1>
+          <Link href="/" style={actionBtn('#e9edf3', '#333')}>⬅ Accueil</Link>
+          <Link href="/lieux/proposer" style={actionBtn('#0070f3', '#fff')}>➕ Lieu</Link>
+          <Link href="/register" style={actionBtn('#28a745', '#fff')}>Compte</Link>
+        </div>
 
-          {/* BOUTONS */}
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-            <Link href="/" style={{ padding: '0.6rem 1rem', backgroundColor: '#e9edf3', color: '#333', borderRadius: '999px', textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem' }}>
-              ⬅ Retour accueil
-            </Link>
-
-            <Link href="/lieux/proposer" style={{ padding: '0.6rem 1rem', backgroundColor: '#0070f3', color: '#fff', borderRadius: '999px', textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem' }}>
-              ➕ Proposer un nouveau lieu
-            </Link>
-
-            <Link href="/register" style={{ padding: '0.6rem 1rem', backgroundColor: '#28a745', color: '#fff', borderRadius: '999px', textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem' }}>
-              📝 Créer un compte
-            </Link>
-          </div>
-
-          {/* BADGES FILTRE */}
-          <div
-            style={{
-              display: 'flex',
-              gap: '0.5rem',
-              flexWrap: 'wrap',
-              justifyContent: 'center',
-              marginTop: '0.5rem',
-            }}
+        {/* FILTRES */}
+        <div
+          style={{
+            display: 'flex',
+            gap: 6,
+            overflowX: 'auto',
+            marginTop: 6,
+            paddingBottom: 4,
+          }}
+        >
+          <button
+            onClick={() => setSelectedType('all')}
+            style={badgeStyle(selectedType === 'all')}
           >
-            {/* Tous */}
-            <button
-              onClick={() => setSelectedType('all')}
-              style={badgeStyle(selectedType === 'all')}
-            >
-              Tous ({totalCount})
-            </button>
+            Tous {totalCount}
+          </button>
 
-            {/* Types */}
-            {types.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setSelectedType(t.id)}
-                style={badgeStyle(selectedType === t.id)}
-              >
-                {t.label} ({typeCounts[t.id] || 0})
-              </button>
-            ))}
-          </div>
+          {types.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setSelectedType(t.id)}
+              style={badgeStyle(selectedType === t.id)}
+            >
+              {t.label} {typeCounts[t.id] || 0}
+            </button>
+          ))}
         </div>
       </div>
 
       {/* CARTE */}
-      <div style={{ width: '100%', margin: '1.5rem 0 0 0', height: '75vh', minHeight: '400px' }}>
+      <div
+        style={{
+          width: '100%',
+          height: 'calc(100vh - 120px)',
+          minHeight: 350,
+        }}
+      >
         <LeafletMapSupabase typeFilter={selectedType} />
       </div>
 
       {/* DERNIERS LIEUX */}
       <div
         style={{
-          maxWidth: '1200px',
-          margin: '2rem auto',
-          padding: '1rem',
-          backgroundColor: '#fff',
-          borderRadius: '8px',
-          boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+          margin: '0.8rem',
+          padding: '0.8rem',
+          background: '#fff',
+          borderRadius: 10,
+          boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
         }}
       >
-        <h3 style={{ marginBottom: '0.5rem', color: '#0070f3' }}>
-          📰 Derniers lieux ajoutés
+        <h3 style={{ margin: 0, fontSize: '0.9rem', color: '#0070f3' }}>
+          Derniers ajouts
         </h3>
 
-        <ul style={{ margin: 0, paddingLeft: '1rem' }}>
-          {latestLieux.length === 0 && <li>Aucun lieu récent</li>}
+        <ul style={{ margin: '0.4rem 0 0', paddingLeft: 16, fontSize: '0.85rem' }}>
+          {latestLieux.length === 0 && <li>Aucun lieu</li>}
 
           {latestLieux.map((lieu) => (
             <li key={lieu.id}>
-              <Link
-                href={`/lieux/${lieu.id}`}
-                style={{ color: '#003366', textDecoration: 'underline' }}
-              >
+              <Link href={`/lieux/${lieu.id}`}>
                 {lieu.title}
               </Link>
             </li>
@@ -235,4 +218,21 @@ export default function Page() {
       </div>
     </div>
   );
+}
+
+/* ===============================
+   BOUTONS HEADER
+=============================== */
+
+function actionBtn(bg: string, color: string): React.CSSProperties {
+  return {
+    padding: '6px 10px',
+    borderRadius: 999,
+    background: bg,
+    color,
+    fontSize: '0.75rem',
+    fontWeight: 600,
+    textDecoration: 'none',
+    whiteSpace: 'nowrap',
+  };
 }
