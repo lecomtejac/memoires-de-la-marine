@@ -16,11 +16,51 @@ export default function Page() {
   const [selectedType, setSelectedType] = useState<number | 'all'>('all');
   const [latestLieux, setLatestLieux] = useState<Pick<Lieu, 'id' | 'title'>[]>([]);
 
-  // ✅ nouveaux states pour les counts
   const [typeCounts, setTypeCounts] = useState<Record<number, number>>({});
   const [totalCount, setTotalCount] = useState<number>(0);
 
-  // 🔹 Récupération des types
+  /* ===============================
+     FETCH FUNCTIONS (réutilisables)
+  =============================== */
+
+  async function fetchCounts() {
+    const { data, error } = await supabase
+      .from('locations')
+      .select('type_id');
+
+    if (error) {
+      console.error('Erreur counts:', error);
+      return;
+    }
+
+    const counts: Record<number, number> = {};
+    let total = 0;
+
+    data?.forEach((row) => {
+      if (!row.type_id) return;
+      counts[row.type_id] = (counts[row.type_id] || 0) + 1;
+      total++;
+    });
+
+    setTypeCounts(counts);
+    setTotalCount(total);
+  }
+
+  async function fetchLatest() {
+    const { data, error } = await supabase
+      .from('locations')
+      .select('id, title')
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    if (error) console.error(error);
+    else setLatestLieux(data || []);
+  }
+
+  /* ===============================
+     TYPES
+  =============================== */
+
   useEffect(() => {
     async function fetchTypes() {
       const { data, error } = await supabase
@@ -31,50 +71,45 @@ export default function Page() {
       if (error) console.error('Erreur types:', error);
       else setTypes(data ?? []);
     }
+
     fetchTypes();
   }, []);
 
-  // 🔹 Récupération du nombre de lieux par type
+  /* ===============================
+     LOAD INITIAL DATA
+  =============================== */
+
   useEffect(() => {
-    async function fetchCounts() {
-      const { data, error } = await supabase
-        .from('locations')
-        .select('type_id');
-
-      if (error) {
-        console.error('Erreur counts:', error);
-        return;
-      }
-
-      const counts: Record<number, number> = {};
-      let total = 0;
-
-      data?.forEach((row) => {
-        if (!row.type_id) return;
-        counts[row.type_id] = (counts[row.type_id] || 0) + 1;
-        total++;
-      });
-
-      setTypeCounts(counts);
-      setTotalCount(total);
-    }
-
     fetchCounts();
+    fetchLatest();
   }, []);
 
-  // 🔹 Récupération des 5 derniers lieux
-  useEffect(() => {
-    async function fetchLatest() {
-      const { data, error } = await supabase
-        .from('locations')
-        .select('id, title')
-        .order('created_at', { ascending: false })
-        .limit(5);
+  /* ===============================
+     REALTIME AUTO UPDATE
+  =============================== */
 
-      if (error) console.error(error);
-      else setLatestLieux(data || []);
-    }
-    fetchLatest();
+  useEffect(() => {
+    const channel = supabase
+      .channel('locations-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // INSERT, UPDATE, DELETE
+          schema: 'public',
+          table: 'locations',
+        },
+        () => {
+          console.log('🔄 Changement détecté → refresh');
+
+          fetchCounts();
+          fetchLatest();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   return (
@@ -103,7 +138,7 @@ export default function Page() {
             Carte des lieux de mémoire
           </h1>
 
-          {/* Boutons principaux */}
+          {/* Boutons */}
           <div
             style={{
               display: 'flex',
@@ -112,53 +147,20 @@ export default function Page() {
               justifyContent: 'center',
             }}
           >
-            <Link
-              href="/"
-              style={{
-                padding: '0.6rem 1rem',
-                backgroundColor: '#e9edf3',
-                color: '#333',
-                borderRadius: '999px',
-                textDecoration: 'none',
-                fontWeight: 600,
-                fontSize: '0.9rem',
-              }}
-            >
+            <Link href="/" style={{ padding: '0.6rem 1rem', backgroundColor: '#e9edf3', color: '#333', borderRadius: '999px', textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem' }}>
               ⬅ Retour accueil
             </Link>
 
-            <Link
-              href="/lieux/proposer"
-              style={{
-                padding: '0.6rem 1rem',
-                backgroundColor: '#0070f3',
-                color: '#fff',
-                borderRadius: '999px',
-                textDecoration: 'none',
-                fontWeight: 600,
-                fontSize: '0.9rem',
-              }}
-            >
+            <Link href="/lieux/proposer" style={{ padding: '0.6rem 1rem', backgroundColor: '#0070f3', color: '#fff', borderRadius: '999px', textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem' }}>
               ➕ Proposer un nouveau lieu
             </Link>
 
-            <Link
-              href="/register"
-              style={{
-                padding: '0.6rem 1rem',
-                backgroundColor: '#28a745',
-                color: '#fff',
-                borderRadius: '999px',
-                textDecoration: 'none',
-                fontWeight: 600,
-                fontSize: '0.9rem',
-              }}
-            >
+            <Link href="/register" style={{ padding: '0.6rem 1rem', backgroundColor: '#28a745', color: '#fff', borderRadius: '999px', textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem' }}>
               📝 Créer un compte
             </Link>
           </div>
 
-          {/* 🔹 Filtre type avec compte */}
+          {/* Filtre type avec compte */}
           <div style={{ display: 'flex', justifyContent: 'center', marginTop: '0.5rem' }}>
             <select
               value={selectedType}
@@ -190,7 +192,7 @@ export default function Page() {
         <LeafletMapSupabase typeFilter={selectedType} />
       </div>
 
-      {/* Derniers lieux ajoutés */}
+      {/* Derniers lieux */}
       <div
         style={{
           maxWidth: '1200px',
@@ -201,7 +203,9 @@ export default function Page() {
           boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
         }}
       >
-        <h3 style={{ marginBottom: '0.5rem', color: '#0070f3' }}>📰 Derniers lieux ajoutés</h3>
+        <h3 style={{ marginBottom: '0.5rem', color: '#0070f3' }}>
+          📰 Derniers lieux ajoutés
+        </h3>
 
         <ul style={{ margin: 0, paddingLeft: '1rem' }}>
           {latestLieux.length === 0 && <li>Aucun lieu récent</li>}
