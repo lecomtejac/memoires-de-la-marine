@@ -8,6 +8,10 @@ export const metadata: Metadata = {
   },
   title: 'Mémoires de la Marine',
   description: 'Carte collaborative des lieux de mémoires de la marine',
+  icons: {
+    icon: '/favicon.png', // <--- ici, ton favicon dans /public
+    shortcut: '/favicon.png', // pour les navigateurs qui utilisent "shortcut icon"
+  },
 };
 
 export default function RootLayout({
