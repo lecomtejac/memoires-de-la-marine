@@ -8,6 +8,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
+        <head>
+        {/* Vérification Google Search Console */}
+        <meta
+          name="google-site-verification"
+          content="<meta name="google-site-verification" content="YNHAKhqqH6CSjYo9krLJOUws8fCjvJHjCMU-P6p8G84" />"
+        />
+      </head>
       <body>
         {children}
 
