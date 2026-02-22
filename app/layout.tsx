@@ -1,5 +1,14 @@
 import './globals.css';
 import Script from 'next/script';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  verification: {
+    google: 'YNHAKhqqH6CSjYo9krLJOUws8fCjvJHjCMU-P6p8G84',
+  },
+  title: 'Mémoires de la Marine',
+  description: 'Carte collaborative des lieux de mémoires de la marine',
+};
 
 export default function RootLayout({
   children,
@@ -8,19 +17,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
-        <head>
-        {/* Vérification Google Search Console */}
-        <meta
-          name="google-site-verification"
-          content="<meta name="google-site-verification" content="YNHAKhqqH6CSjYo9krLJOUws8fCjvJHjCMU-P6p8G84" />"
-        />
-      </head>
       <body>
         {children}
 
         {/* Google Analytics */}
         <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"
+          src="https://www.googletagmanager.com/gtag/js?id=G-DEMR5PWQPJ"
           strategy="afterInteractive"
         />
 
