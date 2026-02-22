@@ -15,7 +15,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const { data: lieux, error } = await supabase
     .from('locations')
     .select('id, updated_at')
-    .eq('is_published', true);
+    .eq('status', 'approved');
 
   if (error) {
     console.error('Erreur récupération lieux:', error);
