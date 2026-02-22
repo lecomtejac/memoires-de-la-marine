@@ -105,7 +105,7 @@ export default function HomePage() {
             }}
           >
             <Link
-              href="https://memoires-de-la-marine-i8gy.vercel.app/lieux/test-carte-leaflet"
+              href="/lieux/test-carte-leaflet"
               style={{
                 display: 'inline-block',
                 padding: '1rem 2.2rem',
