@@ -1,8 +1,8 @@
 import { MetadataRoute } from 'next';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseUrl = process.env.https://ieramjeinentpedmknse.supabase.co;
+const supabaseKey = process.env.sb_publishable_LOsnpXQP7pMHf--3idK-vQ_De5jPk34;
 
 if (!supabaseUrl || !supabaseKey) {
   console.error('❌ Supabase URL ou Service Role Key manquante');
