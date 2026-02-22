@@ -29,7 +29,7 @@ export default function RegisterPage() {
             username, // 👈 envoyé au trigger SQL
           },
           emailRedirectTo:
-            'https://memoires-de-la-marine-i8gy.vercel.app/compte-active',
+            'https://www.memoiresdelamarine.fr/compte-active',
         },
       })
 
