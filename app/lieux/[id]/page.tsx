@@ -297,6 +297,20 @@ export default async function LieuPage({ params }: LieuProps) {
           </div>
         </div>
       )}
+
+<script
+  type="application/ld+json"
+  dangerouslySetInnerHTML={{
+    __html: JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Museum",
+      name: lieu.title,
+      url: `https://www.memoiresdelamarine.fr/lieux/${id}`,
+      description: lieu.description,
+    }),
+  }}
+/>
+      
     </div>
   );
 }
