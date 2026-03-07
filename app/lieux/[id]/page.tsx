@@ -82,7 +82,7 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
   }
 
   return {
-    title: `${lieu.title} | Mémoires de la Marine`,
+    title: `${lieu.title} – ${getTypeLabel(lieu.type_id)} | Mémoires de la Marine`,
     description:
       lieu.description?.slice(0, 160) ||
       `Découvrez ${lieu.title}, lieu de mémoire maritime recensé sur Mémoires de la Marine.`,
