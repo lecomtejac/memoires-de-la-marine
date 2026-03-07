@@ -66,6 +66,32 @@ function formatCreatedDate(dateString: string | null) {
   });
 }
 
+export async function generateMetadata({ params }: { params: { id: string } }) {
+  const id = parseInt(params.id);
+
+  const { data: lieu } = await supabase
+    .from('locations')
+    .select('title, description')
+    .eq('id', id)
+    .single();
+
+  if (!lieu) {
+    return {
+      title: 'Lieu de mémoire maritime',
+    };
+  }
+
+  return {
+    title: `${lieu.title} | Mémoires de la Marine`,
+    description:
+      lieu.description?.slice(0, 160) ||
+      `Découvrez ${lieu.title}, lieu de mémoire maritime recensé sur Mémoires de la Marine.`,
+    alternates: {
+      canonical: `https://www.memoiresdelamarine.fr/lieux/${id}`,
+    },
+  };
+}
+
 export default async function LieuPage({ params }: LieuProps) {
   const id = parseInt(params.id);
   if (isNaN(id)) return <p>ID invalide</p>;
