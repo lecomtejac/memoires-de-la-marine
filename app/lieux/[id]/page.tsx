@@ -303,7 +303,7 @@ export default async function LieuPage({ params }: LieuProps) {
   dangerouslySetInnerHTML={{
     __html: JSON.stringify({
       "@context": "https://schema.org",
-      "@type": "Museum",
+      "@type": "Place",
       name: lieu.title,
       url: `https://www.memoiresdelamarine.fr/lieux/${id}`,
       description: lieu.description,
