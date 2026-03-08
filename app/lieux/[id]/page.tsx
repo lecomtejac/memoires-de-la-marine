@@ -305,8 +305,13 @@ export default async function LieuPage({ params }: LieuProps) {
       "@context": "https://schema.org",
       "@type": "Place",
       name: lieu.title,
-      url: `https://www.memoiresdelamarine.fr/lieux/${id}`,
       description: lieu.description,
+      url: `https://www.memoiresdelamarine.fr/lieux/${id}`,
+      geo: {
+        "@type": "GeoCoordinates",
+        latitude: lieu.latitude,
+        longitude: lieu.longitude
+      }
     }),
   }}
 />
