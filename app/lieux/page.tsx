@@ -19,7 +19,7 @@ export default async function LieuxPage() {
     <div style={{ maxWidth: '900px', margin: '0 auto', padding: '2rem', fontFamily: 'sans-serif' }}>
 
       <h1 style={{ fontSize: '2rem', marginBottom: '1.5rem', color: '#003366' }}>
-        Lieux de mémoire maritime
+        Lieux de mémoire de la Marine
       </h1>
 
       <p style={{ marginBottom: '2rem' }}>
